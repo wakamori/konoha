@@ -1,3 +1,3 @@
 K.import("python");
 
-System.p(System.importPyModule("re").split(" ", "hello, world."));
+p(PyObject.import("re").split(" ", "hello, world."));
