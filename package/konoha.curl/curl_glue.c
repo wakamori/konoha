@@ -22,30 +22,31 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#ifndef KONOHA2_LOCAL_H_
-#define KONOHA2_LOCAL_H_
+#include<konoha2/konoha2.h>
+#include<konoha2/sugar.h>
+#include<konoha2/bytes.h>
 
-#define IS_ROOTCTX(o)  (_ctx == (CTX_t)o)
+#include "curl_glue.h"
 
-// These functions are local functions in konoha2 binary.
-// Don't call from packages directly   (kimio)
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct _kObject** KONOHA_reftail(CTX, size_t size);
-void KONOHA_reftraceObject(CTX, kObject *o);  // called from MODGC
-void KONOHA_freeObjectField(CTX, struct _kObject *o);       // callled from MODGC
+struct kcontext_t *ctx;
 
-void MODCODE_init(CTX, kcontext_t *ctx);
-//void MODCODE_genCode(CTX, kMethod *mtd, const struct _kBlock *bk);
+KDEFINE_PACKAGE* curl_init(void)
+{
+	static KDEFINE_PACKAGE d = {
+		KPACKNAME("curl", "1.0"),
+		.initPackage = curl_initPackage,
+		.setupPackage = curl_setupPackage,
+		.initKonohaSpace = curl_initKonohaSpace,
+		.setupKonohaSpace = curl_setupKonohaSpace,
+	};
+	return &d;
+}
 
-void MODSUGAR_init(CTX, kcontext_t *ctx);
-kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline);
-kstatus_t MODSUGAR_eval(CTX, const char *script, kline_t uline);
+#ifdef __cplusplus
+}
+#endif
 
-void MODLOGGER_init(CTX, kcontext_t *ctx);
-void MODLOGGER_free(CTX, kcontext_t *ctx);
-void MODSUGAR_loadMethod(CTX);
-
-
-
-
-#endif /* KONOHA2_LOCAL_H_ */
