@@ -40,11 +40,6 @@ typedef struct  {
 #define kmodlogpool ((kmodlogpool_t*)_ctx->modshare[MOD_logger])
 #define ctxlogpool  ((ctxlogpool_t*)_ctx->modlocal[MOD_logger])
 
-static uintptr_t Ktrace_p(CTX, klogconf_t *logconf, va_list ap)
-{
-	return 0;// FIXME reference to log
-}
-
 static uintptr_t Ktrace(CTX, klogconf_t *logconf, ...)
 {
 	if(TFLAG_is(int, logconf->policy, LOGPOL_INIT)) {
@@ -52,9 +47,9 @@ static uintptr_t Ktrace(CTX, klogconf_t *logconf, ...)
 	}
 	va_list ap;
 	va_start(ap, logconf);
-	uintptr_t ref = Ktrace_p(_ctx, logconf, ap);
+	logpool_record_ap(ctxlogpool->logpool, logconf, 0, "konoha", ap);
 	va_end(ap);
-	return ref;
+	return 0;// FIXME reference to log
 }
 
 static void ctxlogpool_reftrace(CTX, struct kmodlocal_t *baseh)
