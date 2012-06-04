@@ -79,9 +79,16 @@ else(KONOHA_GC_MODULE)
 	set(GC src/gc/gc.c)
 endif(KONOHA_GC_MODULE)
 
-set(LOGGER
-	src/logger/logger.c
-)
+
+set(KONOHA_LOGGER_MODULE "" CACHE STRING "konoha logger module")
+if(KONOHA_LOGGER_MODULE)
+	if("${KONOHA_LOGGER_MODULE}" MATCHES "logpool")
+		set(LOGGER_MODULE_LIBS logpool)
+	endif()
+	set(LOGGER module/${KONOHA_LOGGER_MODULE}/${KONOHA_LOGGER_MODULE}.c)
+else(KONOHA_LOGGER_MODULE)
+	set(LOGGER src/logger/logger.c)
+endif(KONOHA_LOGGER_MODULE)
 
 set(PARSER
 	src/sugar/sugar.c
@@ -165,6 +172,10 @@ set(ExtraLibs)
 if(HAVE_LIBDL)
 set(ExtraLibs ${ExtraLibs} ${HAVE_LIBDL})
 endif(HAVE_LIBDL)
+
+if(LOGGER_MODULE_LIBS)
+set(ExtraLibs ${ExtraLibs} ${LOGGER_MODULE_LIBS})
+endif(LOGGER_MODULE_LIBS)
 
 macro(POP _STR _DELIM _RESULT)
 	string(REPLACE ${_DELIM} ";" _tmp ${_STR})
