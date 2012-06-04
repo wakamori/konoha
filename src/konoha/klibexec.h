@@ -720,10 +720,12 @@ static void Kdbg_p(const char *file, const char *func, int line, const char *fmt
 
 static void Kraise(CTX, int param)
 {
+#ifndef __KERNEL__
 	kstack_t *base = _ctx->stack;
 	if(base->evaljmpbuf != NULL) {
 		klongjmp(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
 	}
+#endif
 	abort();
 }
 

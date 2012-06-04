@@ -48,15 +48,18 @@
 
 #define USE_BUILTINTEST  1
 
-//#include"konoha2/konoha_config.h"
-
+#ifndef __KERNEL__
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
 #include <setjmp.h>
+#else
+#include "konoha_lkm.h"
+#endif /* __KERNEL__ */
+
+#include <stddef.h>
 #include <stdarg.h>
 
 #if defined(K_USING_SIGNAL)
@@ -69,12 +72,12 @@
 
 /* ------------------------------------------------------------------------ */
 /* type */
-
+#ifndef __KERNEL__
 #include <limits.h>
 #include <float.h>
-
 #include <stdbool.h>
 #include <stdint.h>
+#endif
 
 #if defined(__LP64__) || defined(_WIN64)
 #define K_USING_SYS64_    1
@@ -347,6 +350,9 @@ typedef struct kcontext_t {
 	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
+#ifdef __KERNEL__
+	char buffer[256];
+#endif
 } kcontext_t ;
 
 typedef struct kshare_t {
@@ -445,7 +451,9 @@ typedef struct kstack_t {
 	struct _kObject**            reftail;
 	ktype_t   evalty;
 	kushort_t evalidx;
+#ifndef __KERNEL__
 	kjmpbuf_t* evaljmpbuf;
+#endif
 } kstack_t;
 
 typedef struct kfield_t {
