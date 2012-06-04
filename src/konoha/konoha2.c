@@ -210,12 +210,14 @@ static void kcontext_free(CTX, kcontext_t *ctx)
 		MODGC_destoryAllObjects(_ctx, ctx);
 		CLASSTABLE_free(_ctx, ctx);
 		MODGC_free(_ctx, ctx);
+		MODLOGGER_free(_ctx, ctx);
 		free(_ctx->modlocal);
 		free(_ctx->modshare);
 		free(klib2/*, sizeof(klib2_t) + sizeof(kcontext_t)*/);
 	}
 	else {
 		MODGC_free(_ctx, ctx);
+		MODLOGGER_free(_ctx, ctx);
 		KFREE(_ctx->modlocal, sizeof(kmodlocal_t*) * MOD_MAX);
 		KFREE(ctx, sizeof(kcontext_t));
 	}

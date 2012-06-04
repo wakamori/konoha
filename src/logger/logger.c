@@ -24,8 +24,9 @@
 
 /* ************************************************************************ */
 
-#include<konoha2/konoha2.h>
-#include<konoha2/logger.h>
+#include <konoha2/konoha2.h>
+#include <konoha2/logger.h>
+#include <konoha2/konoha2_local.h>
 
 /* ------------------------------------------------------------------------ */
 /* [logger] */
@@ -174,9 +175,11 @@ static void kmodlogger_reftrace(CTX, struct kmodshare_t *baseh)
 
 }
 
-static void kmodlogger_free(CTX, struct kmodshare_t *baseh)
+void MODLOGGER_free(CTX, kcontext_t *ctx)
 {
-	free(baseh/*, sizeof(kmodshare_t)*/);
+	if(IS_ROOTCTX(ctx)) {
+		free(kmodlogger/*, sizeof(kmodshare_t)*/);
+	}
 }
 
 void MODLOGGER_init(CTX, kcontext_t *ctx)
@@ -185,7 +188,7 @@ void MODLOGGER_init(CTX, kcontext_t *ctx)
 	base->h.name     = "verbose";
 	base->h.setup    = kmodlogger_setup;
 	base->h.reftrace = kmodlogger_reftrace;
-	base->h.free     = kmodlogger_free;
+	//base->h.free     = kmodlogger_free;
 	Konoha_setModule(MOD_logger, (kmodshare_t*)base, 0);
 	KSET_KLIB(trace, 0);
 }

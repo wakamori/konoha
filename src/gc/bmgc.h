@@ -675,7 +675,6 @@ static inline void *do_malloc(size_t size)
 	void *ptr = malloc(size);
 	do_bzero(ptr, size);
 	DBG_CHECK_MALLOCED_INC_SIZE(size);
-	//fprintf(stderr, "mem:{a:(%p, %p), size=%ld}\n", ptr, ((char*)ptr)+size, size);
 	return ptr;
 }
 
@@ -684,7 +683,6 @@ static inline void *do_realloc(void *ptr, size_t oldSize, size_t newSize)
 	char *newptr = (char *) realloc(ptr, newSize);
 	do_bzero(newptr+oldSize, newSize-oldSize);
 	DBG_CHECK_MALLOCED_INC_SIZE(newSize - oldSize);
-	//fprintf(stderr, "mem:{r:(%p, %p), size=%ld}\n", newptr, ((char*)newptr)+newSize, newSize);
 	return (void *) newptr;
 }
 
@@ -694,7 +692,6 @@ static inline void do_free(void *ptr, size_t size)
 	memset(ptr, 0xa, size);
 #endif
 	DBG_CHECK_MALLOCED_DEC_SIZE(size);
-	//fprintf(stderr, "mem:{f:(%p, %p), size=%ld}\n", ptr, ((char*)ptr)+size, size);
 	free(ptr);
 }
 
@@ -711,6 +708,13 @@ static void* Kmalloc(CTX, size_t s)
 			KEYVALUE_u("malloced_size", klib2_malloced)
 		);
 	}
+#if GCDEBUG
+	ktrace(LOGPOL_DEBUG,
+			KEYVALUE_s("@", "malloc"),
+			KEYVALUE_p("from", p),
+			KEYVALUE_p("to", ((char*)p)+s),
+			KEYVALUE_u("size", s));
+#endif
 	p[0] = s;
 	klib2_malloced += s;
 	return (void*)(p+1);
@@ -730,6 +734,13 @@ static void Kfree(CTX, void *p, size_t s)
 	size_t *pp = (size_t*)p;
 	DBG_ASSERT(pp[-1] == s);
 	do_free(pp - 1, s + sizeof(size_t));
+#if GCDEBUG
+	ktrace(LOGPOL_DEBUG,
+			KEYVALUE_s("@", "free"),
+			KEYVALUE_p("from", p),
+			KEYVALUE_p("to", ((char*)p)+s),
+			KEYVALUE_u("size", s));
+#endif
 	klib2_malloced -= s;
 }
 
@@ -828,6 +839,12 @@ kObject *MODGC_omalloc(CTX, size_t size)
 {
 	struct _kObject *o = (struct _kObject*)bm_malloc_internal(_ctx, HeapMng(_ctx), size);
 	OBJECT_INIT(o);
+#if GCDEBUG
+	ktrace(LOGPOL_DEBUG,
+			KEYVALUE_s("@", "new"),
+			KEYVALUE_p("ptr", o),
+			KEYVALUE_u("size", size));
+#endif
 	return (kObject*)o;
 }
 
@@ -1859,7 +1876,14 @@ static inline void bmgc_Object_free(CTX, kObject *o)
 {
 	kclass_t *ct = O_ct(o);
 	if (ct) {
+#if GCDEBUG
+		ktrace(LOGPOL_DEBUG,
+				KEYVALUE_s("@", "delete"),
+				KEYVALUE_p("ptr", o),
+				KEYVALUE_u("size", ct->cstruct_size),
+				KEYVALUE_u("cid", ct->cid));
 		MEMLOG(ctx, "~Object", K_NOTICE, KNH_LDATA(LOG_p("ptr", o), LOG_i("cid", ct->cid)));
+#endif
 		//gc_info("~Object ptr=%p, cid=%d, o->h.meta=%p", o, ct->cid, o->h.meta);
 		KONOHA_freeObjectField(_ctx, (struct _kObject*)o);
 		//ctx->stat->gcObjectCount += 1;
@@ -1890,6 +1914,9 @@ void MODGC_gc_invoke(CTX, int needsCStackTrace)
 {
 	uint64_t start_time = knh_getTimeMilliSecond(), mark_time = 0, intval;
 	if(stop_the_world(_ctx)) {
+#if GCDEBUG
+		ktrace(LOGPOL_DEBUG, KEYVALUE_s("@", "gc_start"));
+#endif
 		bmgc_gc_init(_ctx, HeapMng(_ctx));
 		bmgc_gc_mark(_ctx, HeapMng(_ctx));
 		mark_time = knh_getTimeMilliSecond();
@@ -1902,6 +1929,12 @@ void MODGC_gc_invoke(CTX, int needsCStackTrace)
 	memshare(_ctx)->latestGcTime = knh_getTimeMilliSecond();
 	memshare(_ctx)->gcTime += (memshare(_ctx)->latestGcTime - start_time);
 	memshare(_ctx)->collectedObject = 0;
+#if GCDEBUG
+	ktrace(LOGPOL_DEBUG,
+			KEYVALUE_s("@", "gc_finish"),
+			KEYVALUE_u("markingTime", (mark_time-start_time)),
+			KEYVALUE_u("gcTime", (memshare(_ctx)->latestGcTime - start_time)));
+#endif
 }
 
 /* ------------------------------------------------------------------------ */

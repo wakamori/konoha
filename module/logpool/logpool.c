@@ -22,19 +22,21 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#include <konoha2/konoha2.h>
-#include <konoha2/logger.h>
+#include "konoha2/konoha2.h"
+#include "konoha2/logger.h"
+#include "konoha2/konoha2_local.h"
 #include <logpool.h>
 
 /* ************************************************************************ */
 
-typedef struct  {
+typedef struct ctxlogpool_t {
 	kmodlocal_t h;
 	logpool_t *logpool;
 } ctxlogpool_t;
 
-typedef struct  {
+typedef struct kmodlogpool_t {
 	kmodshare_t h;
+	char trace[16];
 } kmodlogpool_t;
 
 #define kmodlogpool ((kmodlogpool_t*)_ctx->modshare[MOD_logger])
@@ -47,7 +49,7 @@ static uintptr_t Ktrace(CTX, klogconf_t *logconf, ...)
 	}
 	va_list ap;
 	va_start(ap, logconf);
-	logpool_record_ap(ctxlogpool->logpool, logconf, 0, "konoha", ap);
+	logpool_record_ap(ctxlogpool->logpool, logconf, 0, kmodlogpool->trace, ap);
 	va_end(ap);
 	return 0;// FIXME reference to log
 }
@@ -79,7 +81,7 @@ static void kmodlogpool_setup(CTX, struct kmodshare_t *def, int newctx)
 				memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
 			}
 		}
-		ctxlogpool_t *base = (ctxlogpool_t*)KCALLOC(sizeof(ctxlogpool_t), 1);
+		ctxlogpool_t *base = (ctxlogpool_t*)calloc(sizeof(ctxlogpool_t), 1);
 		base->h.reftrace = ctxlogpool_reftrace;
 		base->h.free     = ctxlogpool_free;
 		base->logpool    = logpool_open_trace(NULL, host, port);
@@ -91,10 +93,12 @@ static void kmodlogpool_reftrace(CTX, struct kmodshare_t *baseh)
 {
 }
 
-static void kmodlogpool_free(CTX, struct kmodshare_t *baseh)
+void MODLOGGER_free(CTX, kcontext_t *ctx)
 {
-	logpool_exit();
-	free(baseh/*, sizeof(kmodshare_t)*/);
+	if(IS_ROOTCTX(ctx)) {
+		free(kmodlogpool/*, sizeof(kmodshare_t)*/);
+		logpool_exit();
+	}
 }
 
 void MODLOGGER_init(CTX, kcontext_t *ctx)
@@ -104,7 +108,20 @@ void MODLOGGER_init(CTX, kcontext_t *ctx)
 	base->h.name     = "verbose";
 	base->h.setup    = kmodlogpool_setup;
 	base->h.reftrace = kmodlogpool_reftrace;
-	base->h.free     = kmodlogpool_free;
+	unsigned i = 0, ch = 0;
+	unsigned t = rand();
+	ch = t % 26;
+	base->trace[i] = 'A' + ch;
+	for(i = 1; i < 16; i++) {
+		t = t / 36;
+		if (t == 0)
+			t = rand();
+		ch = t % 36;
+		base->trace[i] = (ch < 10) ? '0' + ch : 'A' + (ch - 10);
+	}
+	if (IS_ROOTCTX(ctx)) {
+		kmodlogpool_setup(_ctx, (kmodshare_t*)base, 1);
+	}
 	Konoha_setModule(MOD_logger, (kmodshare_t*)base, 0);
 	KSET_KLIB(trace, 0);
 }
