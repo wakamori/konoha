@@ -28,7 +28,9 @@
 /* ------------------------------------------------------------------------ */
 /* sugar.h */
 
+#ifndef __KERNEL__
 #include <dlfcn.h>
+#endif
 #include "konoha2.h"
 #include "klib.h"
 

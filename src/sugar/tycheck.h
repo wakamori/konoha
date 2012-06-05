@@ -1343,12 +1343,14 @@ static kstatus_t Block_eval(CTX, kBlock *bk)
 	int i, jmpresult;
 	kstatus_t result = K_CONTINUE;
 	kstack_t *base = _ctx->stack;
+#ifndef __KERNEL__
 	kjmpbuf_t lbuf = {};
 	if(base->evaljmpbuf == NULL) {
 		base->evaljmpbuf = (kjmpbuf_t*)KCALLOC(sizeof(kjmpbuf_t), 1);
 	}
 	memcpy(&lbuf, base->evaljmpbuf, sizeof(kjmpbuf_t));
 	if((jmpresult = ksetjmp(*base->evaljmpbuf)) == 0) {
+#endif
 		for(i = 0; i < kArray_size(bk->blocks); i++) {
 			KSETv(bk1->blocks->list[0], bk->blocks->list[i]);
 			KSETv(((struct _kBlock*)bk1)->ks, bk->ks);
@@ -1356,6 +1358,7 @@ static kstatus_t Block_eval(CTX, kBlock *bk)
 			result = SingleBlock_eval(_ctx, bk1, mtd, bk->ks);
 			if(result == K_FAILED) break;
 		}
+#ifndef __KERNEL__
 	}
 	else {
 		DBG_P("Catch eval exception jmpresult=%d", jmpresult);
@@ -1363,6 +1366,7 @@ static kstatus_t Block_eval(CTX, kBlock *bk)
 		result = K_FAILED;
 	}
 	memcpy(base->evaljmpbuf, &lbuf, sizeof(kjmpbuf_t));
+#endif
 	END_LOCAL();
 	RESET_GCSTACK();
 	return result;

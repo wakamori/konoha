@@ -287,7 +287,7 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 	parseNL,
 #define _TAB       7
 	parseSKIP,
-#define _SP        8
+#define _SP_       8
 	parseSKIP,
 #define _LPAR      9
 	parseOP1,
@@ -341,7 +341,7 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 	parseOP,
 #define _QUESTION  34
 	parseOP,
-#define _AT        35
+#define _AT_       35
 	parseOP1,
 #define _VAR       36
 	parseOP,
@@ -364,7 +364,7 @@ static const char cMatrix[128] = {
 	/*	030 can  031 em   032 sub  033 esc  034 fs   035 gs   036 rs   037 us*/
 	1, 1, 1, 1,     1, 1, 1, 1,
 	/*040 sp   041  !   042  "   043  #   044  $   045  %   046  &   047  '*/
-	_SP, _OKIDOKI, _DQUOTE, _SHARP, _DOLLAR, _PER, _AND, _QUOTE,
+	_SP_, _OKIDOKI, _DQUOTE, _SHARP, _DOLLAR, _PER, _AND, _QUOTE,
 	/*050  (   051  )   052  *   053  +   054  ,   055  -   056  .   057  /*/
 	_LPAR, _RPAR, _STAR, _PLUS, _COMMA, _MINUS, _DOT, _SLASH,
 	/*060  0   061  1   062  2   063  3   064  4   065  5   066  6   067  7 */
@@ -372,7 +372,7 @@ static const char cMatrix[128] = {
 	/*	070  8   071  9   072  :   073  ;   074  <   075  =   076  >   077  ? */
 	_DIGIT, _DIGIT, _COLON, _SEMICOLON, _LT, _EQ, _GT, _QUESTION,
 	/*100  @   101  A   102  B   103  C   104  D   105  E   106  F   107  G */
-	_AT, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA,
+	_AT_, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA,
 	/*110  H   111  I   112  J   113  K   114  L   115  M   116  N   117  O */
 	_UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA, _UALPHA,
 	/*120  P   121  Q   122  R   123  S   124  T   125  U   126  V   127  W*/

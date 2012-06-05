@@ -369,7 +369,13 @@ static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE *fp, kline_t
 	kwb_t wb;
 	char *p;
 	kwb_init(&(_ctx->stack->cwb), &wb);
-	while(!feof(fp)) {
+	while(
+#ifndef __KERNEL__
+			!feof(fp)
+#else
+			*fp != EOF
+#endif
+			) {
 		kline_t chunkheadline = uline;
 		uline = readchunk(_ctx, fp, uline, &wb);
 		const char *script = kwb_top(&wb, 1);
