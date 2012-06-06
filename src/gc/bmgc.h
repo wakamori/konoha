@@ -1742,7 +1742,7 @@ static bool rearrangeSegList(CTX, SubHeap *h, size_t klass)
 	size_t i, count_dead = 0;
 	Segment *unfilled = NULL, **unfilled_tail = &unfilled;
 
-	if (h->seglist_size <= 1)
+	if (h->seglist_size < 1)
 		return false;
 	for (i = 0; i < h->seglist_size; i++) {
 		Segment *s = h->seglist[i];

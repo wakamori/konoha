@@ -24,9 +24,12 @@
 
 /* ************************************************************************ */
 
+#include <linux/string.h>
+#include <linux/kernel.h>
 #include "konoha2/konoha2.h"
+#include "konoha2/klib.h"
 
-MODULE_LICENSE("BSD");
+MODULE_LICENSE("GPL");
 MODULE_AUTHOR("uchida atsushi");
 
 enum {
@@ -125,9 +128,22 @@ static ssize_t knh_dev_write(struct file *filp,const char __user *user_buf,
 	return count;
 }
 
+static const char *T_ERR(int level)
+{
+	switch(level) {
+	case CRIT_:
+	case ERR_/*ERROR*/: return "(error) ";
+	case WARN_/*WARNING*/: return "(warning) ";
+	case INFO_/*INFO, NOTICE*/: return "(info) ";
+	case PRINT_: return "";
+	default/*DEBUG*/: return "(debug) ";
+	}
+}
+
+#define LKM_BUFFER_SIZE 256
+
 static void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 {
-	if(level == DEBUG_ && !verbose_debug) return;
 	char buffer[LKM_BUFFER_SIZE];
 	char vbuffer[LKM_BUFFER_SIZE];
 	va_list ap;
