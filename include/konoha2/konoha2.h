@@ -585,6 +585,8 @@ struct _kclass {
 //#define T_isInterface(t)    (TFLAG_is(kflag_t,(ClassTBL(t))->cflag, kClass_Interface))
 //#define T_isTypeVar(t)      (TFLAG_is(kflag_t,(ClassTBL(t))->cflag, kClass_TypeVar))
 
+#define TY_isFunc(T)    (CT_(T)->bcid == CLASS_Func)
+
 /* magic flag */
 #define MAGICFLAG(f)             (K_OBJECT_MAGIC | ((kmagicflag_t)(f) & K_CFLAGMASK))
 
