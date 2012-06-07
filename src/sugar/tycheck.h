@@ -684,7 +684,14 @@ static kMethod* Expr_tyCheckFunc(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)
 			return NULL;
 		}
 	}
-	return kKonohaSpace_getStaticMethodNULL(gma->genv->ks, mn);
+	DBG_P("hoge");
+	{
+		kMethod *mtd = kKonohaSpace_getMethodNULL(genv->ks, TY_System, mn);
+		if(mtd != NULL) {
+			KSETv(exprN->cons->exprs[1], new_Variable(NULL, TY_System, 0, gma));
+		}
+		return mtd;
+	}
 }
 
 static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, ktype_t rtype, kParam *pa, kGamma *gma)
