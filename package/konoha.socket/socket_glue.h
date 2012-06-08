@@ -733,4 +733,7 @@ static kbool_t socket_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 	return true;
 }
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* SOCKET_GLUE_H_ */
