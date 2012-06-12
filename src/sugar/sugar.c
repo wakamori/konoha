@@ -483,11 +483,11 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 {
 	char *p = strrchr(pathbuf, '.');
 	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
-	((struct _kKonohaSpace*)ks)->gluehdr = dlopen(pathbuf, CTX_isCompileOnly() ? RTLD_NOW : RTLD_LAZY);  // FIXME
-	if(ks->gluehdr != NULL) {
+	void *gluehdr = dlopen(pathbuf, CTX_isCompileOnly() ? RTLD_NOW : RTLD_LAZY);  // FIXME
+	if(gluehdr != NULL) {
 		char funcbuf[80];
 		snprintf(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));
-		Fpackageinit f = (Fpackageinit)dlsym(ks->gluehdr, funcbuf);
+		Fpackageinit f = (Fpackageinit)dlsym(gluehdr, funcbuf);
 		if(f != NULL) {
 			KDEFINE_PACKAGE *packdef = f();
 			return (packdef != NULL) ? packdef : &PKGDEFNULL;

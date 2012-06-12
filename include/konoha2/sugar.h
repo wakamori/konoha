@@ -149,7 +149,6 @@ struct _ksyntax {
 	// binary
 	ktype_t    ty;   kshort_t priority;
 	kmethodn_t op2;  kmethodn_t op1;      // & a
-	//kshort_t dummy;
 };
 
 #define TOKEN(T)  .name = T
@@ -211,16 +210,16 @@ typedef struct KDEFINE_SYNTAX {
 typedef const struct _kKonohaSpace kKonohaSpace;
 struct _kKonohaSpace {
 	kObjectHeader h;
+	const struct     _kKonohaSpace   *parentNULL;
 	kpack_t packid;  kpack_t packdom;
-	const struct _kKonohaSpace   *parentNULL;
 	const Ftokenizer *fmat;
-	struct kmap_t   *syntaxMapNN;
+	struct kmap_t    *syntaxMapNN;
 	//
-	void         *gluehdr;
-	kObject      *scrNUL;
-	kcid_t static_cid;   kcid_t function_cid;
-	kArray*       methods;  // default K_EMPTYARRAY
-	karray_t      cl;
+//	void             *gluehdr;
+	kObject          *scrobj;
+//	kcid_t static_cid;   kcid_t function_cid;
+	kArray*           methods;  // default K_EMPTYARRAY
+	karray_t          cl;  // const
 };
 
 typedef kshort_t    ksugar_t;
