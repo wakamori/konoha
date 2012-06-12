@@ -666,19 +666,18 @@ static kclass_t *CT_Generics(CTX, kclass_t *ct, ktype_t rtype, int psize, kparam
 static kString* CT_shortName(CTX, kclass_t *ct)
 {
 	if(ct->shortNameNULL == NULL) {
-		if(ct->paramdom == 0) {
+		if(ct->paramdom == 0 && ct->bcid != CLASS_Func) {
 			KINITv(((struct _kclass*)ct)->shortNameNULL, S_UN(ct->nameid));
 		}
 		else {
 			size_t i, c = 0;
 			kParam *cparam = CT_cparam(ct);
 			kwb_t wb;
+			CT_shortName(_ctx, CT_(ct->p0));
 			for(i = 0; i < cparam->psize; i++) {
 				CT_shortName(_ctx, CT_(cparam->p[i].ty));
 			}
-			CT_shortName(_ctx, CT_(ct->p0));
 			Kwb_init(&(_ctx->stack->cwb), &wb);
-
 			kString *s = S_UN(ct->nameid);
 			kwb_write(&wb, S_text(s), S_size(s));
 			kwb_putc(&wb, '[');
