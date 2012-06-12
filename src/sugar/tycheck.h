@@ -341,19 +341,21 @@ static kExpr* Expr_tyCheckVariable2(CTX, kExpr *expr, kGamma *gma, ktype_t reqty
 //			return new_FuncValue(_ctx, mtd, 0);
 //		}
 	}
-	if(genv->ks->scrNUL != NULL) {
-		ktype_t cid = O_cid(genv->ks->scrNUL);
+	DBG_P("finding system/script function");
+	{
+		ktype_t cid = O_cid(genv->ks->scrobj);
 		kMethod *mtd = KS_getGetterMethodNULL(_ctx, genv->ks, cid, fn);
-		if(mtd != NULL) {
-			return new_GetterExpr(_ctx, tk, mtd, new_ConstValue(cid, genv->ks->scrNUL));
+		if(mtd != NULL && cid != TY_System) {
+			return new_GetterExpr(_ctx, tk, mtd, new_ConstValue(cid, genv->ks->scrobj));
 		}
 		mtd = kKonohaSpace_getMethodNULL(genv->ks, cid, fn);
+		DBG_P("find mtd=%p", mtd);
 		if(mtd != NULL) {
 			kParam *pa = kMethod_param(mtd);
 			kclass_t *ct = kClassTable_Generics(CT_Func, pa->rtype, pa->psize, (kparam_t*)pa->p);
 			struct _kFunc *fo = (struct _kFunc*)new_kObject(ct, mtd);
 			PUSH_GCSTACK(fo);
-			KSETv(fo->self, genv->ks->scrNUL);
+			KSETv(fo->self, genv->ks->scrobj);
 			return new_ConstValue(ct->cid, fo);
 		}
 	}
@@ -377,7 +379,6 @@ static kObject *KonohaSpace_getSymbolValueNULL(CTX, kKonohaSpace *ks, const char
 static KMETHOD ExprTyCheck_Usymbol(CTX, ksfp_t *sfp _RIX)
 {
 	VAR_ExprTyCheck(expr, syn, gma, reqty);
-	DBG_P("USYMBOL...");
 	kToken *tk = expr->tk;
 	kuname_t ukey = kuname(S_text(tk->text), S_size(tk->text), 0, FN_NONAME);
 	if(ukey != FN_NONAME) {
@@ -671,22 +672,19 @@ static kMethod* Expr_tyCheckFunc(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)
 			return NULL;
 		}
 	}
-	if(genv->ks->scrNUL != NULL) {
-		ktype_t cid = O_cid(genv->ks->scrNUL);
+	{
+		ktype_t cid = O_cid(genv->ks->scrobj);
 		kMethod *mtd = kKonohaSpace_getMethodNULL(genv->ks, cid, mn);
 		if(mtd != NULL) {
-//			KSETv(exprN->cons->exprs[1], new_Variable(LOCAL, gma->genv->this_cid, 0, gma));
+			KSETv(exprN->cons->exprs[1], new_ConstValue(cid, genv->ks->scrobj));
 			return mtd;
 		}
 		mtd = KS_getGetterMethodNULL(_ctx, genv->ks, cid, fn);
 		if(mtd != NULL && TY_isFunc(kMethod_rtype(mtd))) {
-			KSETv(exprN->cons->exprs[0], new_GetterExpr(_ctx, tk, mtd, new_ConstValue(cid, genv->ks->scrNUL)));
+			KSETv(exprN->cons->exprs[0], new_GetterExpr(_ctx, tk, mtd, new_ConstValue(cid, genv->ks->scrobj)));
 			return NULL;
 		}
-	}
-	DBG_P("hoge");
-	{
-		kMethod *mtd = kKonohaSpace_getMethodNULL(genv->ks, TY_System, mn);
+		mtd = kKonohaSpace_getMethodNULL(genv->ks, TY_System, mn);
 		if(mtd != NULL) {
 			KSETv(exprN->cons->exprs[1], new_Variable(NULL, TY_System, 0, gma));
 		}
@@ -694,12 +692,13 @@ static kMethod* Expr_tyCheckFunc(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)
 	}
 }
 
-static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, ktype_t rtype, kParam *pa, kGamma *gma)
+static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, kclass_t *ct, kGamma *gma)
 {
+	ktype_t rtype = ct->p0;
+	kParam *pa = CT_cparam(ct);
 	size_t i, size = kArray_size(expr->cons);
 	if(pa->psize + 2 != size) {
-//		char mbuf[128];
-//		return kExpr_p(expr, ERR_, "%s.%s takes %d parameter(s), but given %d parameter(s)", T_CT(this_ct), T_mn(mbuf, mtd->mn), (int)pa->psize, (int)size-2);
+		return kExpr_p(expr, ERR_, "function %s takes %d parameter(s), but given %d parameter(s)", T_CT(ct), (int)pa->psize, (int)size-2);
 	}
 	for(i = 0; i < pa->psize; i++) {
 		size_t n = i + 2;
@@ -709,6 +708,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, ktype_t rtype, kParam *pa
 		}
 	}
 	kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, CLASS_Func, MN_("invoke"));
+	DBG_ASSERT(mtd != NULL);
 	KSETv(expr->cons->exprs[1], expr->cons->exprs[0]);
 	return Expr_typedWithMethod(_ctx, expr, mtd, rtype);
 }
@@ -721,9 +721,6 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 	if(Expr_isSymbol(kExpr_at(expr, 0))) {
 		kMethod *mtd = Expr_tyCheckFunc(_ctx, expr, gma, reqty);
 		if(mtd != NULL) {
-//			if(this_cid == TY_unknown) {
-//				KSETv(cons->exprs[1], new_Variable(NULL, mtd->cid, 0, gma));
-//			}
 			RETURN_(Expr_tyCheckCallParams(_ctx, expr, mtd, gma, reqty));
 		}
 		if(!TY_isFunc(kExpr_at(expr, 0)->ty)) {
@@ -738,8 +735,7 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 			}
 		}
 	}
-	kclass_t *ct = CT_(kExpr_at(expr, 0)->ty);
-	Expr_tyCheckFuncParams(_ctx, expr, ct->p0, CT_cparam(ct), gma);
+	RETURN_(Expr_tyCheckFuncParams(_ctx, expr, CT_(kExpr_at(expr, 0)->ty), gma));
 }
 
 static kmethodn_t Token_mn(CTX, kToken *tk, const char *name)
@@ -1231,7 +1227,7 @@ static KMETHOD StmtTyCheck_MethodDecl(CTX, ksfp_t *sfp _RIX)
 	kbool_t r = 0;
 	kKonohaSpace *ks = gma->genv->ks;
 	uintptr_t flag =  Stmt_flag(_ctx, stmt, MethodDeclFlag, 0);
-	kcid_t cid =  Stmt_getcid(_ctx, stmt, ks, KW_Usymbol, ks->function_cid);
+	kcid_t cid    =  Stmt_getcid(_ctx, stmt, ks, KW_Usymbol, O_cid(ks->scrobj));
 	kmethodn_t mn = Stmt_getmn(_ctx, stmt, ks, KW_Symbol, MN_new);
 	kParam *pa = Stmt_newMethodParamNULL(_ctx, stmt, gma);
 	if(TY_isSingleton(cid)) flag |= kMethod_Static;
@@ -1381,7 +1377,7 @@ static kstatus_t Method_runEval(CTX, kMethod *mtd, ktype_t rtype)
 	BEGIN_LOCAL(lsfp, K_CALLDELTA);
 	kstack_t *base = _ctx->stack;
 	kstatus_t result = K_CONTINUE;
-	DBG_P("TY=%s, running EVAL..", T_cid(rtype));
+	//DBG_P("TY=%s, running EVAL..", T_cid(rtype));
 	if(base->evalty != TY_void) {
 		KSETv(lsfp[K_CALLDELTA+1].o, base->stack[base->evalidx].o);
 		lsfp[K_CALLDELTA+1].ivalue = base->stack[base->evalidx].ivalue;

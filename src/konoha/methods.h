@@ -170,22 +170,26 @@ static KMETHOD String_opNEQ(CTX, ksfp_t *sfp _RIX)
 	RETURNb_(1);
 }
 
-////## This Func.new(Object self, Method mtd);
-//static KMETHOD Func_new(CTX, ksfp_t *sfp _RIX)
-//{
-//	struct _kFunc *fo = (struct _kFunc*)sfp[0].fo;
-//	KSETv(fo->self, sfp[1].o);
-//	KSETv(fo->mtd, sfp[2].mtd);
-//	RETURN_(fo);
-//}
-//
-////## @Hidden T0 Func.invoke();
-//static KMETHOD Func_invoke(CTX, ksfp_t *sfp _RIX)
-//{
-//	kFunc* fo = sfp[0].fo;
-//	KSETv(sfp[0].o, fo->self);
-//	KSELFCALL(sfp, fo->mtd);
-//}
+//## This Func.new(Object self, Method mtd);
+static KMETHOD Func_new(CTX, ksfp_t *sfp _RIX)
+{
+	struct _kFunc *fo = (struct _kFunc*)sfp[0].fo;
+	KSETv(fo->self, sfp[1].o);
+	KSETv(fo->mtd,  sfp[2].mtd);
+	RETURN_(fo);
+}
+
+//## @Hidden T0 Func.invoke();
+static KMETHOD Func_invoke(CTX, ksfp_t *sfp _RIX)
+{
+	kFunc* fo = sfp[0].fo;
+	DBG_P("fo=%s", T_CT(O_ct(fo)));
+	DBG_ASSERT(IS_Func(fo));
+	DBG_ASSERT(IS_Method(fo->mtd));
+	DBG_P("fo->mtd->fcall_1 == %p", fo->mtd->fcall_1);
+	KSETv(sfp[0].o, fo->self);
+	KSELFCALL(sfp, fo->mtd);
+}
 
 int konoha_AssertResult = 0;
 

@@ -555,6 +555,7 @@ struct _kclass {
 #define CT_Param                CT_(CLASS_Param)
 #define CT_Method               CT_(CLASS_Method)
 #define CT_Func                 CT_(CLASS_Func)
+#define CT_System               CT_(CLASS_System)
 
 #define CT_StringArray          CT_Array
 #define kStringArray            kArray
@@ -1038,14 +1039,14 @@ struct _kSystem {
 		KSETv(tsfp[K_RTNIDX].o, DEFVAL);\
 		tsfp[K_RTNIDX].uline = __LINE__;\
 		klr_setesp(_ctx, tsfp + ARGC + 1);\
-		(MTD)->fastcall_1(_ctx, tsfp K_RIXPARAM);\
+		(MTD)->fcall_1(_ctx, tsfp K_RIXPARAM);\
 		tsfp[K_MTDIDX].mtdNC = NULL;\
 	} \
 
 #define KSELFCALL(TSFP, MTD) { \
 		ksfp_t *tsfp = TSFP;\
 		tsfp[K_MTDIDX].mtdNC = MTD;\
-		(MTD)->fastcall_1(_ctx, tsfp K_RIXPARAM);\
+		(MTD)->fcall_1(_ctx, tsfp K_RIXPARAM);\
 		tsfp[K_MTDIDX].mtdNC = NULL;\
 	} \
 
