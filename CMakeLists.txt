@@ -126,7 +126,7 @@ set(PACKAGES
 ##	konoha.mpi
 	konoha.bytes
 	konoha.curl
-	konoha.json
+##	konoha.json
 	ijit
 	python
 )
