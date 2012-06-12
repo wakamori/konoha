@@ -926,6 +926,7 @@ static void BasicBlock_init(CTX, kObject *o, void *conf)
 {
 	struct _kBasicBlock *bb = (struct _kBasicBlock*)o;
 	bb->op.bytemax = 0;
+	bb->op.bytesize = 0;
 	bb->code = NULL;
 	bb->id = 0;
 	bb->incoming = 0;

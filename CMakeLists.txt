@@ -280,7 +280,10 @@ macro(add_konoha_package PKGNAME)
 endmacro(add_konoha_package)
 
 foreach(dir ${PACKAGES})
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/package/${dir})
+	set(dir "${CMAKE_CURRENT_SOURCE_DIR}/package/${dir}")
+	if(IS_DIRECTORY ${dir} AND EXISTS ${dir}/CMakeLists.txt)
+		add_subdirectory(${dir})
+	endif()
 endforeach()
 
 #add_executable(test_konoha src/tool/test_konoha.c)
