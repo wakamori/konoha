@@ -405,7 +405,6 @@ static kparamid_t Kmap_getparamid(CTX, kmap_t *kmp, kArray *list, uintptr_t hcod
 	e = kmap_newentry(kmp, hcode);
 	KINITv(e->paramkey, pa);
 	e->uvalue = paramid;
-	kmap_add(kmp, e);
 	return (kparamid_t)paramid;
 }
 

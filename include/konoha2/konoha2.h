@@ -1076,7 +1076,7 @@ struct _klib2 {
 	kmap_t*  (*Kmap_init)(CTX, size_t);
 	kmape_t* (*Kmap_newentry)(CTX, kmap_t *, uintptr_t);
 	kmape_t* (*Kmap_get)(kmap_t *, uintptr_t);
-	void (*Kmap_add)(kmap_t *, kmape_t *);
+//	void (*Kmap_add)(kmap_t *, kmape_t *);
 	void (*Kmap_remove)(kmap_t *, kmape_t *);
 	void (*Kmap_reftrace)(CTX, kmap_t *, void (*)(CTX, kmape_t*));
 	void (*Kmap_free)(CTX, kmap_t *, void (*)(CTX, void *));
@@ -1172,7 +1172,6 @@ struct _klib2 {
 #define kmap_init(INIT)           (KPI)->Kmap_init(_ctx, INIT)
 #define kmap_newentry(M, H)       (KPI)->Kmap_newentry(_ctx, M, H)
 #define kmap_get(M, K)            (KPI)->Kmap_get(M, K)
-#define kmap_add(M, E)            (KPI)->Kmap_add(M, E)
 #define kmap_remove(M, E)         (KPI)->Kmap_remove(_ctx, M, E)
 #define kmap_reftrace(M, F)       (KPI)->Kmap_reftrace(_ctx, M, F)
 #define kmap_free(M, F)           (KPI)->Kmap_free(_ctx, M, F)

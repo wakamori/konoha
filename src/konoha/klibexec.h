@@ -187,6 +187,15 @@ static void kmap_shiftptr(kmap_t *kmap, intptr_t shift)
 	}
 }
 
+//static void Kmap_add(kmap_t* kmap, kmape_t *ne)
+//{
+//	DBG_ASSERT(ne->next == NULL);
+//	kmape_t **hlist = kmap->hentry;
+//	size_t idx = ne->hcode % kmap->hmax;
+//	ne->next = hlist[idx];
+//	hlist[idx] = ne;
+//}
+
 static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 {
 	kmape_t *e;
@@ -206,6 +215,12 @@ static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 	e->hcode = hcode;
 	e->next = NULL;
 	kmap->size++;
+	{
+		kmape_t **hlist = kmap->hentry;
+		size_t idx = e->hcode % kmap->hmax;
+		e->next = hlist[idx];
+		hlist[idx] = e;
+	}
 	return e;
 }
 
@@ -263,15 +278,6 @@ static kmape_t *Kmap_getentry(kmap_t* kmap, kuint_t hcode)
 	return NULL;
 }
 
-static void Kmap_add(kmap_t* kmap, kmape_t *ne)
-{
-	DBG_ASSERT(ne->next == NULL);
-	kmape_t **hlist = kmap->hentry;
-	size_t idx = ne->hcode % kmap->hmax;
-	ne->next = hlist[idx];
-	hlist[idx] = ne;
-}
-
 static void kmap_unuse(kmap_t *kmap, kmape_t *e)
 {
 	e->next = kmap->unused;
@@ -305,7 +311,6 @@ static void map_addStringUnboxValue(CTX, kmap_t *kmp, uintptr_t hcode, kString *
 	kmape_t *e = kmap_newentry(kmp, hcode);
 	KINITv(e->skey, skey);
 	e->uvalue = uvalue;
-	kmap_add(kmp, e);
 }
 
 static ksymbol_t Kmap_getcode(CTX, kmap_t *kmp, kArray *list, const char *name, size_t len, uintptr_t hcode, int spol, ksymbol_t def)
@@ -753,7 +758,7 @@ static void klib2_init(struct _klib2 *l)
 	l->Kmap_reftrace = Kmap_reftrace;
 	l->Kmap_newentry = Kmap_newentry;
 	l->Kmap_get      = Kmap_getentry;
-	l->Kmap_add      = Kmap_add;
+//	l->Kmap_add      = Kmap_add;
 	l->Kmap_remove   = Kmap_remove;
 	l->Kmap_getcode  = Kmap_getcode;
 	l->KObject_getObject = KObject_getObjectNULL;

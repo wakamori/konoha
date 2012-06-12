@@ -87,14 +87,12 @@ static KMETHOD HashMap_set(CTX, ksfp_t *sfp _RIX)
 	kparam_t p1 = cparam->p[0];
 	uintptr_t hcode = strhash(S_text(key), S_size(key));
 	kmape_t *e = kmap_newentry(map, hcode);
-
-	if (p1.ty == TY_Int || p1.ty == TY_Boolean || p1.ty == TY_Float) {
+	if (p1.ty == TY_Int || p1.ty == TY_Boolean || p1.ty == TY_Float) {  // FIXME
 		e->uvalue =(uintptr_t)sfp[2].ivalue;
 	} else {
 		// object;
 		e->uvalue = (uintptr_t)sfp[2].o;
 	}
-	kmap_add(map, e);
 	RETURNvoid_();
 }
 

@@ -113,7 +113,7 @@ static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int i
 			((struct _kKonohaSpace*)ks0)->syntaxMapNN = kmap_init(0);
 		}
 		kmape_t *e = kmap_newentry(ks0->syntaxMapNN, hcode);
-		kmap_add(ks0->syntaxMapNN, e);
+//		kmap_add(ks0->syntaxMapNN, e);
 		struct _ksyntax *syn = (struct _ksyntax*)KCALLOC(sizeof(ksyntax_t), 1);
 		e->uvalue = (uintptr_t)syn;
 
