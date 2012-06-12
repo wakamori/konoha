@@ -24,7 +24,7 @@
 
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
-#include<konoha2/bytes.h>
+#include<konoha2/float.h>
 
 #include "json_glue.h"
 
