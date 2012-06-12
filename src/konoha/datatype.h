@@ -983,6 +983,7 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 #define _Const     kMethod_Const
 #define _Static    kMethod_Static
 #define _Immutable kMethod_Immutable
+#define _Hidden    kMethod_Hidden
 #define _F(F)      (intptr_t)(F)
 
 static void KCLASSTABLE_loadMethod(CTX)
@@ -1011,6 +1012,8 @@ static void KCLASSTABLE_loadMethod(CTX)
 		_Public|_Immutable|_Const, _F(String_opNEQ), TY_Boolean, TY_String, MN_("opNEQ"), 1, TY_String, FN_x ,
 		_Public|_Immutable|_Const, _F(String_toInt), TY_Int, TY_String, MN_to(TY_Int), 0,
 		_Public|_Immutable|_Const, _F(String_opADD), TY_String, TY_String, MN_("opADD"), 1, TY_String, FN_x | FN_COERCION,
+		_Public|_Const|_Hidden, _F(Func_new), TY_Func, TY_Func, MN_new, 2, TY_Object, FN_x, TY_Method, FN_x,
+		kMethod_SmartReturn|_Hidden, _F(Func_invoke), TY_Object, TY_Func, MN_("invoke"), 0,
 		_Static|_Public|_Immutable, _F(System_assert), TY_void, TY_System, MN_("assert"), 1, TY_Boolean, FN_x,
 		_Static|_Public|_Immutable, _F(System_p), TY_void, TY_System, MN_("p"), 1, TY_String, FN_("s") | FN_COERCION,
 		_Static|_Public|_Immutable, _F(System_gc), TY_void, TY_System, MN_("gc"), 0,

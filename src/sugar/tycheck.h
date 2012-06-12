@@ -707,6 +707,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, ktype_t rtype, kParam *pa
 		}
 	}
 	kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, CLASS_Func, MN_("invoke"));
+	DBG_ASSERT(mtd != NULL);
 	KSETv(expr->cons->exprs[1], expr->cons->exprs[0]);
 	return Expr_typedWithMethod(_ctx, expr, mtd, rtype);
 }
