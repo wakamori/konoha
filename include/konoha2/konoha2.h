@@ -555,6 +555,7 @@ struct _kclass {
 #define CT_Param                CT_(CLASS_Param)
 #define CT_Method               CT_(CLASS_Method)
 #define CT_Func                 CT_(CLASS_Func)
+#define CT_System               CT_(CLASS_System)
 
 #define CT_StringArray          CT_Array
 #define kStringArray            kArray

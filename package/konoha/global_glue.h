@@ -141,8 +141,8 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	VAR_StmtTyCheck(stmt, syn, gma);
 	DBG_P("global assignment .. ");
-	kObject *scr = gma->genv->ks->scrNUL;
-	if(scr == NULL) {
+	kObject *scr = gma->genv->ks->scrobj;
+	if(O_cid(scr) == TY_System) {
 		SUGAR p(_ctx, ERR_, stmt->uline, -1, " global variables are not available");
 		RETURNb_(false);
 	}
@@ -203,8 +203,8 @@ static kbool_t appendSetterStmt(CTX, kExpr *expr, kStmt **lastStmtRef)
 static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **lastStmtRef)
 {
 	USING_SUGAR;
-	kObject *scr = gma->genv->ks->scrNUL;
-	if(scr == NULL) {
+	kObject *scr = gma->genv->ks->scrobj;
+	if(O_cid(scr) == TY_System) {
 		SUGAR p(_ctx, ERR_, lastStmtRef[0]->uline, -1, " global variables are not available");
 		return false;
 	}
@@ -272,7 +272,7 @@ static kbool_t global_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	SYN_setTopStmtTyCheck(ks, KW_StmtTypeDecl, GlobalTypeDecl);
-	if(ks->scrNUL == NULL) {
+	if(O_cid(ks->scrobj) == TY_System) {
 		KDEFINE_CLASS defScript = {
 			.structname = "Script",
 			.cid = CLASS_newid,
@@ -280,11 +280,10 @@ static kbool_t global_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 			.cstruct_size = sizeof(kScript),
 		};
 		kclass_t *cScript = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &defScript, pline);
-		KINITv(((struct _kKonohaSpace*)ks)->scrNUL, knull(cScript));
+		KSETv(((struct _kKonohaSpace*)ks)->scrobj, knull(cScript));
 	}
 	return true;
 }
-
 
 static kbool_t global_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 {

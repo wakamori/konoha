@@ -33,9 +33,8 @@ static void KonohaSpace_init(CTX, kObject *o, void *conf)
 	struct _kKonohaSpace *ks = (struct _kKonohaSpace*)o;
 	bzero(&ks->parentNULL, sizeof(kKonohaSpace) - sizeof(kObjectHeader));
 	ks->parentNULL = conf;
-	ks->static_cid = TY_unknown;
-	ks->function_cid = TY_System;
 	KINITv(ks->methods, K_EMPTYARRAY);
+	KINITv(ks->scrobj, knull(CT_System));
 }
 
 static void syntax_reftrace(CTX, kmape_t *p)
@@ -65,7 +64,7 @@ static void KonohaSpace_reftrace(CTX, kObject *o)
 		}
 	}
 	KREFTRACEn(ks->parentNULL);
-	KREFTRACEn(ks->scrNUL);
+	KREFTRACEv(ks->scrobj);
 	KREFTRACEv(ks->methods);
 	END_REFTRACE();
 }
@@ -405,12 +404,16 @@ static kMethod* KonohaSpace_getMethodNULL(CTX, kKonohaSpace *ks, kcid_t cid, kme
 static kMethod* KonohaSpace_getStaticMethodNULL(CTX, kKonohaSpace *ks, kmethodn_t mn)
 {
 	while(ks != NULL) {
-		if(ks->static_cid != TY_unknown) {
-			kMethod *mtd = kKonohaSpace_getMethodNULL(ks, ks->static_cid, mn);
-			if(mtd != NULL && kMethod_isStatic(mtd)) {
-				return mtd;
-			}
+		kMethod *mtd = kKonohaSpace_getMethodNULL(ks, O_cid(ks->scrobj), mn);
+		if(mtd != NULL && kMethod_isStatic(mtd)) {
+			return mtd;
 		}
+//		if(ks->static_cid != TY_unknown) {
+//			kMethod *mtd = kKonohaSpace_getMethodNULL(ks, ks->static_cid, mn);
+//			if(mtd != NULL && kMethod_isStatic(mtd)) {
+//				return mtd;
+//			}
+//		}
 		ks = ks->parentNULL;
 	}
 	return NULL;
