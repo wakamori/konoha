@@ -429,9 +429,8 @@ struct _kGamma {
 #define KW_Err     0
 #define KW_Expr    1
 #define KW_Symbol  2
-//#define KW_name    2
 #define KW_Usymbol 3
-//#define KW_cname   3
+#define            KW_StmtConstDecl KW_Usymbol
 #define KW_Text    4
 #define KW_Int     5
 #define KW_Float   6
@@ -589,6 +588,7 @@ typedef struct {
 #define TPOL_NOCHECK              1
 #define TPOL_ALLOWVOID      (1 << 1)
 #define TPOL_COERCION       (1 << 2)
+#define TPOL_CONST          (1 << 4)
 
 #ifdef USING_SUGAR_AS_BUILTIN
 

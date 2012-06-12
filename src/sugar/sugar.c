@@ -49,8 +49,8 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ TOKEN("$ERR"), .flag = SYNFLAG_StmtBreakExec, },
 		{ TOKEN("$expr"), .rule ="$expr", ParseStmt_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
-		{ TOKEN("$SYMBOL"),  ParseStmt_(Symbol),  _TERM, ExprTyCheck_(Symbol),},
-		{ TOKEN("$USYMBOL"), ParseStmt_(Usymbol), _TERM, ExprTyCheck_(Usymbol),},
+		{ TOKEN("$SYMBOL"),  _TERM, ParseStmt_(Symbol),  ExprTyCheck_(Symbol),},
+		{ TOKEN("$USYMBOL"), _TERM, ParseStmt_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
 		{ TOKEN("$TEXT"), _TERM, ExprTyCheck_(Text),},
 		{ TOKEN("$INT"), _TERM, ExprTyCheck_(Int),},
 		{ TOKEN("$FLOAT"), _TERM, /* ExprTyCheck_(FLOAT), */},
@@ -92,6 +92,11 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 		{ .name = NULL, },
 	};
 	KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	struct _ksyntax *syn = (struct _ksyntax*)SYN_(ks, KW_void);
+	syn->ty = TY_void; // it's not cool, but necessary
+	syn = (struct _ksyntax*)SYN_(ks, KW_Usymbol);
+	KINITv(syn->syntaxRuleNULL, new_(TokenArray, 0));
+	parseSyntaxRule(_ctx, "$USYMBOL \"=\" $expr", 0, syn->syntaxRuleNULL);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -274,8 +279,6 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	KINITv(base->ParseExpr_Term, new_SugarMethod(ParseExpr_Term));
 
 	defineDefaultSyntax(_ctx, base->rootks);
-	struct _ksyntax *syn = (struct _ksyntax*)SYN_(base->rootks, KW_void); //FIXME
-	syn->ty = TY_void; // it's not cool, but necessary
 	DBG_ASSERT(KW_("$params") == KW_Params);
 	DBG_ASSERT(KW_(".") == KW_DOT);
 	DBG_ASSERT(KW_(",") == KW_COMMA);
