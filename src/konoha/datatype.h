@@ -475,7 +475,7 @@ static void Func_init(CTX, kObject *o, void *conf)
 {
 	struct _kFunc *fo = (struct _kFunc*)o;
 	KINITv(fo->self, K_NULL);
-	KINITv(fo->mtd, conf != NULL ? KNULL(Method) : (kMethod*)conf);
+	KINITv(fo->mtd, conf == NULL ? KNULL(Method) : (kMethod*)conf);
 }
 
 static void Func_reftrace(CTX, kObject *o)
@@ -666,19 +666,18 @@ static kclass_t *CT_Generics(CTX, kclass_t *ct, ktype_t rtype, int psize, kparam
 static kString* CT_shortName(CTX, kclass_t *ct)
 {
 	if(ct->shortNameNULL == NULL) {
-		if(ct->paramdom == 0) {
+		if(ct->paramdom == 0 && ct->bcid != CLASS_Func) {
 			KINITv(((struct _kclass*)ct)->shortNameNULL, S_UN(ct->nameid));
 		}
 		else {
 			size_t i, c = 0;
 			kParam *cparam = CT_cparam(ct);
 			kwb_t wb;
+			CT_shortName(_ctx, CT_(ct->p0));
 			for(i = 0; i < cparam->psize; i++) {
 				CT_shortName(_ctx, CT_(cparam->p[i].ty));
 			}
-			CT_shortName(_ctx, CT_(ct->p0));
 			Kwb_init(&(_ctx->stack->cwb), &wb);
-
 			kString *s = S_UN(ct->nameid);
 			kwb_write(&wb, S_text(s), S_size(s));
 			kwb_putc(&wb, '[');
@@ -984,6 +983,7 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 #define _Const     kMethod_Const
 #define _Static    kMethod_Static
 #define _Immutable kMethod_Immutable
+#define _Hidden    kMethod_Hidden
 #define _F(F)      (intptr_t)(F)
 
 static void KCLASSTABLE_loadMethod(CTX)
@@ -1012,6 +1012,8 @@ static void KCLASSTABLE_loadMethod(CTX)
 		_Public|_Immutable|_Const, _F(String_opNEQ), TY_Boolean, TY_String, MN_("opNEQ"), 1, TY_String, FN_x ,
 		_Public|_Immutable|_Const, _F(String_toInt), TY_Int, TY_String, MN_to(TY_Int), 0,
 		_Public|_Immutable|_Const, _F(String_opADD), TY_String, TY_String, MN_("opADD"), 1, TY_String, FN_x | FN_COERCION,
+		_Public|_Const|_Hidden, _F(Func_new), TY_Func, TY_Func, MN_new, 2, TY_Object, FN_x, TY_Method, FN_x,
+		kMethod_SmartReturn|_Hidden, _F(Func_invoke), TY_Object, TY_Func, MN_("invoke"), 0,
 		_Static|_Public|_Immutable, _F(System_assert), TY_void, TY_System, MN_("assert"), 1, TY_Boolean, FN_x,
 		_Static|_Public|_Immutable, _F(System_p), TY_void, TY_System, MN_("p"), 1, TY_String, FN_("s") | FN_COERCION,
 		_Static|_Public|_Immutable, _F(System_gc), TY_void, TY_System, MN_("gc"), 0,
