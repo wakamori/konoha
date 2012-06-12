@@ -132,7 +132,6 @@ static inline void map_addu(CTX, kmap_t *kmp, uintptr_t hcode, uintptr_t uvalue)
 {
 	kmape_t *e = kmap_newentry(kmp, hcode);
 	e->uvalue = uvalue;
-	kmap_add(kmp, e);
 }
 
 static inline uintptr_t map_getu(CTX, kmap_t *kmp, uintptr_t hcode, uintptr_t def)

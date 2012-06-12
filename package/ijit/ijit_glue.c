@@ -284,7 +284,6 @@ static void jitcache_set(CTX, kMethod *mtd, kObject *f)
 	kmap_t *map = kmodjit->jitcache;
 	kmape_t *newe = kmap_newentry(map, hcode);
 	newe->uvalue = (uintptr_t) f;
-	kmap_add(map, newe);
 }
 
 //## Function System.getJITCache(Method mtd);
