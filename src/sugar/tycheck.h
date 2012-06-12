@@ -692,12 +692,13 @@ static kMethod* Expr_tyCheckFunc(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)
 	}
 }
 
-static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, ktype_t rtype, kParam *pa, kGamma *gma)
+static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, kclass_t *ct, kGamma *gma)
 {
+	ktype_t rtype = ct->p0;
+	kParam *pa = CT_cparam(ct);
 	size_t i, size = kArray_size(expr->cons);
 	if(pa->psize + 2 != size) {
-//		char mbuf[128];
-//		return kExpr_p(expr, ERR_, "%s.%s takes %d parameter(s), but given %d parameter(s)", T_CT(this_ct), T_mn(mbuf, mtd->mn), (int)pa->psize, (int)size-2);
+		return kExpr_p(expr, ERR_, "function %s takes %d parameter(s), but given %d parameter(s)", T_CT(ct), (int)pa->psize, (int)size-2);
 	}
 	for(i = 0; i < pa->psize; i++) {
 		size_t n = i + 2;
@@ -720,9 +721,6 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 	if(Expr_isSymbol(kExpr_at(expr, 0))) {
 		kMethod *mtd = Expr_tyCheckFunc(_ctx, expr, gma, reqty);
 		if(mtd != NULL) {
-//			if(this_cid == TY_unknown) {
-//				KSETv(cons->exprs[1], new_Variable(NULL, mtd->cid, 0, gma));
-//			}
 			RETURN_(Expr_tyCheckCallParams(_ctx, expr, mtd, gma, reqty));
 		}
 		if(!TY_isFunc(kExpr_at(expr, 0)->ty)) {
@@ -737,8 +735,7 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 			}
 		}
 	}
-	kclass_t *ct = CT_(kExpr_at(expr, 0)->ty);
-	Expr_tyCheckFuncParams(_ctx, expr, ct->p0, CT_cparam(ct), gma);
+	RETURN_(Expr_tyCheckFuncParams(_ctx, expr, CT_(kExpr_at(expr, 0)->ty), gma));
 }
 
 static kmethodn_t Token_mn(CTX, kToken *tk, const char *name)
