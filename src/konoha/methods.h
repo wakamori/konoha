@@ -183,6 +183,10 @@ static KMETHOD Func_new(CTX, ksfp_t *sfp _RIX)
 static KMETHOD Func_invoke(CTX, ksfp_t *sfp _RIX)
 {
 	kFunc* fo = sfp[0].fo;
+	DBG_P("fo=%s", T_CT(O_ct(fo)));
+	DBG_ASSERT(IS_Func(fo));
+	DBG_ASSERT(IS_Method(fo->mtd));
+	DBG_P("fo->mtd->fcall_1 == %p", fo->mtd->fcall_1);
 	KSETv(sfp[0].o, fo->self);
 	KSELFCALL(sfp, fo->mtd);
 }
