@@ -152,7 +152,7 @@ static void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	fputs(T_BEGIN(_ctx, level), stdout);
 	if(pline != 0) {
 		const char *file = T_file(pline);
-		snprintf(buffer,LKM_BUFFER_SIZE," - (%s:%d) %s" , shortname(file), (kushort_t)pline, T_ERR(level));
+		snprintf(buffer,LKM_BUFFER_SIZE," - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
 	}
 	else {
 		snprintf(buffer, LKM_BUFFER_SIZE," - %s" , T_ERR(level));

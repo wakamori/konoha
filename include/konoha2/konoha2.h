@@ -167,7 +167,7 @@ typedef kushort_t                 kfileid_t;
 #define URI_UNMASK(fileid)           (fileid)
 
 #define URI__(fileid) S_text(knh_getURN(_ctx, fileid))
-#define shortname__(fileid) knh_sfile(URI__(fileid))
+#define shortfilename__(fileid) knh_sfile(URI__(fileid))
 
 typedef uintptr_t                 kline_t;
 #define NOPLINE                   0
