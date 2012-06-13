@@ -597,7 +597,7 @@ static KMETHOD Method_getCname(CTX, ksfp_t *sfp _RIX)
 {
 	kMethod *mtd = sfp[0].mtd;
 	kcid_t cid = mtd->cid;
-	const char *cname = T_cid(cid);
+	const char *cname = TY_t(cid);
 	RETURN_(new_kString(cname, strlen(cname), 0));
 }
 

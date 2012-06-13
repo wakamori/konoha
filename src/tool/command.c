@@ -289,7 +289,7 @@ static void dumpEval(CTX, kwb_t *wb)
 		ksfp_t *lsfp = base->stack + base->evalidx;
 		CT_(ty)->p(_ctx, lsfp, 0, wb, P_DUMP);
 		fflush(stdout);
-		fprintf(stdout, "TY=%s EVAL=%s\n", T_cid(ty), kwb_top(wb,1));
+		fprintf(stdout, "TY=%s EVAL=%s\n", TY_t(ty), kwb_top(wb,1));
 	}
 }
 

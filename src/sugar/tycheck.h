@@ -204,7 +204,7 @@ static kExpr *Expr_tyCheck(CTX, kExpr *expr, kGamma *gma, ktype_t reqty, int pol
 		texpr = ExprTyCheck(_ctx, expr, gma, reqty);
 	}
 	if(texpr != K_NULLEXPR) {
-		//DBG_P("type=%s, reqty=%s", T_ty(expr->ty), T_ty(reqty));
+		//DBG_P("type=%s, reqty=%s", TY_t(expr->ty), TY_t(reqty));
 		if(texpr->ty == TY_void) {
 			return FLAG_is(pol, TPOL_ALLOWVOID) ?
 				texpr: kExpr_p(expr, ERR_, "void is not acceptable");
@@ -219,11 +219,11 @@ static kExpr *Expr_tyCheck(CTX, kExpr *expr, kGamma *gma, ktype_t reqty, int pol
 			return texpr;
 		}
 		kMethod *mtd = kKonohaSpace_getCastMethodNULL(gma->genv->ks, texpr->ty, reqty);
-		DBG_P("finding cast %s => %s: %p", T_ty(texpr->ty), T_ty(reqty), mtd);
+		DBG_P("finding cast %s => %s: %p", TY_t(texpr->ty), TY_t(reqty), mtd);
 		if(mtd != NULL && (kMethod_isCoercion(mtd) || FLAG_is(pol, TPOL_COERCION))) {
 			return new_TypedMethodCall(_ctx, reqty, mtd, gma, 1, texpr);
 		}
-		return Expr_p(_ctx, texpr, ERR_, "%s is requested, but %s is given", T_ty(reqty), T_ty(texpr->ty));
+		return Expr_p(_ctx, texpr, ERR_, "%s is requested, but %s is given", TY_t(reqty), TY_t(texpr->ty));
 	}
 	return texpr;
 }
@@ -244,7 +244,7 @@ static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, keyword_t nameid, kGamma *gma,
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, nameid);
 	if(expr != NULL && IS_Expr(expr)) {
 		kExpr *texpr = Expr_tyCheck(_ctx, expr, gma, reqty, pol);
-//		DBG_P("reqty=%s, texpr->ty=%s isnull=%d", T_cid(reqty), T_cid(texpr->ty), (texpr == K_NULLEXPR));
+//		DBG_P("reqty=%s, texpr->ty=%s isnull=%d", TY_t(reqty), TY_t(texpr->ty), (texpr == K_NULLEXPR));
 		if(texpr != K_NULLEXPR) {
 			if(texpr != expr) {
 				kObject_setObject(stmt, nameid, texpr);
@@ -580,7 +580,7 @@ static kExpr *Expr_tyCheckCallParams(CTX, kExpr *expr, kMethod *mtd, kGamma *gma
 //	mtd = kExpr_lookUpOverloadMethod(_ctx, expr, mtd, gma, this_ct);
 	kParam *pa = kMethod_param(mtd);
 	if(pa->psize + 2 != size) {
-		return kExpr_p(expr, ERR_, "%s.%s%s takes %d parameter(s), but given %d parameter(s)", T_CT(this_ct), T_mn(mtd->mn), (int)pa->psize, (int)size-2);
+		return kExpr_p(expr, ERR_, "%s.%s%s takes %d parameter(s), but given %d parameter(s)", CT_t(this_ct), T_mn(mtd->mn), (int)pa->psize, (int)size-2);
 	}
 	for(i = 0; i < pa->psize; i++) {
 		size_t n = i + 2;
@@ -588,7 +588,7 @@ static kExpr *Expr_tyCheckCallParams(CTX, kExpr *expr, kMethod *mtd, kGamma *gma
 		int pol = param_policy(pa->p[i].fn);
 		kExpr *texpr = kExpr_tyCheckAt(expr, n, gma, ptype, pol);
 		if(texpr == K_NULLEXPR) {
-			return kExpr_p(expr, ERR_, "%s.%s%s accepts %s at the parameter %d", T_CT(this_ct), T_mn(mtd->mn), T_ty(ptype), (int)i+1);
+			return kExpr_p(expr, ERR_, "%s.%s%s accepts %s at the parameter %d", CT_t(this_ct), T_mn(mtd->mn), TY_t(ptype), (int)i+1);
 		}
 		if(!Expr_isCONST(expr)) isConst = 0;
 	}
@@ -639,11 +639,11 @@ static kExpr *Expr_lookupMethod(CTX, kExpr *expr, kcid_t this_cid, kGamma *gma, 
 				}
 			}
 			if(tkMN->mn == MN_new && kArray_size(expr->cons) == 2 && CT_(kExpr_at(expr, 1)->ty)->bcid == TY_Object) {
-				//DBG_P("bcid=%s", T_cid(CT_(kExpr_at(expr, 1)->ty)->bcid));
+				//DBG_P("bcid=%s", TY_t(CT_(kExpr_at(expr, 1)->ty)->bcid));
 				DBG_ASSERT(kExpr_at(expr, 1)->ty != TY_var);
 				return kExpr_at(expr, 1);  // new Person(); // default constructor
 			}
-			kToken_p(tkMN, ERR_, "undefined %s: %s.%s", T_mntype(tkMN->mn_type), T_cid(this_cid), kToken_s(tkMN));
+			kToken_p(tkMN, ERR_, "undefined %s: %s.%s", T_mntype(tkMN->mn_type), TY_t(this_cid), kToken_s(tkMN));
 		}
 	}
 	if(mtd != NULL) {
@@ -658,7 +658,7 @@ static KMETHOD ExprTyCheck_MethodCall(CTX, ksfp_t *sfp _RIX)
 	kExpr *texpr = kExpr_tyCheckAt(expr, 1, gma, TY_var, 0);
 	if(texpr != K_NULLEXPR) {
 		kcid_t this_cid = texpr->ty;
-		//DBG_P("this_cid=%s", T_cid(this_cid));
+		//DBG_P("this_cid=%s", TY_t(this_cid));
 		RETURN_(Expr_lookupMethod(_ctx, expr, this_cid, gma, reqty));
 	}
 }
@@ -733,7 +733,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, kclass_t *ct, kGamma *gma
 	kParam *pa = CT_cparam(ct);
 	size_t i, size = kArray_size(expr->cons);
 	if(pa->psize + 2 != size) {
-		return kExpr_p(expr, ERR_, "function %s takes %d parameter(s), but given %d parameter(s)", T_CT(ct), (int)pa->psize, (int)size-2);
+		return kExpr_p(expr, ERR_, "function %s takes %d parameter(s), but given %d parameter(s)", CT_t(ct), (int)pa->psize, (int)size-2);
 	}
 	for(i = 0; i < pa->psize; i++) {
 		size_t n = i + 2;
@@ -870,7 +870,7 @@ static int addGammaStack(CTX, gstack_t *s, ktype_t ty, ksymbol_t fn)
 		s->vars = v;
 		s->allocsize = asize;
 	}
-	DBG_P("index=%d, ty=%s fn=%s", index, T_ty(ty), SYM_t(fn));
+	DBG_P("index=%d, ty=%s fn=%s", index, TY_t(ty), SYM_t(fn));
 	s->vars[index].ty = ty;
 	s->vars[index].fn = fn;
 	s->varsize += 1;
@@ -1411,7 +1411,7 @@ static kstatus_t Method_runEval(CTX, kMethod *mtd, ktype_t rtype)
 	BEGIN_LOCAL(lsfp, K_CALLDELTA);
 	kstack_t *base = _ctx->stack;
 	kstatus_t result = K_CONTINUE;
-	//DBG_P("TY=%s, running EVAL..", T_cid(rtype));
+	//DBG_P("TY=%s, running EVAL..", TY_t(rtype));
 	if(base->evalty != TY_void) {
 		KSETv(lsfp[K_CALLDELTA+1].o, base->stack[base->evalidx].o);
 		lsfp[K_CALLDELTA+1].ivalue = base->stack[base->evalidx].ivalue;

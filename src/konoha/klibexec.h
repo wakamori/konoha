@@ -371,7 +371,6 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 	return Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def) | mask;
 }
 
-
 // -------------------------------------------------------------------------
 // library
 

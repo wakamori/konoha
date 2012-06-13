@@ -105,7 +105,7 @@ static kMethod *Object_newProtoSetterNULL(CTX, kObject *o, kKonohaSpace *ks, kty
 	ktype_t cid = O_cid(o);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toSETTER(fn));
 	if(mtd != NULL) {
-		SUGAR p(_ctx, ERR_, pline, -1, "already defined name: %s.%s", T_CT(O_ct(o)), SYM_t(fn));
+		SUGAR p(_ctx, ERR_, pline, -1, "already defined name: %s.%s", CT_t(O_ct(o)), SYM_t(fn));
 		return NULL;
 	}
 	mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toGETTER(fn));
@@ -113,7 +113,7 @@ static kMethod *Object_newProtoSetterNULL(CTX, kObject *o, kKonohaSpace *ks, kty
 		mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toISBOOL(fn));
 	}
 	if(mtd != NULL && kMethod_rtype(mtd) != ty) {
-		SUGAR p(_ctx, ERR_, pline, -1, "differently defined getter: %s.%s", T_CT(O_ct(o)), SYM_t(fn));
+		SUGAR p(_ctx, ERR_, pline, -1, "differently defined getter: %s.%s", CT_t(O_ct(o)), SYM_t(fn));
 		return NULL;
 	}
 	if(mtd == NULL) { // no getter
@@ -163,7 +163,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 	if(mtd == NULL) {
 		RETURNb_(false);
 	}
-	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", SYM_t(fn), T_ty(expr->ty));
+	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", SYM_t(fn), TY_t(expr->ty));
 	expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
 	kObject_setObject(stmt, KW_Expr, expr);
 	kStmt_typed(stmt, EXPR);

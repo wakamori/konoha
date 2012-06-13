@@ -74,11 +74,11 @@ typedef kbool_t (*FcheckParam)(CTX, kParam *);
 static kbool_t checkMethod(CTX, kMethod *mtd, FcheckParam f, kclass_t *ct, kString *name, kline_t pline)
 {
 	if(mtd == NULL) {
-		kreportf(CRIT_, pline, "undefined method: %s.%s", T_CT(ct), S_text(name));
+		kreportf(CRIT_, pline, "undefined method: %s.%s", CT_t(ct), S_text(name));
 		return false;
 	}
 	if(mtd->cid != ct->cid || !f(_ctx, kMethod_param(mtd))) {
-		kreportf(CRIT_, pline, "mismatched method: %s.%s", T_CT(ct), S_text(name));
+		kreportf(CRIT_, pline, "mismatched method: %s.%s", CT_t(ct), S_text(name));
 		return false;
 	}
 	return true;
