@@ -112,8 +112,8 @@ static kinline const char* SYM_PRE(ksymbol_t sym)
 static kinline kbool_t sym_equals(CTX, ksymbol_t s1, ksymbol_t s2)
 {
 	if(SYM_HEAD(s1) == SYM_HEAD(s2)) {
-		const char *t1 = S_text(_ctx->share->unameList->strings[SYM_UMASK(s1)]);
-		const char *t2 = S_text(_ctx->share->unameList->strings[SYM_UMASK(s2)]);
+		const char *t1 = S_text(_ctx->share->unameList->strings[SYM_UNMASK(s1)]);
+		const char *t2 = S_text(_ctx->share->unameList->strings[SYM_UNMASK(s2)]);
 		while(1) {
 			if(t1[0] != t2[0]) {
 				if(t1[0] == '_') { t1++; continue; }
