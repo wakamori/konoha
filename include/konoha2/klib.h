@@ -45,8 +45,6 @@ static kinline uintptr_t strhash(const char *name, size_t len)
 	return hcode;
 }
 
-// --------------------------------------------------------------------------
-
 static kinline const char* shortfilename(const char *str)
 {
 	/*XXX g++ 4.4.5 need char* cast to compile it. */
@@ -74,7 +72,6 @@ static kinline kString* PN_s_(CTX, kpack_t packid)
 
 #define CT_s(X)   CT_s_(_ctx, X)
 #define CT_t(X)   S_text(CT_s_(_ctx, X))
-#define CT_isGenerics(ct)  (ct->cparam != K_NULLPARAM)
 
 static kinline kString* CT_s_(CTX, kclass_t *ct)
 {
@@ -102,13 +99,32 @@ static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 static kinline const char* SYM_PRE(ksymbol_t sym)
 {
 	int mask = SYM_HEAD(sym) >> ((sizeof(ksymbol_t) * 2)-3);
-	fprintf(stderr, "mask=%d\n", mask);
+//	fprintf(stderr, "mask=%d\n", mask);
 	DBG_ASSERT(mask < 8);
 	static const char* prefixes[] = {
 		/*000*/ "",   /*001*/ "get", /*010*/ "set", /*011*/ "@",
 		/*100*/ "is", /*101*/ "",    /*110*/ "to",  /*111*/ "as",
 	};
 	return prefixes[mask];
+}
+
+#define SYM_equals(S1, S2)     sym_equals(_ctx, S1, S2)
+static kinline kbool_t sym_equals(CTX, ksymbol_t s1, ksymbol_t s2)
+{
+	if(SYM_HEAD(s1) == SYM_HEAD(s2)) {
+		const char *t1 = S_text(_ctx->share->unameList->strings[SYM_UMASK(s1)]);
+		const char *t2 = S_text(_ctx->share->unameList->strings[SYM_UMASK(s2)]);
+		while(1) {
+			if(t1[0] != t2[0]) {
+				if(t1[0] == '_') { t1++; continue; }
+				if(t2[0] == '_') { t2++; continue; }
+				if(toupper(t1[0]) != toupper(t2[0])) break;
+			}
+			if(t1[0] == 0) return true;
+			t1++; t2++;
+		}
+	}
+	return false;
 }
 
 static kinline uintptr_t longid(kushort_t packdom, kushort_t un)
