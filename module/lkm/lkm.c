@@ -33,7 +33,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("uchida atsushi");
 
 enum {
-	MAXCOPYBUF =256 
+	MAXCOPYBUF = 256
 };
 
 struct konohadev_t {
@@ -142,8 +142,9 @@ static const char *T_ERR(int level)
 
 #define LKM_BUFFER_SIZE 256
 
-static void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
+void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 {
+	if(level == DEBUG_) return;
 	char buffer[LKM_BUFFER_SIZE];
 	char vbuffer[LKM_BUFFER_SIZE];
 	va_list ap;

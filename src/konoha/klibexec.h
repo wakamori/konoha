@@ -732,7 +732,9 @@ static void Kraise(CTX, int param)
 // -------------------------------------------------------------------------
 
 static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline);
-
+#ifdef __KERNEL__
+extern void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...);
+#endif
 static void klib2_init(struct _klib2 *l)
 {
 	l->Karray_init   = karray_init;
@@ -766,7 +768,11 @@ static void klib2_init(struct _klib2 *l)
 	l->Ksymbol  = Ksymbol;
 	l->KTsymbol      = KTsymbol;
 	l->Kreport       = Kreport;
+#ifdef __KERNEL__
+	l->Kreportf      = lkm_Kreportf;
+#else
 	l->Kreportf      = Kreportf;
+#endif
 	l->Kp            = Kdbg_p;
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;
