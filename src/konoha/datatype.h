@@ -841,10 +841,6 @@ static void initStructData(CTX)
 		ct->nameid = ksymbolSPOL(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
 		CT_setName(_ctx, ct, 0);
 	}
-//	struct _kclass *ct = (struct _kclass *)CT_Array;
-//	kparam_t p = { .ty = TY_Object};
-//	ct->paramdom = Kparamdom(_ctx, 1, &p);
-//	DBG_P("ct->paramdom=%d", ct->paramdom);
 }
 
 static void KCLASSTABLE_initklib2(struct _klib2 *l)
@@ -873,14 +869,11 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	KCLASSTABLE_initklib2((struct _klib2*)_ctx->lib2);
 	KARRAY_INIT(&share->ca, K_CLASSTABLE_INIT * sizeof(kclass_t));
 	loadInitStructData(_ctx);
-//	share->cStringArray = CT_p0(_ctx, CT_Array, TY_String);
 	share->lcnameMapNN = kmap_init(0);
 	KINITv(share->fileidList, new_(StringArray, 8));
 	share->fileidMapNN = kmap_init(0);
 	KINITv(share->packList, new_(StringArray, 8));
 	share->packMapNN = kmap_init(0);
-//	KINITv(share->symbolList, new_(StringArray, 32));
-//	share->symbolMapNN = kmap_init(0);
 	KINITv(share->unameList, new_(StringArray, 32));
 	share->unameMapNN = kmap_init(0);
 
@@ -901,9 +894,9 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	FILEID_("(konoha.c)");
 	PN_("konoha");    // PN_konoha
 	PN_("sugar");     // PKG_sugar
+	SYM_("");          // MN_
+	SYM_("new");       // MN_new
 	SYM_("T");         // UN_T
-	FN_("");          // MN_
-	FN_("new");       // MN_new
 	initStructData(_ctx);
 }
 
@@ -928,7 +921,6 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 			KREFTRACEn(ct->nulvalNUL);
 			END_REFTRACE();
 		}
-//		if (ct->constNameMapSO) kmap_reftrace(ct->constNameMapSO, keyval_reftrace);
 		if (ct->constPoolMapNO) kmap_reftrace(ct->constPoolMapNO, val_reftrace);
 	}
 
@@ -941,7 +933,6 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 
 	KREFTRACEv(share->fileidList);
 	KREFTRACEv(share->packList);
-//	KREFTRACEv(share->symbolList);
 	KREFTRACEv(share->unameList);
 	KREFTRACEv(share->paramList);
 	KREFTRACEv(share->paramdomList);
@@ -966,7 +957,6 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 	kmap_free(share->lcnameMapNN, NULL);
 	kmap_free(share->fileidMapNN, NULL);
 	kmap_free(share->packMapNN, NULL);
-//	kmap_free(share->symbolMapNN, NULL);
 	kmap_free(share->unameMapNN, NULL);
 	kmap_free(share->paramMapNN, NULL);
 	kmap_free(share->paramdomMapNN, NULL);

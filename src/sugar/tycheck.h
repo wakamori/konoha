@@ -581,9 +581,7 @@ static kExpr *Expr_tyCheckCallParams(CTX, kExpr *expr, kMethod *mtd, kGamma *gma
 //	mtd = kExpr_lookUpOverloadMethod(_ctx, expr, mtd, gma, this_ct);
 	kParam *pa = kMethod_param(mtd);
 	if(pa->psize + 2 != size) {
-		char mbuf[128];
-		DBG_P("mtd=%p, mtd->paramid=%d, mtd->paramdom=%d", mtd, mtd->paramid, mtd->paramdom);
-		return kExpr_p(expr, ERR_, "%s.%s takes %d parameter(s), but given %d parameter(s)", T_CT(this_ct), T_mn(mbuf, mtd->mn), (int)pa->psize, (int)size-2);
+		return kExpr_p(expr, ERR_, "%s.%s%s takes %d parameter(s), but given %d parameter(s)", T_CT(this_ct), T_mn(mtd->mn), (int)pa->psize, (int)size-2);
 	}
 	for(i = 0; i < pa->psize; i++) {
 		size_t n = i + 2;
@@ -591,8 +589,7 @@ static kExpr *Expr_tyCheckCallParams(CTX, kExpr *expr, kMethod *mtd, kGamma *gma
 		int pol = param_policy(pa->p[i].fn);
 		kExpr *texpr = kExpr_tyCheckAt(expr, n, gma, ptype, pol);
 		if(texpr == K_NULLEXPR) {
-			char mbuf[128];
-			return kExpr_p(expr, ERR_, "%s.%s accepts %s at the parameter %d", T_CT(this_ct), T_mn(mbuf, mtd->mn), T_ty(ptype), (int)i+1);
+			return kExpr_p(expr, ERR_, "%s.%s%s accepts %s at the parameter %d", T_CT(this_ct), T_mn(mtd->mn), T_ty(ptype), (int)i+1);
 		}
 		if(!Expr_isCONST(expr)) isConst = 0;
 	}
@@ -874,7 +871,7 @@ static int addGammaStack(CTX, gstack_t *s, ktype_t ty, ksymbol_t fn)
 		s->vars = v;
 		s->allocsize = asize;
 	}
-	DBG_P("index=%d, ty=%s fn=%s", index, T_ty(ty), T_fn(fn));
+	DBG_P("index=%d, ty=%s fn=%s", index, T_ty(ty), SYM_T(fn));
 	s->vars[index].ty = ty;
 	s->vars[index].fn = fn;
 	s->varsize += 1;

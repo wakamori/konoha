@@ -64,12 +64,11 @@ static void Method_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 {
 	kMethod *mtd = sfp[pos].mtd;
 	kParam *pa = kMethod_param(mtd);
-	char mbuf[128];
 	DBG_ASSERT(IS_Method(mtd));
 	if(level != 0) {
 		MethodAttribute_p(_ctx, mtd, wb);
 	}
-	kwb_printf(wb, "%s %s.%s", T_ty(pa->rtype), T_cid(mtd->cid), T_mn(mbuf, mtd->mn));
+	kwb_printf(wb, "%s %s.%s%s", T_ty(pa->rtype), T_cid(mtd->cid), T_mn(mtd->mn));
 	if(level != 0) {
 		size_t i;
 		kwb_putc(wb, '(');
@@ -80,7 +79,7 @@ static void Method_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 			if(FN_isCOERCION(pa->p[i].fn)) {
 				kwb_printf(wb, "@Coercion ");
 			}
-			kwb_printf(wb, "%s %s", T_ty(pa->p[i].ty), T_fn(SYM_UNMASK(pa->p[i].fn)));
+			kwb_printf(wb, "%s %s", T_ty(pa->p[i].ty), SYM_T(SYM_UNMASK(pa->p[i].fn)));
 		}
 //		if(Param_isVARGs(DP(mtd)->mp)) {
 //			knh_write_delimdots(_ctx, w);
