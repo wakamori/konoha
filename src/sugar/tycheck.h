@@ -414,17 +414,16 @@ static KMETHOD StmtTyCheck_ConstDecl(CTX, ksfp_t *sfp _RIX)
 			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
 			kvs_t kv = { ukey, expr->ty};
 			if(expr->build == TEXPR_NULL) {
-				kv.key = FN_UNBOX(kv.key);
 				kv.ty = TY_TYPE;
 				kv.uval = (uintptr_t)(CT_(expr->ty));
 				expr = NULL;
 			}
 			else if(expr->build == TEXPR_CONST) {
+				kv.key = ukey | FN_BOXED;
 				kv.oval = expr->data;
 				expr = NULL;
 			}
 			else if(expr->build == TEXPR_NCONST) {
-				kv.key = FN_UNBOX(kv.key);
 				kv.uval = (uintptr_t)expr->ndata;
 				expr = NULL;
 			}
