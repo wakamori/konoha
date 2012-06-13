@@ -353,9 +353,6 @@ typedef struct kcontext_t {
 	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
-#ifdef __KERNEL__
-	char buffer[256];
-#endif
 } kcontext_t ;
 
 typedef struct kshare_t {

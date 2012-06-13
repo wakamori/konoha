@@ -22,7 +22,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-
 static void karray_init(CTX, karray_t *m, size_t bytemax)
 {
 	m->bytesize = 0;
@@ -186,15 +185,6 @@ static void kmap_shiftptr(kmap_t *kmap, intptr_t shift)
 		}
 	}
 }
-
-//static void Kmap_add(kmap_t* kmap, kmape_t *ne)
-//{
-//	DBG_ASSERT(ne->next == NULL);
-//	kmape_t **hlist = kmap->hentry;
-//	size_t idx = ne->hcode % kmap->hmax;
-//	ne->next = hlist[idx];
-//	hlist[idx] = ne;
-//}
 
 static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 {
@@ -654,7 +644,9 @@ static void Kraise(CTX, int param)
 // -------------------------------------------------------------------------
 
 static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline);
-
+#ifdef __KERNEL__
+extern void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...);
+#endif
 static void klib2_init(struct _klib2 *l)
 {
 	l->Karray_init   = karray_init;
@@ -685,7 +677,11 @@ static void klib2_init(struct _klib2 *l)
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
 	l->Kreport       = Kreport;
+#ifdef __KERNEL__
+	l->Kreportf      = lkm_Kreportf;
+#else
 	l->Kreportf      = Kreportf;
+#endif
 	l->Kp            = Kdbg_p;
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;

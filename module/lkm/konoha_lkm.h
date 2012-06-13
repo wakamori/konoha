@@ -47,7 +47,7 @@ static inline void free(void *p)
 	kfree(p);
 }
 
-#define strtoll(x,y,z) simple_strtoll(x,y,z)
+#define strtoll(x,y,z) kstrtoll(x,z,y)
 #define bzero(x,y) memset(x,0x00,y)
 #define fopen(a,b) NULL
 #define fclose(fp)
@@ -88,7 +88,6 @@ void qsort (void *const pbase, size_t total_elems, size_t size,
 
 /* ../../src/ext/strerror.c */
 //char* strerror(int errno);
-
 /* ------------------------------------------------------------------------ */
 
 #endif /* KONOHA_LKM_H_ */

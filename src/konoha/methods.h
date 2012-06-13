@@ -25,7 +25,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /* String */
 static KMETHOD Object_toString(CTX, ksfp_t *sfp _RIX)
 {

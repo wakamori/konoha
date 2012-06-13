@@ -72,7 +72,6 @@ static kinline kString* PN_s_(CTX, kpack_t packid)
 
 #define CT_s(X)   CT_s_(_ctx, X)
 #define CT_t(X)   S_text(CT_s_(_ctx, X))
-
 static kinline kString* CT_s_(CTX, kclass_t *ct)
 {
 	return _ctx->lib2->KCT_shortName(_ctx, ct);
@@ -80,7 +79,6 @@ static kinline kString* CT_s_(CTX, kclass_t *ct)
 
 #define TY_s(X)   TY_s_(_ctx, X)
 #define TY_t(X)   S_text(TY_s(X))
-
 static kinline kString* TY_s_(CTX, ktype_t ty)
 {
 	DBG_ASSERT(ty < KARRAYSIZE(_ctx->share->ca.bytemax, intptr));
@@ -126,6 +124,7 @@ static kinline kbool_t sym_equals(CTX, ksymbol_t s1, ksymbol_t s2)
 	}
 	return false;
 }
+
 
 static kinline uintptr_t longid(kushort_t packdom, kushort_t un)
 {
