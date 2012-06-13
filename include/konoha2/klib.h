@@ -78,9 +78,9 @@ static inline kString* Spack_(CTX, kpack_t packid)
 	return _ctx->share->packList->strings[packid];
 }
 
-#define S_UN(X)  S_UN_(_ctx, X)
-#define T_UN(X)  S_text(S_UN_(_ctx, X))
-static inline kString* S_UN_(CTX, kuname_t un)
+#define S_UN(X)  S_SYM_(_ctx, X)
+#define T_UN(X)  S_text(S_SYM_(_ctx, X))
+static inline kString* S_SYM_(CTX, ksymbol_t un)
 {
 	DBG_ASSERT(un < kArray_size(_ctx->share->unameList));
 	return _ctx->share->unameList->strings[un];
@@ -111,8 +111,8 @@ static inline kString* S_ty_(CTX, ktype_t ty)
 static inline kString* S_fn_(CTX, ksymbol_t sym)
 {
 	size_t index = (size_t) MN_UNMASK(sym);
-	DBG_ASSERT(index < kArray_size(_ctx->share->symbolList));
-	return _ctx->share->symbolList->strings[index];
+	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
+	return _ctx->share->unameList->strings[index];
 }
 
 static inline uintptr_t longid(kushort_t packdom, kushort_t un)
