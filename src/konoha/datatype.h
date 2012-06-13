@@ -666,7 +666,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 {
 	if(ct->shortNameNULL == NULL) {
 		if(ct->paramdom == 0 && ct->bcid != CLASS_Func) {
-			KINITv(((struct _kclass*)ct)->shortNameNULL, S_UN(ct->nameid));
+			KINITv(((struct _kclass*)ct)->shortNameNULL, SYM_s(ct->nameid));
 		}
 		else {
 			size_t i, c = 0;
@@ -677,7 +677,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 				CT_shortName(_ctx, CT_(cparam->p[i].ty));
 			}
 			Kwb_init(&(_ctx->stack->cwb), &wb);
-			kString *s = S_UN(ct->nameid);
+			kString *s = SYM_s(ct->nameid);
 			kwb_write(&wb, S_text(s), S_size(s));
 			kwb_putc(&wb, '[');
 			if(ct->bcid == CLASS_Func) {
@@ -701,7 +701,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 static void CT_setName(CTX, struct _kclass *ct, kline_t pline)
 {
 	uintptr_t lname = longid(ct->packdom, ct->nameid);
-	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", T_PN(ct->packdom), T_PN(ct->packid), T_UN(ct->nameid));
+	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", T_PN(ct->packdom), T_PN(ct->packid), SYM_t(ct->nameid));
 	kclass_t *ct2 = (kclass_t*)map_getu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)NULL);
 	if(ct2 == NULL) {
 		map_addu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)ct);

@@ -1195,7 +1195,7 @@ struct _klib2 {
 #define FN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
 #define MN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
 #define MN_new                    1  /* @see */
-#define T_mn(X)                   SYM_PRE(X), SYM_T(X)
+#define T_mn(X)                   SYM_PRE(X), SYM_t(X)
 
 #define new_kObject(C, A)         (KPI)->Knew_Object(_ctx, C, (void*)(A))
 #define new_(C, A)                (k##C*)(KPI)->Knew_Object(_ctx, CT_##C, (void*)(A))
