@@ -121,9 +121,9 @@ static ssize_t knh_dev_write(struct file *filp,const char __user *user_buf,
 	memset(dev->buffer,0,sizeof(char)*MAXCOPYBUF);
 	buf[count] = '\0';
 	CTX_evalScript((CTX_t)dev->konoha,buf,strlen(buf));
-	snprintf(dev->buffer,MAXCOPYBUF,"%s",((CTX_t)dev->konoha)->buffer);
-	strncpy(((CTX_t)dev->konoha)->buffer,"\0",1);
-	printk(KERN_DEBUG "[%s][dev->buffer='%s']\n",__func__ ,dev->buffer);
+//	snprintf(dev->buffer,MAXCOPYBUF,"%s",((CTX_t)dev->konoha)->buffer);
+//	strncpy(((CTX_t)dev->konoha)->buffer,"\0",1);
+//	printk(KERN_DEBUG "[%s][dev->buffer='%s']\n",__func__ ,dev->buffer);
 	up(&dev->sem);
 	return count;
 }
@@ -161,7 +161,7 @@ void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	vsnprintf(vbuffer, LKM_BUFFER_SIZE, fmt, ap);
 	strncat(vbuffer, "\n",1);
 	strncat(buffer, vbuffer, LKM_BUFFER_SIZE);
-	strncat(_ctx->buffer,buffer,LKM_BUFFER_SIZE);
+	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
 	va_end(ap);
 	if(level == CRIT_) {
 		kraise(0);
