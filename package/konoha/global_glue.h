@@ -130,7 +130,7 @@ static ksymbol_t tosymbol(CTX, kExpr *expr)
 		kToken *tk = expr->tk;
 		if(tk->tt == TK_SYMBOL) {
 
-			return ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
+			return ksymbolA(S_text(tk->text), S_size(tk->text), FN_NEWID);
 		}
 	}
 	return FN_NONAME;
@@ -181,7 +181,7 @@ static kMethod* ExprTerm_getSetterNULL(CTX, kExpr *expr, kObject *scr, kGamma *g
 			SUGAR p(_ctx, ERR_, pline, -1, "%s is keyword", S_text(tk->text));
 			return NULL;
 		}
-		ksymbol_t fn = ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
+		ksymbol_t fn = ksymbolA(S_text(tk->text), S_size(tk->text), FN_NEWID);
 		return Object_newProtoSetterNULL(_ctx, scr, gma->genv->ks, ty, fn, pline);
 	}
 	SUGAR p(_ctx, ERR_, pline, -1, "expected variable name");

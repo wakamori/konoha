@@ -163,10 +163,10 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 			syn->ty = syndef->type;
 		}
 		if(syndef->op1 != NULL) {
-			syn->op1 = ksymbol(syndef->op1, 127, FN_NEWID, SYMPOL_METHOD);
+			syn->op1 = ksymbolA(syndef->op1, strlen(syndef->op1), FN_NEWID);
 		}
 		if(syndef->op2 != NULL) {
-			syn->op2 = ksymbol(syndef->op2, 127, FN_NEWID, SYMPOL_METHOD);
+			syn->op2 = ksymbolA(syndef->op2, strlen(syndef->op2), FN_NEWID);
 		}
 		if(syndef->priority_op2 > 0) {
 			syn->priority = syndef->priority_op2;
@@ -281,7 +281,7 @@ static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kli
 	kwb_init(&(_ctx->stack->cwb), &wb);
 	while(d[0] != NULL) {
 		//DBG_P("key='%s'", d[0]);
-		kv.key = kuname(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | FN_BOXED;
+		kv.key = ksymbolSPOL(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | FN_BOXED;
 		kv.ty  = (ktype_t)(uintptr_t)d[1];
 		if(kv.ty == TY_TEXT) {
 			kv.ty = TY_String;
@@ -335,7 +335,7 @@ static void KonohaSpace_importClassName(CTX, kKonohaSpace *ks, kpack_t packid, k
 static kclass_t *KonohaSpace_getCT(CTX, kKonohaSpace *ks, kclass_t *thisct/*NULL*/, const char *name, size_t len, kcid_t def)
 {
 	kclass_t *ct = NULL;
-	ksymbol_t un = kuname(name, len, 0, FN_NONAME);
+	ksymbol_t un = ksymbolA(name, len, FN_NONAME);
 	if(un != FN_NONAME) {
 		uintptr_t hcode = longid(PN_konoha, un);
 		ct = (kclass_t*)map_getu(_ctx, _ctx->share->lcnameMapNN, hcode, 0);
@@ -401,23 +401,23 @@ static kMethod* KonohaSpace_getMethodNULL(CTX, kKonohaSpace *ks, kcid_t cid, kme
 	return CT_findMethodNULL(_ctx, CT_(cid), mn);
 }
 
-static kMethod* KonohaSpace_getStaticMethodNULL(CTX, kKonohaSpace *ks, kmethodn_t mn)
-{
-	while(ks != NULL) {
-		kMethod *mtd = kKonohaSpace_getMethodNULL(ks, O_cid(ks->scrobj), mn);
-		if(mtd != NULL && kMethod_isStatic(mtd)) {
-			return mtd;
-		}
+//static kMethod* KonohaSpace_getStaticMethodNULL(CTX, kKonohaSpace *ks, kmethodn_t mn)
+//{
+//	while(ks != NULL) {
+//		kMethod *mtd = kKonohaSpace_getMethodNULL(ks, O_cid(ks->scrobj), mn);
+//		if(mtd != NULL && kMethod_isStatic(mtd)) {
+//			return mtd;
+//		}
 //		if(ks->static_cid != TY_unknown) {
 //			kMethod *mtd = kKonohaSpace_getMethodNULL(ks, ks->static_cid, mn);
 //			if(mtd != NULL && kMethod_isStatic(mtd)) {
 //				return mtd;
 //			}
 //		}
-		ks = ks->parentNULL;
-	}
-	return NULL;
-}
+//		ks = ks->parentNULL;
+//	}
+//	return NULL;
+//}
 
 #define kKonohaSpace_getCastMethodNULL(ns, cid, tcid)     KonohaSpace_getCastMethodNULL(_ctx, ns, cid, tcid)
 static kMethod* KonohaSpace_getCastMethodNULL(CTX, kKonohaSpace *ks, kcid_t cid, kcid_t tcid)

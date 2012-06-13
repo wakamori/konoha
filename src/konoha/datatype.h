@@ -722,10 +722,10 @@ static kclass_t *addClassDef(CTX, kpack_t packid, kpack_t packdom, kString *name
 	if(name == NULL) {
 		const char *n = cdef->structname;
 		assert(n != NULL); // structname must be set;
-		ct->nameid = kuname(n, strlen(n), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
+		ct->nameid = ksymbolSPOL(n, strlen(n), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
 	}
 	else {
-		ct->nameid = kuname(S_text(name), S_size(name), 0, _NEWID);
+		ct->nameid = ksymbolA(S_text(name), S_size(name), _NEWID);
 	}
 	CT_setName(_ctx, ct, pline);
 	return (kclass_t*)ct;
@@ -838,7 +838,7 @@ static void initStructData(CTX)
 	for(i = 0; i <= CLASS_T0; i++) {
 		struct _kclass *ct = (struct _kclass *)ctt[i];
 		const char *name = ct->DBG_NAME;
-		ct->nameid = kuname(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
+		ct->nameid = ksymbolSPOL(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
 		CT_setName(_ctx, ct, 0);
 	}
 //	struct _kclass *ct = (struct _kclass *)CT_Array;
@@ -879,8 +879,8 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	share->fileidMapNN = kmap_init(0);
 	KINITv(share->packList, new_(StringArray, 8));
 	share->packMapNN = kmap_init(0);
-	KINITv(share->symbolList, new_(StringArray, 32));
-	share->symbolMapNN = kmap_init(0);
+//	KINITv(share->symbolList, new_(StringArray, 32));
+//	share->symbolMapNN = kmap_init(0);
 	KINITv(share->unameList, new_(StringArray, 32));
 	share->unameMapNN = kmap_init(0);
 
@@ -901,7 +901,7 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	FILEID_("(konoha.c)");
 	PN_("konoha");    // PN_konoha
 	PN_("sugar");     // PKG_sugar
-	UN_("T");         // UN_T
+	SYM_("T");         // UN_T
 	FN_("");          // MN_
 	FN_("new");       // MN_new
 	initStructData(_ctx);
@@ -941,7 +941,7 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 
 	KREFTRACEv(share->fileidList);
 	KREFTRACEv(share->packList);
-	KREFTRACEv(share->symbolList);
+//	KREFTRACEv(share->symbolList);
 	KREFTRACEv(share->unameList);
 	KREFTRACEv(share->paramList);
 	KREFTRACEv(share->paramdomList);
@@ -966,7 +966,7 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 	kmap_free(share->lcnameMapNN, NULL);
 	kmap_free(share->fileidMapNN, NULL);
 	kmap_free(share->packMapNN, NULL);
-	kmap_free(share->symbolMapNN, NULL);
+//	kmap_free(share->symbolMapNN, NULL);
 	kmap_free(share->unameMapNN, NULL);
 	kmap_free(share->paramMapNN, NULL);
 	kmap_free(share->paramdomMapNN, NULL);

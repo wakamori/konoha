@@ -245,7 +245,6 @@ typedef kushort_t       kpack_t;   /* package id*/
 typedef kushort_t       kcid_t;    /* class id */
 typedef kushort_t       ktype_t;     /* extended ktype_t */
 typedef kushort_t       ksymbol_t;
-typedef kushort_t       kuname_t;
 typedef kushort_t       kmethodn_t;
 typedef kushort_t       kparamid_t;
 
@@ -277,6 +276,8 @@ typedef kushort_t       kparamid_t;
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
 #define MN_SETTER     KFLAG_H2
+#define MN_Annotation (KFLAG_H1|KFLAG_H2)
+
 #define MN_TOCID      (KFLAG_H0|KFLAG_H1)
 #define MN_ASCID      (KFLAG_H0|KFLAG_H1|KFLAG_H2)
 
@@ -300,7 +301,7 @@ struct  kcontext_t;
 typedef const struct kcontext_t *const CTX_t;
 #define CTX      CTX_t _ctx
 
-#define MOD_MAX    128
+#define MOD_MAX    32
 struct _kObject;
 
 #define MOD_logger   0
@@ -368,8 +369,8 @@ typedef struct kshare_t {
 	struct kmap_t         *packMapNN;
 	const struct _kArray         *unameList;  // NAME, Name, INT_MAX Int_MAX
 	struct kmap_t         *unameMapNN;
-	const struct _kArray         *symbolList;   // name, f,
-	struct kmap_t         *symbolMapNN;
+//	const struct _kArray         *symbolList;   // name, f,
+//	struct kmap_t         *symbolMapNN;
 	const struct _kArray         *paramList;
 	struct kmap_t         *paramMapNN;
 	const struct _kArray         *paramdomList;
@@ -511,7 +512,7 @@ struct _kclass {
 	kfield_t  *fields;
 	kushort_t  fsize;         kushort_t fallocsize;
 	const char               *DBG_NAME;
-	kuname_t                  nameid;
+	ksymbol_t                  nameid;
 	kushort_t                 optvalue;
 
 	const struct _kArray     *methods;
@@ -1085,9 +1086,8 @@ struct _klib2 {
 
 	kline_t     (*Kfileid)(CTX, const char *, size_t, int spol, ksymbol_t def);
 	kpack_t     (*Kpack)(CTX, const char *, size_t, int spol, ksymbol_t def);
-	kuname_t    (*Kuname)(CTX, const char*, size_t, int spol, ksymbol_t def);
-	ksymbol_t   (*Ksymbol)(CTX, const char *, size_t, ksymbol_t def, int);
-	const char* (*KTsymbol)(CTX, char *, size_t, ksymbol_t mn);
+	ksymbol_t   (*Ksymbol2)(CTX, const char*, size_t, int spol, ksymbol_t def);
+	const char* (*KTsymbol)(CTX, char *, size_t, ksymbol_t sym);
 
 	kbool_t     (*KimportPackage)(CTX, const struct _kKonohaSpace*, const char *, kline_t);
 	kclass_t*   (*Kclass)(CTX, kcid_t, kline_t);
@@ -1178,15 +1178,6 @@ struct _klib2 {
 #define kmap_getcode(M,L,N,NL,H,POL,DEF)  (KPI)->Kmap_getcode(_ctx, M, L, N, NL, H, POL, DEF)
 
 #define kclass(CID, UL)           (KPI)->Kclass(_ctx, CID, UL)
-#define SYMPOL_RAW                0
-#define SYMPOL_NAME               1
-#define SYMPOL_METHOD             2
-#define ksymbol(T,L,D,P)          (KPI)->Ksymbol(_ctx, T, L, D, P)
-#define KSYMBOL(T)                (KPI)->Ksymbol(_ctx, T, sizeof(T)-1, FN_NEWID, SYMPOL_RAW)
-#define FN_(T)                    ksymbol(T, (sizeof(T)-1), FN_NEWID, SYMPOL_NAME)
-#define MN_(T)                    ksymbol(T, (sizeof(T)-1), FN_NEWID, SYMPOL_METHOD)
-#define MN_new                    1  /* @see */
-#define T_mn(B, X)                (KPI)->KTsymbol(_ctx, B, sizeof(B), X)
 
 #define FILEID_NATIVE             0
 #define FILEID_(T)                (KPI)->Kfileid(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII, _NEWID)
@@ -1195,8 +1186,15 @@ struct _klib2 {
 #define PN_sugar                  1
 #define PN_(T)                    (KPI)->Kpack(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII|SPOL_POOL, _NEWID)
 #define kpack(T,L,SPOL,DEF)       (KPI)->Kpack(_ctx, T, L, SPOL, DEF)
-#define UN_(T)                    (KPI)->Kuname(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII|SPOL_POOL, _NEWID)
-#define kuname(T, L, SPOL,DEF)    (KPI)->Kuname(_ctx, T, L, SPOL, DEF)
+
+#define ksymbolA(T, L, DEF)       (KPI)->Ksymbol2(_ctx, T, L, SPOL_ASCII, DEF)
+#define ksymbolSPOL(T, L, SPOL, DEF)       (KPI)->Ksymbol2(_ctx, T, L, SPOL, DEF)
+#define ksymbol(T)
+#define SYM_(T)                   (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define FN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define MN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define MN_new                    1  /* @see */
+#define T_mn(B, X)                (KPI)->KTsymbol(_ctx, B, sizeof(B), X)
 
 #define new_kObject(C, A)         (KPI)->Knew_Object(_ctx, C, (void*)(A))
 #define new_(C, A)                (k##C*)(KPI)->Knew_Object(_ctx, CT_##C, (void*)(A))
