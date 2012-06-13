@@ -64,7 +64,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 //	if(mtd == NULL) {
 //		RETURNb_(false);
 //	}
-//	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", SYM_T(fn), T_ty(expr->ty));
+//	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", SYM_t(fn), T_ty(expr->ty));
 //	expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
 //	kObject_setObject(stmt, KW_Expr, expr);
 //	kStmt_typed(stmt, EXPR);

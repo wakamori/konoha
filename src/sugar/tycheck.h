@@ -870,7 +870,7 @@ static int addGammaStack(CTX, gstack_t *s, ktype_t ty, ksymbol_t fn)
 		s->vars = v;
 		s->allocsize = asize;
 	}
-	DBG_P("index=%d, ty=%s fn=%s", index, T_ty(ty), SYM_T(fn));
+	DBG_P("index=%d, ty=%s fn=%s", index, T_ty(ty), SYM_t(fn));
 	s->vars[index].ty = ty;
 	s->vars[index].fn = fn;
 	s->varsize += 1;

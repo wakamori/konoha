@@ -72,14 +72,6 @@ static kinline kString* Spack_(CTX, kpack_t packid)
 	return _ctx->share->packList->strings[packid];
 }
 
-#define S_UN(X)  S_SYM_(_ctx, X)
-#define T_UN(X)  S_text(S_SYM_(_ctx, X))
-static kinline kString* S_SYM_(CTX, ksymbol_t un)
-{
-	DBG_ASSERT(un < kArray_size(_ctx->share->unameList));
-	return _ctx->share->unameList->strings[un];
-}
-
 #define S_CT(X)   S_CT_(_ctx, X)
 #define T_CT(X)   S_text(S_CT_(_ctx, X))
 #define CT_isGenerics(ct)  (ct->cparam != K_NULLPARAM)
@@ -101,7 +93,7 @@ static kinline kString* S_ty_(CTX, ktype_t ty)
 }
 
 #define SYM_s(fn)   SYM_s_(_ctx, fn)
-#define SYM_T(fn)   S_text(SYM_s_(_ctx, fn))
+#define SYM_t(fn)   S_text(SYM_s_(_ctx, fn))
 static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 {
 	size_t index = (size_t) SYM_UNMASK(sym);

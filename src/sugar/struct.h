@@ -241,7 +241,7 @@ static kbool_t checkConflictedConst(CTX, kKonohaSpace *ks, kvs_t *kvs, kline_t p
 		if(kvs->ty == ksval->ty && kvs->uval == ksval->uval) {
 			return true;  // same value
 		}
-		kreportf(WARN_, pline, "conflicted name: %s", T_UN(FN_UNBOX(ukey)));
+		kreportf(WARN_, pline, "conflicted name: %s", SYM_t(FN_UNBOX(ukey)));
 		return true;
 	}
 	return false;
@@ -316,7 +316,7 @@ static void KonohaSpace_importClassName(CTX, kKonohaSpace *ks, kpack_t packid, k
 		kclass_t *ct = CT_(i);
 		if(CT_isPrivate(ct)) continue;
 		if(ct->packid == packid) {
-			DBG_P("importing packid=%s.%s, %s..", T_PN(ct->packid), T_UN(ct->nameid), T_PN(packid));
+			DBG_P("importing packid=%s.%s, %s..", T_PN(ct->packid), SYM_t(ct->nameid), T_PN(packid));
 			kv.key = ct->nameid;
 			kv.ty  = TY_TYPE;
 			kv.uval = (uintptr_t)ct;
