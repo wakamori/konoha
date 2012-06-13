@@ -158,7 +158,6 @@ static kinline size_t check_index(CTX, kint_t n, size_t max, kline_t pline)
 	return n1;
 }
 
-
 #ifdef USE_STRINGLIB
 
 #define utf8len(c)    _utf8len[(int)c]
