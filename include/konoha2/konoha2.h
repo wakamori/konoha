@@ -1302,7 +1302,7 @@ typedef enum {
 		void *func = ct->T;\
 		((struct _kclass*)ct)->T = PREFIX##_##T;\
 		if(func != NULL) {\
-			kreportf(DEBUG_, UL, "override of %s->" #T ", file=%s, line=%d", T_CT(ct), __FILE__, __LINE__);\
+			kreportf(DEBUG_, UL, "override of %s->" #T ", file=%s, line=%d", CT_t(ct), __FILE__, __LINE__);\
 		}\
 	}while(0)\
 

@@ -98,7 +98,7 @@ static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _
 				ct = kClassTable_Generics(ct, p[0].ty, psize-1, p+1);
 			}
 			else if(ct->p0 == TY_void) {
-				SUGAR_P(ERR_, tk->uline, tk->lpos, "not generic type: %s", T_ty(TK_type(tk)));
+				SUGAR_P(ERR_, tk->uline, tk->lpos, "not generic type: %s", TY_t(TK_type(tk)));
 				return tk;
 			}
 			else {

@@ -72,24 +72,22 @@ static kinline kString* Spack_(CTX, kpack_t packid)
 	return _ctx->share->packList->strings[packid];
 }
 
-#define S_CT(X)   S_CT_(_ctx, X)
-#define T_CT(X)   S_text(S_CT_(_ctx, X))
+#define CT_s(X)   CT_s_(_ctx, X)
+#define CT_t(X)   S_text(CT_s_(_ctx, X))
 #define CT_isGenerics(ct)  (ct->cparam != K_NULLPARAM)
 
-static kinline kString* S_CT_(CTX, kclass_t *ct)
+static kinline kString* CT_s_(CTX, kclass_t *ct)
 {
 	return _ctx->lib2->KCT_shortName(_ctx, ct);
 }
 
-#define S_cid(X)  S_ty_(_ctx, X)
-#define T_cid(X)  S_text(S_ty(X))
-#define S_ty(X)   S_ty_(_ctx, X)
-#define T_ty(X)   S_text(S_ty(X))
+#define TY_s(X)   TY_s_(_ctx, X)
+#define TY_t(X)   S_text(TY_s(X))
 
-static kinline kString* S_ty_(CTX, ktype_t ty)
+static kinline kString* TY_s_(CTX, ktype_t ty)
 {
 	DBG_ASSERT(ty < KARRAYSIZE(_ctx->share->ca.bytemax, intptr));
-	return S_CT_(_ctx, CT_(ty));
+	return CT_s_(_ctx, CT_(ty));
 }
 
 #define SYM_s(fn)   SYM_s_(_ctx, fn)

@@ -530,7 +530,7 @@ static void DEFAULT_free(CTX, kObject *o)
 
 static void DEFAULT_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 {
-	kwb_printf(wb, "&%p(:%s)", sfp[pos].o, T_cid(O_cid(sfp[pos].o)));
+	kwb_printf(wb, "&%p(:%s)", sfp[pos].o, TY_t(O_cid(sfp[pos].o)));
 }
 
 static uintptr_t DEFAULT_unbox(CTX, kObject *o)
@@ -562,7 +562,7 @@ static kObject* DEFAULT_fnull(CTX, kclass_t *ct)
 static kObject* DEFAULT_fnullinit(CTX, kclass_t *ct)
 {
 	assert(ct->nulvalNUL == NULL);
-	DBG_P("creating new nulval for %s", T_CT(ct));
+	DBG_P("creating new nulval for %s", CT_t(ct));
 	KINITv(((struct _kclass*)ct)->nulvalNUL, new_kObject(ct, 0));
 	kObject_setNullObject(ct->nulvalNUL, 1);
 	((struct _kclass*)ct)->fnull = DEFAULT_fnull;

@@ -421,9 +421,9 @@ static void dumpOPCODE(CTX, kopl_t *c, kopl_t *pc_start)
 		case VMT_F:
 			DUMP_P("function(%p)", c->p[i]); break;
 		case VMT_CID:
-			DUMP_P("CT(%s)", T_CT(c->ct[i])); break;
+			DUMP_P("CT(%s)", CT_t(c->ct[i])); break;
 		case VMT_CO:
-			DUMP_P("CT(%s)", T_CT(O_ct(c->o[i]))); break;
+			DUMP_P("CT(%s)", CT_t(O_ct(c->o[i]))); break;
 		}/*switch*/
 	}
 	DUMP_P("\n");
