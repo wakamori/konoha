@@ -541,7 +541,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			else {
 				tk->tt = TK_CODE;
-				tk->kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), FN_NEWID);
+				tk->kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), SYM_NEWID);
 			}
 			kArray_add(adst, tk);
 			continue;
@@ -549,7 +549,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 		if(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL) {
 			if(i > 0 && tls->toks[i-1]->topch == '$') {
 				snprintf(nbuf, sizeof(nbuf), "$%s", S_text(tk->text));
-				tk->kw = keyword(_ctx, (const char*)nbuf, strlen(nbuf), FN_NEWID);
+				tk->kw = keyword(_ctx, (const char*)nbuf, strlen(nbuf), SYM_NEWID);
 				tk->tt = TK_METANAME;
 				if(nameid == 0) nameid = tk->kw;
 				tk->nameid = nameid;
@@ -558,7 +558,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			if(i + 1 < e && tls->toks[i+1]->topch == ':') {
 				kToken *tk = tls->toks[i];
-				nameid = keyword(_ctx, S_text(tk->text), S_size(tk->text), FN_NEWID);
+				nameid = keyword(_ctx, S_text(tk->text), S_size(tk->text), SYM_NEWID);
 				i++;
 				continue;
 			}

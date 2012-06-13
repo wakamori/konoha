@@ -59,7 +59,7 @@ static void KonohaSpace_reftrace(CTX, kObject *o)
 	size_t i, size = KARRAYSIZE(ks->cl.bytesize, kvs);
 	BEGIN_REFTRACE(size);
 	for(i = 0; i < size; i++) {
-		if(FN_isBOXED(ks->cl.kvs[i].key)) {
+		if(SYMKEY_isBOXED(ks->cl.kvs[i].key)) {
 			KREFTRACEv(ks->cl.kvs[i].oval);
 		}
 	}
@@ -123,8 +123,8 @@ static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int i
 		else {
 			syn->kw = kw;
 			syn->ty  = TY_unknown;
-			syn->op1 = MN_NONAME;
-			syn->op2 = MN_NONAME;
+			syn->op1 = SYM_NONAME;
+			syn->op2 = SYM_NONAME;
 			KINITv(syn->ParseExpr, kmodsugar->UndefinedParseExpr);
 			KINITv(syn->TopStmtTyCheck, kmodsugar->UndefinedStmtTyCheck);
 			KINITv(syn->StmtTyCheck, kmodsugar->UndefinedStmtTyCheck);
@@ -155,7 +155,7 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 	knh_Fmethod pParseStmt = NULL, pParseExpr = NULL, pStmtTyCheck = NULL, pExprTyCheck = NULL;
 	kMethod *mParseStmt = NULL, *mParseExpr = NULL, *mStmtTyCheck = NULL, *mExprTyCheck = NULL;
 	while(syndef->name != NULL) {
-		keyword_t kw = keyword(_ctx, syndef->name, strlen(syndef->name), FN_NEWID);
+		keyword_t kw = keyword(_ctx, syndef->name, strlen(syndef->name), SYM_NEWID);
 		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syntax(_ctx, ks, kw, 1/*isnew*/);
 		//syn->token = syndef->name;
 		syn->flag  |= ((kflag_t)syndef->flag);
@@ -163,10 +163,10 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 			syn->ty = syndef->type;
 		}
 		if(syndef->op1 != NULL) {
-			syn->op1 = ksymbolA(syndef->op1, strlen(syndef->op1), FN_NEWID);
+			syn->op1 = ksymbolA(syndef->op1, strlen(syndef->op1), SYM_NEWID);
 		}
 		if(syndef->op2 != NULL) {
-			syn->op2 = ksymbolA(syndef->op2, strlen(syndef->op2), FN_NEWID);
+			syn->op2 = ksymbolA(syndef->op2, strlen(syndef->op2), SYM_NEWID);
 		}
 		if(syndef->priority_op2 > 0) {
 			syn->priority = syndef->priority_op2;
@@ -211,8 +211,8 @@ static const char* T_statement_(CTX, ksymbol_t kw)
 
 static int comprKeyVal(const void *a, const void *b)
 {
-	int akey = FN_UNBOX(((kvs_t*)a)->key);
-	int bkey = FN_UNBOX(((kvs_t*)b)->key);
+	int akey = SYMKEY_unbox(((kvs_t*)a)->key);
+	int bkey = SYMKEY_unbox(((kvs_t*)b)->key);
 	return akey - bkey;
 }
 
@@ -221,7 +221,7 @@ static kvs_t* KonohaSpace_getConstNULL(CTX, kKonohaSpace *ks, ksymbol_t ukey)
 	size_t min = 0, max = KARRAYSIZE(ks->cl.bytesize, kvs);
 	while(min < max) {
 		size_t p = (max + min) / 2;
-		ksymbol_t key = FN_UNBOX(ks->cl.kvs[p].key);
+		ksymbol_t key = SYMKEY_unbox(ks->cl.kvs[p].key);
 		if(key == ukey) return ks->cl.kvs + p;
 		if(key < ukey) {
 			min = p + 1;
@@ -241,7 +241,7 @@ static kbool_t checkConflictedConst(CTX, kKonohaSpace *ks, kvs_t *kvs, kline_t p
 		if(kvs->ty == ksval->ty && kvs->uval == ksval->uval) {
 			return true;  // same value
 		}
-		kreportf(WARN_, pline, "conflicted name: %s", SYM_t(FN_UNBOX(ukey)));
+		kreportf(WARN_, pline, "conflicted name: %s", SYM_t(SYMKEY_unbox(ukey)));
 		return true;
 	}
 	return false;
@@ -281,7 +281,7 @@ static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kli
 	kwb_init(&(_ctx->stack->cwb), &wb);
 	while(d[0] != NULL) {
 		//DBG_P("key='%s'", d[0]);
-		kv.key = ksymbolSPOL(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | FN_BOXED;
+		kv.key = ksymbolSPOL(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | SYMKEY_BOXED;
 		kv.ty  = (ktype_t)(uintptr_t)d[1];
 		if(kv.ty == TY_TEXT) {
 			kv.ty = TY_String;
@@ -289,7 +289,7 @@ static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kli
 			PUSH_GCSTACK(kv.oval);
 		}
 		else if(TY_isUnbox(kv.ty) || kv.ty == TY_TYPE) {
-			kv.key = FN_UNBOX(kv.key);
+			kv.key = SYMKEY_unbox(kv.key);
 			kv.uval = (uintptr_t)d[2];
 		}
 		else {
@@ -335,8 +335,8 @@ static void KonohaSpace_importClassName(CTX, kKonohaSpace *ks, kpack_t packid, k
 static kclass_t *KonohaSpace_getCT(CTX, kKonohaSpace *ks, kclass_t *thisct/*NULL*/, const char *name, size_t len, kcid_t def)
 {
 	kclass_t *ct = NULL;
-	ksymbol_t un = ksymbolA(name, len, FN_NONAME);
-	if(un != FN_NONAME) {
+	ksymbol_t un = ksymbolA(name, len, SYM_NONAME);
+	if(un != SYM_NONAME) {
 		uintptr_t hcode = longid(PN_konoha, un);
 		ct = (kclass_t*)map_getu(_ctx, _ctx->share->lcnameMapNN, hcode, 0);
 		if(ct == NULL) {
@@ -827,8 +827,8 @@ static void Stmt_reftrace(CTX, kObject *o)
 
 static void _dumpToken(CTX, void *arg, kvs_t *d)
 {
-	if((d->key & FN_BOXED) == FN_BOXED) {
-		keyword_t key = ~FN_BOXED & d->key;
+	if((d->key & SYMKEY_BOXED) == SYMKEY_BOXED) {
+		keyword_t key = ~SYMKEY_BOXED & d->key;
 		DUMP_P("key='%s': ", T_kw(key));
 		if(IS_Token(d->oval)) {
 			dumpToken(_ctx, (kToken*)d->oval);
@@ -872,8 +872,8 @@ typedef struct flagop_t {
 static uintptr_t Stmt_flag(CTX, kStmt *stmt, flagop_t *fop, uintptr_t flag)
 {
 	while(fop->key != NULL) {
-		keyword_t kw = keyword(_ctx, fop->key, fop->keysize, FN_NONAME);
-		if(kw != FN_NONAME) {
+		keyword_t kw = keyword(_ctx, fop->key, fop->keysize, SYM_NONAME);
+		if(kw != SYM_NONAME) {
 			kObject *op = kObject_getObjectNULL(stmt, kw);
 			if(op != NULL) {
 				DBG_P("found %s", fop->key);

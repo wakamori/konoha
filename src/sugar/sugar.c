@@ -284,7 +284,7 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	DBG_ASSERT(KW_(",") == KW_COMMA);
 	DBG_ASSERT(KW_("void") == KW_void);
 	DBG_ASSERT(KW_("return") == KW_return);
-	keyword(_ctx, "new", sizeof("new")-1, FN_NEWID);
+	keyword(_ctx, "new", sizeof("new")-1, SYM_NEWID);
 	DBG_ASSERT(KW_("new") == KW_new);
 	EXPORT_SUGAR(base);
 }

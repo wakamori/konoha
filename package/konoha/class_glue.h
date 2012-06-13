@@ -163,7 +163,7 @@ static void defineField(CTX, struct _kclass *ct, int flag, ktype_t ty, kString *
 	ct->fsize += 1;
 	ct->fields[pos].flag = flag;
 	ct->fields[pos].ty = ty;
-	ct->fields[pos].fn = ksymbolA(S_text(name), S_size(name), FN_NEWID);
+	ct->fields[pos].fn = ksymbolA(S_text(name), S_size(name), SYM_NEWID);
 	if(TY_isUnbox(ty)) {
 		if(value != NULL) {
 			ct->WnulvalNUL->ndata[pos] = O_unbox(value);
@@ -266,7 +266,7 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
 {
 	DBG_ASSERT(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL || tk->tt == TK_MSYMBOL);
-	return ksymbolA(S_text(tk->text), S_size(tk->text), FN_NEWID);
+	return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 }
 
 static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)

@@ -49,7 +49,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 //	}
 //	kExpr *vexpr = kStmt_expr(stmt, KW_("var"), K_NULLEXPR);
 //	ksymbol_t fn = tosymbol(_ctx, vexpr);
-//	if(fn == FN_NONAME) {
+//	if(fn == SYM_NONAME) {
 //		SUGAR p(_ctx, ERR_, stmt->uline, -1, "not variable name");
 //		RETURNb_(false);
 //	}

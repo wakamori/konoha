@@ -60,8 +60,8 @@ static kBlock *new_Block(CTX, kKonohaSpace *ks, kStmt *parent, kArray *tls, int 
 
 static kbool_t Token_resolved(CTX, kKonohaSpace *ks, struct _kToken *tk)
 {
-	keyword_t kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), FN_NONAME);
-	if(kw != FN_NONAME) {
+	keyword_t kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), SYM_NONAME);
+	if(kw != SYM_NONAME) {
 		ksyntax_t *syn = SYN_(ks, kw);
 		if(syn != NULL) {
 			if(syn->ty != TY_unknown) {
@@ -299,7 +299,7 @@ static int Stmt_addAnnotation(CTX, kStmt *stmt, kArray *tls, int s, int e)
 		if(i+1 < e) {
 			char buf[64];
 			snprintf(buf, sizeof(buf), "@%s", S_text(tk->text));
-			keyword_t kw = keyword(_ctx, (const char*)buf, S_size(tk->text)+1, FN_NEWID);
+			keyword_t kw = keyword(_ctx, (const char*)buf, S_size(tk->text)+1, SYM_NEWID);
 			kToken *tk1 = tls->toks[i+1];
 			kObject *value = UPCAST(K_TRUE);
 			if(tk1->tt == AST_PARENTHESIS) {
@@ -545,7 +545,7 @@ static kExpr *ParseExpr(CTX, ksyntax_t *syn, kStmt *stmt, kArray *tls, int s, in
 static kbool_t Stmt_isUnaryOp(CTX, kStmt *stmt, kToken *tk)
 {
 	ksyntax_t *syn = SYN_(kStmt_ks(stmt), tk->kw);
-	return (syn->op1 != MN_NONAME);
+	return (syn->op1 != SYM_NONAME);
 }
 
 static int Stmt_skipUnaryOp(CTX, kStmt *stmt, kArray *tls, int s, int e)
@@ -654,7 +654,7 @@ static KMETHOD ParseExpr_Op(CTX, ksfp_t *sfp _RIX)
 	kToken *tk = tls->toks[c];
 	kExpr *expr, *rexpr = Stmt_newExpr2(_ctx, stmt, tls, c+1, e);
 	kmethodn_t mn = (s == c) ? syn->op1 : syn->op2;
-	if(mn != MN_NONAME && syn->ExprTyCheck == kmodsugar->UndefinedExprTyCheck) {
+	if(mn != SYM_NONAME && syn->ExprTyCheck == kmodsugar->UndefinedExprTyCheck) {
 		kToken_setmn(tk, mn, (s == c) ? MNTYPE_unary: MNTYPE_binary);
 		syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);  // switch type checker
 	}

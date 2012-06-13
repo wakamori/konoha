@@ -592,7 +592,7 @@ typedef struct {
 
 #ifdef USING_SUGAR_AS_BUILTIN
 
-#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, FN_NONAME)
+#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                KonohaSpace_syntax(_ctx, KS, KW, 0)
 
 #define kStmt_token(STMT, KW, DEF)  Stmt_token(_ctx, STMT, KW, DEF)
@@ -621,7 +621,7 @@ typedef struct {
 #define TY_Gamma                             _e->cGamma->cid
 #define TY_TokenArray                        _e->cTokenArray->cid
 
-#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, FN_NONAME)
+#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                         _e->KonohaSpace_syntax(_ctx, KS, KW, 0)
 #define NEWSYN_(KS, KW)                      (struct _ksyntax*)_e->KonohaSpace_syntax(_ctx, KS, KW, 1)
 

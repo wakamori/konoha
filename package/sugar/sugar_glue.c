@@ -25,7 +25,7 @@
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
 
-#define KW_s(s) SUGAR keyword(_ctx, S_text(s), S_size(s), FN_NONAME)
+#define KW_s(s) SUGAR keyword(_ctx, S_text(s), S_size(s), SYM_NONAME)
 
 //## boolean Token.isTypeName();
 static KMETHOD Token_isTypeName(CTX, ksfp_t *sfp _RIX)
@@ -109,7 +109,7 @@ static KMETHOD KonohaSpace_addParseStmt(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isParseStmt, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -131,7 +131,7 @@ static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isParseExpr, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -151,7 +151,7 @@ static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -165,7 +165,7 @@ static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -185,7 +185,7 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Expr, mn);
 	if(checkMethod(_ctx, mtd, isExprTyCheck, CT_Expr, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -200,7 +200,7 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 //{
 //	USING_SUGAR;
 //	keyword_t kw = KW_s(key);
-//	if(kw == FN_NONAME) {
+//	if(kw == SYM_NONAME) {
 //		kreportf(CRIT_, "undefined keyword: %s", S_text(key));
 //	}
 //	ksyntax_t *syn = SYN_(ks, kw);
@@ -354,10 +354,10 @@ static struct _ksyntax *toks_syntax(CTX, kKonohaSpace *ks, kArray *tls)
 			if(isSubKeyword(_ctx, tls, s, e)) {
 				char buf[256];
 				snprintf(buf, sizeof(buf), "%s %s", S_text(tls->toks[s]->text), S_text(tls->toks[s+1]->text));
-				kw = SUGAR keyword(_ctx, (const char*)buf, strlen(buf), FN_NEWID);
+				kw = SUGAR keyword(_ctx, (const char*)buf, strlen(buf), SYM_NEWID);
 			}
 			else {
-				kw = SUGAR keyword(_ctx, S_text(tls->toks[s]->text), S_size(tls->toks[s]->text), FN_NEWID);
+				kw = SUGAR keyword(_ctx, S_text(tls->toks[s]->text), S_size(tls->toks[s]->text), SYM_NEWID);
 			}
 			return (struct _ksyntax*)NEWSYN_(ks, kw);
 		}
