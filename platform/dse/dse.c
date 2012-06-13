@@ -22,27 +22,69 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+/* ************************************************************************ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <event.h>
 #include <evhttp.h>
+#include <event2/buffer.h>
+#include <sys/queue.h>
+#include <jansson.h>
+#include "dse.h"
 
 #define HTTPD_ADDR "0.0.0.0"
 #define HTTPD_PORT 8080
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void req_handler (struct evhttp_request *r, void *arg)
+void dump_http_header(struct evhttp_request *req, struct evbuffer *evb, void *ctx)
 {
-	if (r->type != EVHTTP_REQ_GET) {
-		evhttp_send_error(r, HTTP_BADREQUEST, "Available GET only");
+	struct evkeyvalq *head = evhttp_request_get_input_headers(req);
+	struct evkeyval *entry;
+	TAILQ_FOREACH(entry, head, next) {
+		evbuffer_add_printf(evb, "%s:%s<br>", entry->key, entry->value);
+	}
+	evhttp_add_header(req->output_headers, "Access-Control-Allow-Origin", "http://localhost:8080/");
+	evhttp_add_header(req->output_headers, "Access-Control-Max-Age", "6238800");
+	evhttp_add_header(req->output_headers, "Access-Control-Allow-Method", "POST");
+
+	evhttp_send_reply(req, HTTP_OK, "OK", evb);
+}
+
+void req_handler (struct evhttp_request *req, void *arg)
+{
+	struct evbuffer *buf = evbuffer_new();
+	D_("event handler invoked\n");
+	struct evbuffer *body = evhttp_request_get_input_buffer(req);
+
+	size_t len = evbuffer_get_length(body);
+	D_("size:%d, %d", len, req->body_size);
+	if(req->type == EVHTTP_REQ_GET) {
+		//evbuffer_add_printf(buf, "Reqested GET: %s\n", evhttp_request_uri(r));
+		//evhttp_send_reply(r, HTTP_OK, "OK", buf);
+
+		dump_http_header(req, buf, NULL);
+
+	}
+	else if(req->type == EVHTTP_REQ_POST) {
+		// now, we fetch key values
+		unsigned char *requestLine;
+		requestLine = evbuffer_pullup(body, -1);
+		// need to terminate;
+		requestLine[len] = '\0';
+		//D_("len:%lu, line:'%s'",readsize, requestLine);
+
+		//now, parse json.
+		struct dse_request_t *dreq = dse_parseJson((const char*)requestLine);
+//		dse_dispatch(dreq->method);
+		evbuffer_add_printf(buf, "Reqested POSPOS: %s\n", evhttp_request_uri(req));
+		evhttp_send_reply(req, HTTP_OK, "OK", buf);
 	}
 	else {
-		//STUB:: parse body
+		evhttp_send_error(req, HTTP_BADREQUEST, "Available GET only");
 	}
 }
 
@@ -61,6 +103,7 @@ int main (int argc, char **av)
 	event_base_dispatch(ev_base);
 	evhttp_free(httpd);
 	event_base_free(ev_base);
+	return 0;
 }
 
 #ifdef __cplusplus
