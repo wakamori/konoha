@@ -62,10 +62,10 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 		if(uline > 0) {
 			const char *file = T_file(uline);
 //			if(lpos != -1) {
-//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortname(file), (kushort_t)uline, (int)lpos+1);
+//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortfilename(file), (kushort_t)uline, (int)lpos+1);
 //			}
 //			else {
-				kwb_printf(&wb, "%s (%s:%d) " , msg, shortname(file), (kushort_t)uline);
+				kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
 //			}
 		}
 		else {
