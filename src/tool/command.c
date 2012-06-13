@@ -376,7 +376,7 @@ static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	va_start(ap , fmt);
 	fflush(stdlog);
 	if(pline != 0) {
-		const char *file = T_file(pline);
+		const char *file = SS_t(pline);
 		fprintf(stdlog, " - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
 	}
 	else {

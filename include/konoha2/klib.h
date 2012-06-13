@@ -54,19 +54,19 @@ static kinline const char* shortfilename(const char *str)
 	return (p == NULL) ? str : (const char*)p+1;
 }
 
-#define S_file(X)  S_fileid(_ctx, X)
-#define T_file(X)  S_text(S_fileid(_ctx, X))
+#define SS_s(X)  SS_s_(_ctx, X)
+#define SS_t(X)  S_text(SS_s_(_ctx, X))
 
-static kinline kString* S_fileid(CTX, kline_t fileid)
+static kinline kString* SS_s_(CTX, kline_t fileid)
 {
 	kline_t n = (fileid >> (sizeof(kshort_t) * 8));
 	DBG_ASSERT(n < kArray_size(_ctx->share->fileidList));
 	return _ctx->share->fileidList->strings[n];
 }
 
-#define S_PN(X)    Spack_(_ctx, X)
-#define T_PN(X)    S_text(Spack_(_ctx, X))
-static kinline kString* Spack_(CTX, kpack_t packid)
+#define PN_s(X)    PN_s_(_ctx, X)
+#define PN_t(X)    S_text(PN_s_(_ctx, X))
+static kinline kString* PN_s_(CTX, kpack_t packid)
 {
 	DBG_ASSERT(packid < kArray_size(_ctx->share->packList));
 	return _ctx->share->packList->strings[packid];
