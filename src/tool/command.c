@@ -289,7 +289,7 @@ static void dumpEval(CTX, kwb_t *wb)
 		ksfp_t *lsfp = base->stack + base->evalidx;
 		CT_(ty)->p(_ctx, lsfp, 0, wb, P_DUMP);
 		fflush(stdout);
-		fprintf(stdout, "TY=%s EVAL=%s\n", T_cid(ty), kwb_top(wb,1));
+		fprintf(stdout, "TY=%s EVAL=%s\n", TY_t(ty), kwb_top(wb,1));
 	}
 }
 
@@ -376,8 +376,8 @@ static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	va_start(ap , fmt);
 	fflush(stdlog);
 	if(pline != 0) {
-		const char *file = T_file(pline);
-		fprintf(stdlog, " - (%s:%d) %s" , shortname(file), (kushort_t)pline, T_ERR(level));
+		const char *file = SS_t(pline);
+		fprintf(stdlog, " - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
 	}
 	else {
 		fprintf(stdlog, " - %s" , T_ERR(level));

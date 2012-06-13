@@ -405,7 +405,6 @@ static kparamid_t Kmap_getparamid(CTX, kmap_t *kmp, kArray *list, uintptr_t hcod
 	e = kmap_newentry(kmp, hcode);
 	KINITv(e->paramkey, pa);
 	e->uvalue = paramid;
-	kmap_add(kmp, e);
 	return (kparamid_t)paramid;
 }
 
@@ -531,7 +530,7 @@ static void DEFAULT_free(CTX, kObject *o)
 
 static void DEFAULT_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 {
-	kwb_printf(wb, "&%p(:%s)", sfp[pos].o, T_cid(O_cid(sfp[pos].o)));
+	kwb_printf(wb, "&%p(:%s)", sfp[pos].o, TY_t(O_cid(sfp[pos].o)));
 }
 
 static uintptr_t DEFAULT_unbox(CTX, kObject *o)
@@ -563,7 +562,7 @@ static kObject* DEFAULT_fnull(CTX, kclass_t *ct)
 static kObject* DEFAULT_fnullinit(CTX, kclass_t *ct)
 {
 	assert(ct->nulvalNUL == NULL);
-	DBG_P("creating new nulval for %s", T_CT(ct));
+	DBG_P("creating new nulval for %s", CT_t(ct));
 	KINITv(((struct _kclass*)ct)->nulvalNUL, new_kObject(ct, 0));
 	kObject_setNullObject(ct->nulvalNUL, 1);
 	((struct _kclass*)ct)->fnull = DEFAULT_fnull;
@@ -667,7 +666,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 {
 	if(ct->shortNameNULL == NULL) {
 		if(ct->paramdom == 0 && ct->bcid != CLASS_Func) {
-			KINITv(((struct _kclass*)ct)->shortNameNULL, S_UN(ct->nameid));
+			KINITv(((struct _kclass*)ct)->shortNameNULL, SYM_s(ct->nameid));
 		}
 		else {
 			size_t i, c = 0;
@@ -678,7 +677,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 				CT_shortName(_ctx, CT_(cparam->p[i].ty));
 			}
 			Kwb_init(&(_ctx->stack->cwb), &wb);
-			kString *s = S_UN(ct->nameid);
+			kString *s = SYM_s(ct->nameid);
 			kwb_write(&wb, S_text(s), S_size(s));
 			kwb_putc(&wb, '[');
 			if(ct->bcid == CLASS_Func) {
@@ -702,7 +701,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 static void CT_setName(CTX, struct _kclass *ct, kline_t pline)
 {
 	uintptr_t lname = longid(ct->packdom, ct->nameid);
-	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", T_PN(ct->packdom), T_PN(ct->packid), T_UN(ct->nameid));
+	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", PN_t(ct->packdom), PN_t(ct->packid), SYM_t(ct->nameid));
 	kclass_t *ct2 = (kclass_t*)map_getu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)NULL);
 	if(ct2 == NULL) {
 		map_addu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)ct);
@@ -723,10 +722,10 @@ static kclass_t *addClassDef(CTX, kpack_t packid, kpack_t packdom, kString *name
 	if(name == NULL) {
 		const char *n = cdef->structname;
 		assert(n != NULL); // structname must be set;
-		ct->nameid = kuname(n, strlen(n), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
+		ct->nameid = ksymbolSPOL(n, strlen(n), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
 	}
 	else {
-		ct->nameid = kuname(S_text(name), S_size(name), 0, _NEWID);
+		ct->nameid = ksymbolA(S_text(name), S_size(name), _NEWID);
 	}
 	CT_setName(_ctx, ct, pline);
 	return (kclass_t*)ct;
@@ -839,13 +838,9 @@ static void initStructData(CTX)
 	for(i = 0; i <= CLASS_T0; i++) {
 		struct _kclass *ct = (struct _kclass *)ctt[i];
 		const char *name = ct->DBG_NAME;
-		ct->nameid = kuname(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
+		ct->nameid = ksymbolSPOL(name, strlen(name), SPOL_ASCII|SPOL_POOL|SPOL_TEXT, _NEWID);
 		CT_setName(_ctx, ct, 0);
 	}
-//	struct _kclass *ct = (struct _kclass *)CT_Array;
-//	kparam_t p = { .ty = TY_Object};
-//	ct->paramdom = Kparamdom(_ctx, 1, &p);
-//	DBG_P("ct->paramdom=%d", ct->paramdom);
 }
 
 static void KCLASSTABLE_initklib2(struct _klib2 *l)
@@ -874,14 +869,11 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	KCLASSTABLE_initklib2((struct _klib2*)_ctx->lib2);
 	KARRAY_INIT(&share->ca, K_CLASSTABLE_INIT * sizeof(kclass_t));
 	loadInitStructData(_ctx);
-//	share->cStringArray = CT_p0(_ctx, CT_Array, TY_String);
 	share->lcnameMapNN = kmap_init(0);
 	KINITv(share->fileidList, new_(StringArray, 8));
 	share->fileidMapNN = kmap_init(0);
 	KINITv(share->packList, new_(StringArray, 8));
 	share->packMapNN = kmap_init(0);
-	KINITv(share->symbolList, new_(StringArray, 32));
-	share->symbolMapNN = kmap_init(0);
 	KINITv(share->unameList, new_(StringArray, 32));
 	share->unameMapNN = kmap_init(0);
 
@@ -902,9 +894,9 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	FILEID_("(konoha.c)");
 	PN_("konoha");    // PN_konoha
 	PN_("sugar");     // PKG_sugar
-	UN_("T");         // UN_T
-	FN_("");          // MN_
-	FN_("new");       // MN_new
+	SYM_("");          // MN_
+	SYM_("new");       // MN_new
+	SYM_("T");         // UN_T
 	initStructData(_ctx);
 }
 
@@ -929,7 +921,6 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 			KREFTRACEn(ct->nulvalNUL);
 			END_REFTRACE();
 		}
-//		if (ct->constNameMapSO) kmap_reftrace(ct->constNameMapSO, keyval_reftrace);
 		if (ct->constPoolMapNO) kmap_reftrace(ct->constPoolMapNO, val_reftrace);
 	}
 
@@ -942,7 +933,6 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 
 	KREFTRACEv(share->fileidList);
 	KREFTRACEv(share->packList);
-	KREFTRACEv(share->symbolList);
 	KREFTRACEv(share->unameList);
 	KREFTRACEv(share->paramList);
 	KREFTRACEv(share->paramdomList);
@@ -967,7 +957,6 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 	kmap_free(share->lcnameMapNN, NULL);
 	kmap_free(share->fileidMapNN, NULL);
 	kmap_free(share->packMapNN, NULL);
-	kmap_free(share->symbolMapNN, NULL);
 	kmap_free(share->unameMapNN, NULL);
 	kmap_free(share->paramMapNN, NULL);
 	kmap_free(share->paramdomMapNN, NULL);

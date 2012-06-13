@@ -284,7 +284,6 @@ static void jitcache_set(CTX, kMethod *mtd, kObject *f)
 	kmap_t *map = kmodjit->jitcache;
 	kmape_t *newe = kmap_newentry(map, hcode);
 	newe->uvalue = (uintptr_t) f;
-	kmap_add(map, newe);
 }
 
 //## Function System.getJITCache(Method mtd);
@@ -585,11 +584,12 @@ static KMETHOD Method_getReturnType(CTX, ksfp_t *sfp _RIX)
 //## String mtd.getFname();
 static KMETHOD Method_getFname(CTX, ksfp_t *sfp _RIX)
 {
-	kMethod *mtd = sfp[0].mtd;
-	int mn = mtd->mn;
-	char mbuf[128];
-	T_mn(mbuf, mn);
-	RETURN_(new_kString(mbuf, strlen(mbuf), 0));
+	abort();  // MN_T is modified more compact interface by kimio
+//	kMethod *mtd = sfp[0].mtd;
+//	int mn = mtd->mn;
+//	char mbuf[128];
+//	T_mn(mbuf, mn);
+//	RETURN_(new_kString(mbuf, strlen(mbuf), 0));
 }
 
 //## String mtd.getCname();
@@ -597,7 +597,7 @@ static KMETHOD Method_getCname(CTX, ksfp_t *sfp _RIX)
 {
 	kMethod *mtd = sfp[0].mtd;
 	kcid_t cid = mtd->cid;
-	const char *cname = T_cid(cid);
+	const char *cname = TY_t(cid);
 	RETURN_(new_kString(cname, strlen(cname), 0));
 }
 

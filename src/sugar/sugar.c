@@ -49,8 +49,8 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ TOKEN("$ERR"), .flag = SYNFLAG_StmtBreakExec, },
 		{ TOKEN("$expr"), .rule ="$expr", ParseStmt_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
-		{ TOKEN("$SYMBOL"),  ParseStmt_(Symbol),  _TERM, ExprTyCheck_(Symbol),},
-		{ TOKEN("$USYMBOL"), ParseStmt_(Usymbol), _TERM, ExprTyCheck_(Usymbol),},
+		{ TOKEN("$SYMBOL"),  _TERM, ParseStmt_(Symbol),  ExprTyCheck_(Symbol),},
+		{ TOKEN("$USYMBOL"), _TERM, ParseStmt_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
 		{ TOKEN("$TEXT"), _TERM, ExprTyCheck_(Text),},
 		{ TOKEN("$INT"), _TERM, ExprTyCheck_(Int),},
 		{ TOKEN("$FLOAT"), _TERM, /* ExprTyCheck_(FLOAT), */},
@@ -92,6 +92,11 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 		{ .name = NULL, },
 	};
 	KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	struct _ksyntax *syn = (struct _ksyntax*)SYN_(ks, KW_void);
+	syn->ty = TY_void; // it's not cool, but necessary
+	syn = (struct _ksyntax*)SYN_(ks, KW_Usymbol);
+	KINITv(syn->syntaxRuleNULL, new_(TokenArray, 0));
+	parseSyntaxRule(_ctx, "$USYMBOL \"=\" $expr", 0, syn->syntaxRuleNULL);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -274,8 +279,6 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	KINITv(base->ParseExpr_Term, new_SugarMethod(ParseExpr_Term));
 
 	defineDefaultSyntax(_ctx, base->rootks);
-	struct _ksyntax *syn = (struct _ksyntax*)SYN_(base->rootks, KW_void); //FIXME
-	syn->ty = TY_void; // it's not cool, but necessary
 	DBG_ASSERT(KW_("$params") == KW_Params);
 	DBG_ASSERT(KW_(".") == KW_DOT);
 	DBG_ASSERT(KW_(",") == KW_COMMA);
@@ -386,7 +389,7 @@ static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE *fp, kline_t
 				script = p;
 			} else {
 				//FIXME: its not konoha shell, need to exec??
-				kreportf(ERR_, pline, "it may not konoha script: %s", T_file(uline));
+				kreportf(ERR_, pline, "it may not konoha script: %s", SS_t(uline));
 				status = K_FAILED;
 				break;
 			}
@@ -399,7 +402,7 @@ static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE *fp, kline_t
 	}
 	kwb_free(&wb);
 	if(status != K_CONTINUE) {
-		kreportf(DEBUG_, pline, "running script is failed: %s", T_file(uline));
+		kreportf(DEBUG_, pline, "running script is failed: %s", SS_t(uline));
 	}
 	return status;
 }
@@ -554,7 +557,7 @@ static kKonohaSpace* new_KonohaSpace(CTX, kpack_t packdom, kpack_t packid)
 static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 {
 	char fbuf[256];
-	const char *path = packagepath(_ctx, fbuf, sizeof(fbuf), S_PN(packid));
+	const char *path = packagepath(_ctx, fbuf, sizeof(fbuf), PN_s(packid));
 	FILE *fp = fopen(path, "r");
 	kpackage_t *pack = NULL;
 	if(fp != NULL) {
@@ -562,7 +565,7 @@ static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 		kKonohaSpace *ks = new_KonohaSpace(_ctx, packid, packid);
 		PUSH_GCSTACK(ks);
 		kline_t uline = uline_init(_ctx, path, strlen(path), 1, 1);
-		KDEFINE_PACKAGE *packdef = KonohaSpace_openGlueHandler(_ctx, ks, fbuf, sizeof(fbuf), T_PN(packid), pline);
+		KDEFINE_PACKAGE *packdef = KonohaSpace_openGlueHandler(_ctx, ks, fbuf, sizeof(fbuf), PN_t(packid), pline);
 		if(packdef->initPackage != NULL) {
 			packdef->initPackage(_ctx, ks, 0, NULL, pline);
 		}
@@ -574,14 +577,14 @@ static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 			pack->packid = packid;
 			KINITv(pack->ks, ks);
 			pack->packdef = packdef;
-			pack->export_script = scriptfileid(_ctx, fbuf, sizeof(fbuf), T_PN(packid));
+			pack->export_script = scriptfileid(_ctx, fbuf, sizeof(fbuf), PN_t(packid));
 			return pack;
 		}
 		fclose(fp);
 		RESET_GCSTACK();
 	}
 	else {
-		kreportf(CRIT_, pline, "package not found: %s path=%s", T_PN(packid), path);
+		kreportf(CRIT_, pline, "package not found: %s path=%s", PN_t(packid), path);
 	}
 	return NULL;
 }
@@ -627,7 +630,7 @@ static kbool_t KonohaSpace_importPackage(CTX, kKonohaSpace *ks, const char *name
 				res = pack->packdef->initKonohaSpace(_ctx, ks, pline);
 			}
 			if(res && pack->export_script != 0) {
-				kString *fname = S_file(pack->export_script);
+				kString *fname = SS_s(pack->export_script);
 				kline_t uline = pack->export_script | (kline_t)1;
 				FILE *fp = fopen(S_text(fname), "r");
 				if(fp != NULL) {

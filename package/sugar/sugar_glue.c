@@ -74,11 +74,11 @@ typedef kbool_t (*FcheckParam)(CTX, kParam *);
 static kbool_t checkMethod(CTX, kMethod *mtd, FcheckParam f, kclass_t *ct, kString *name, kline_t pline)
 {
 	if(mtd == NULL) {
-		kreportf(CRIT_, pline, "undefined method: %s.%s", T_CT(ct), S_text(name));
+		kreportf(CRIT_, pline, "undefined method: %s.%s", CT_t(ct), S_text(name));
 		return false;
 	}
 	if(mtd->cid != ct->cid || !f(_ctx, kMethod_param(mtd))) {
-		kreportf(CRIT_, pline, "mismatched method: %s.%s", T_CT(ct), S_text(name));
+		kreportf(CRIT_, pline, "mismatched method: %s.%s", CT_t(ct), S_text(name));
 		return false;
 	}
 	return true;
@@ -109,7 +109,7 @@ static KMETHOD KonohaSpace_addParseStmt(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbol(S_text(name), S_size(name), MN_NONAME, SYMPOL_METHOD);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isParseStmt, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -131,7 +131,7 @@ static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbol(S_text(name), S_size(name), MN_NONAME, SYMPOL_METHOD);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isParseExpr, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -151,7 +151,7 @@ static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbol(S_text(name), S_size(name), MN_NONAME, SYMPOL_METHOD);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -165,7 +165,7 @@ static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbol(S_text(name), S_size(name), MN_NONAME, SYMPOL_METHOD);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
 	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
@@ -185,7 +185,7 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	kString *name = sfp[2].s;
-	kmethodn_t mn = ksymbol(S_text(name), S_size(name), MN_NONAME, SYMPOL_METHOD);
+	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), MN_NONAME);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Expr, mn);
 	if(checkMethod(_ctx, mtd, isExprTyCheck, CT_Expr, name, sfp[K_RTNIDX].uline)) {
 		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));

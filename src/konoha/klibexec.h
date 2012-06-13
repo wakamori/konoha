@@ -187,6 +187,15 @@ static void kmap_shiftptr(kmap_t *kmap, intptr_t shift)
 	}
 }
 
+//static void Kmap_add(kmap_t* kmap, kmape_t *ne)
+//{
+//	DBG_ASSERT(ne->next == NULL);
+//	kmape_t **hlist = kmap->hentry;
+//	size_t idx = ne->hcode % kmap->hmax;
+//	ne->next = hlist[idx];
+//	hlist[idx] = ne;
+//}
+
 static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 {
 	kmape_t *e;
@@ -206,6 +215,12 @@ static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 	e->hcode = hcode;
 	e->next = NULL;
 	kmap->size++;
+	{
+		kmape_t **hlist = kmap->hentry;
+		size_t idx = e->hcode % kmap->hmax;
+		e->next = hlist[idx];
+		hlist[idx] = e;
+	}
 	return e;
 }
 
@@ -263,15 +278,6 @@ static kmape_t *Kmap_getentry(kmap_t* kmap, kuint_t hcode)
 	return NULL;
 }
 
-static void Kmap_add(kmap_t* kmap, kmape_t *ne)
-{
-	DBG_ASSERT(ne->next == NULL);
-	kmape_t **hlist = kmap->hentry;
-	size_t idx = ne->hcode % kmap->hmax;
-	ne->next = hlist[idx];
-	hlist[idx] = ne;
-}
-
 static void kmap_unuse(kmap_t *kmap, kmape_t *e)
 {
 	e->next = kmap->unused;
@@ -305,7 +311,6 @@ static void map_addStringUnboxValue(CTX, kmap_t *kmp, uintptr_t hcode, kString *
 	kmape_t *e = kmap_newentry(kmp, hcode);
 	KINITv(e->skey, skey);
 	e->uvalue = uvalue;
-	kmap_add(kmp, e);
 }
 
 static ksymbol_t Kmap_getcode(CTX, kmap_t *kmp, kArray *list, const char *name, size_t len, uintptr_t hcode, int spol, ksymbol_t def)
@@ -341,115 +346,32 @@ static kpack_t Kpack(CTX, const char *name, size_t len, int spol, ksymbol_t def)
 	return Kmap_getcode(_ctx, _ctx->share->packMapNN, _ctx->share->packList, name, len, hcode, spol | SPOL_ASCII, def);
 }
 
-static kpack_t Kuname(CTX, const char *name, size_t len, int spol, ksymbol_t def)
+static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t def)
 {
+	ksymbol_t mask = 0;
+	if(name[1] == 'e' && name[2] == 't') {
+		if(name[0] == 'g' || name[0] == 'G') {
+			len -= 3; name += 3;
+			mask = MN_GETTER;
+		}
+		else if(name[0] == 's' || name[0] == 'S') {
+			len -= 3; name += 3;
+			mask = MN_SETTER;
+		}
+	}
+	else if(name[1] == 's' && (name[0] == 'i' || name[0] == 'I')) {
+		len -= 2; name += 2;
+		mask = MN_ISBOOL;
+	}
+	else if(name[0] == '@') {
+		len -= 1; name += 1;
+		mask = MN_Annotation;
+	}
 	uintptr_t hcode = strhash(name, len);
-	return Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def);
-}
-
-static const char* ksymbol_norm(char *buf, const char *t, size_t *lenR, uintptr_t *hcodeR, ksymbol_t *mask, int pol)
-{
-	int i, toup = 0, len = (*lenR > 128) ? 128 : *lenR;
-	char *w = buf;
-	for(i = 0; i < len; i++) {
-		int ch = t[i];
-		if(ch == 0) break;
-		if(ch == '_') {
-			if(toup > 0) toup = 2;
-			continue;
-		}
-		ch = (toup == 2) ? toupper(ch) : ch;
-		toup = 1;
-		*w = ch; w++;
-	}
-	*w = 0;
-	*lenR = w - buf;
-	t = buf;
-	if(pol == SYMPOL_METHOD) {
-		if(buf[1] == 'e' && buf[2] == 't') {
-			if(buf[0] == 'g') {
-				*lenR -= 3; *mask = MN_GETTER;
-				t = buf + 3;
-			}
-			else if(buf[0] == 's') {
-				*lenR -= 3; *mask = MN_SETTER;
-				t = buf + 3;
-			}
-		}
-		else if(buf[0] == 'i' && buf[1] == 's') {
-			*lenR -= 2; *mask = MN_ISBOOL;
-			t = buf + 2;
-		}
-	}
-	w = (char*)t;
-	uintptr_t hcode = 0;
-	while(*w != 0) {
-		int ch = *w;
-		hcode = tolower(ch) + (31 * hcode);
-		w++;
-	}
-	*hcodeR = hcode;
-	return t;
-}
-
-static ksymbol_t Ksymbol(CTX, const char *name, size_t len, ksymbol_t def, int pol)
-{
-	uintptr_t hcode = 0;
-	if(pol == SYMPOL_RAW) {
-		size_t i;
-		for(i = 0; i < len; i++) {
-			int ch = name[i];
-			if(ch == 0) {
-				len = i; break;
-			}
-			hcode = ch + (31 * hcode);
-		}
-		return Kmap_getcode(_ctx, _ctx->share->symbolMapNN, _ctx->share->symbolList, name, len, hcode, SPOL_ASCII, def);
-	}
-	else {
-		char buf[256];
-		ksymbol_t sym, mask = 0;
-		name = ksymbol_norm(buf, name, &len, &hcode, &mask, pol);
-		sym = Kmap_getcode(_ctx, _ctx->share->symbolMapNN, _ctx->share->symbolList, name, len, hcode, SPOL_ASCII, def);
-		if(def == sym) return def;
-		return sym | mask;
-	}
-}
-
-// -------------------
-
-static const char* KTsymbol(CTX, char *buf, size_t bufsiz, ksymbol_t sym)
-{
-	int index = MN_UNMASK(sym);
-	if(MN_isTOCID(sym)) {
-		snprintf(buf, bufsiz, "to%s", T_cid(index));
-	}
-	else if(index < kArray_size(_ctx->share->symbolList)) {
-		const char *name = S_text(_ctx->share->symbolList->strings[index]);
-		if(MN_isISBOOL(sym)) {
-			snprintf(buf, bufsiz, "is%s", name);
-			buf[2] = toupper(buf[2]);
-		}
-		else if(MN_isGETTER(sym)) {
-			snprintf(buf, bufsiz, "get%s", name);
-			buf[3] = toupper(buf[3]);
-		}
-		else if(MN_isSETTER(sym)) {
-			snprintf(buf, bufsiz, "set%s", name);
-			buf[3] = toupper(buf[3]);
-		}
-		else {
-			snprintf(buf, bufsiz, "%s", name);
-		}
-	}
-	else {
-		snprintf(buf, bufsiz, "unknown symbol=%d !< %ld", index, kArray_size(_ctx->share->symbolList));
-	}
-	return (const char*)buf;
+	return Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def) | mask;
 }
 
 // -------------------------------------------------------------------------
-
 // library
 
 static karray_t *new_karray(CTX, size_t bytesize, size_t bytemax)
@@ -686,8 +608,8 @@ static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	fflush(stdout);
 	fputs(T_BEGIN(_ctx, level), stdout);
 	if(pline != 0) {
-		const char *file = T_file(pline);
-		fprintf(stdout, " - (%s:%d) %s" , shortname(file), (kushort_t)pline, T_ERR(level));
+		const char *file = SS_t(pline);
+		fprintf(stdout, " - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
 	}
 	else {
 		fprintf(stdout, " - %s" , T_ERR(level));
@@ -732,7 +654,9 @@ static void Kraise(CTX, int param)
 // -------------------------------------------------------------------------
 
 static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline);
-
+#ifdef __KERNEL__
+extern void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...);
+#endif
 static void klib2_init(struct _klib2 *l)
 {
 	l->Karray_init   = karray_init;
@@ -751,7 +675,6 @@ static void klib2_init(struct _klib2 *l)
 	l->Kmap_reftrace = Kmap_reftrace;
 	l->Kmap_newentry = Kmap_newentry;
 	l->Kmap_get      = Kmap_getentry;
-	l->Kmap_add      = Kmap_add;
 	l->Kmap_remove   = Kmap_remove;
 	l->Kmap_getcode  = Kmap_getcode;
 	l->KObject_getObject = KObject_getObjectNULL;
@@ -760,13 +683,15 @@ static void klib2_init(struct _klib2 *l)
 	l->KObject_setUnboxedValue = KObject_setUnboxedValue;
 	l->KObject_removeKey = KObject_removeKey;
 	l->KObject_protoEach = KObject_protoEach;
-	l->Kfileid     = Kfileid;
+	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
-	l->Kuname = Kuname;
-	l->Ksymbol  = Ksymbol;
-	l->KTsymbol      = KTsymbol;
+	l->Ksymbol2      = Ksymbol2;
 	l->Kreport       = Kreport;
+#ifdef __KERNEL__
+	l->Kreportf      = lkm_Kreportf;
+#else
 	l->Kreportf      = Kreportf;
+#endif
 	l->Kp            = Kdbg_p;
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;

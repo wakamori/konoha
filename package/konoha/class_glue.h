@@ -148,10 +148,10 @@ static KMETHOD KonohaSpace_defineClass(CTX, ksfp_t *sfp _RIX)
 	ktype_t supcid = sfp[3].ivalue == 0 ? TY_Object :(ktype_t)sfp[3].ivalue;
 	kclass_t *supct = kclass(supcid, sfp[K_RTNIDX].uline);
 	if(CT_isFinal(supct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s is final", T_cid(supcid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s is final", TY_t(supcid));
 	}
 	if(!CT_isDefined(supct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has undefined field(s)", T_cid(supcid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has undefined field(s)", TY_t(supcid));
 	}
 	kclass_t *ct = defineClass(_ctx, sfp[0].ks, sfp[1].ivalue, sfp[2].s, supct, sfp[4].ivalue, sfp[K_RTNIDX].uline);
 	RETURNi_(ct->cid);
@@ -163,7 +163,7 @@ static void defineField(CTX, struct _kclass *ct, int flag, ktype_t ty, kString *
 	ct->fsize += 1;
 	ct->fields[pos].flag = flag;
 	ct->fields[pos].ty = ty;
-	ct->fields[pos].fn = ksymbol(S_text(name), S_size(name), FN_NEWID, SYMPOL_NAME);
+	ct->fields[pos].fn = ksymbolA(S_text(name), S_size(name), FN_NEWID);
 	if(TY_isUnbox(ty)) {
 		if(value != NULL) {
 			ct->WnulvalNUL->ndata[pos] = O_unbox(value);
@@ -189,7 +189,7 @@ static KMETHOD KonohaSpace_defineClassField(CTX, ksfp_t *sfp _RIX)
 	kObject *value = sfp[5].o;
 	struct _kclass *ct = (struct _kclass*)kclass(cid, sfp[K_RTNIDX].uline);
 	if(CT_isDefined(ct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has no undefined field", T_cid(ct->cid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has no undefined field", TY_t(ct->cid));
 	}
 	defineField(_ctx, ct, flag, ty, name, value, 0);
 	if(CT_isDefined(ct)) {
@@ -266,7 +266,7 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
 {
 	DBG_ASSERT(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL || tk->tt == TK_MSYMBOL);
-	return ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
+	return ksymbolA(S_text(tk->text), S_size(tk->text), FN_NEWID);
 }
 
 static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
@@ -308,7 +308,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			if(tk->topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
 				tkNEW->tt = TK_SYMBOL;
-				KSETv(tkNEW->text, S_fn(MN_new));
+				KSETv(tkNEW->text, SYM_s(MN_new));
 				tkNEW->uline = tkP->uline;
 				kArray_add(a, tkNEW);
 			}
@@ -518,11 +518,11 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 		supcid = TK_type(tkE);
 		supct = CT_(supcid);
 		if(CT_isFinal(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s is final", T_CT(supct));
+			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s is final", CT_t(supct));
 			RETURNb_(false);
 		}
 		if(!CT_isDefined(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s has undefined field(s)", T_CT(supct));
+			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s has undefined field(s)", CT_t(supct));
 			RETURNb_(false);
 		}
 	}

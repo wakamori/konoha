@@ -64,12 +64,11 @@ static void Method_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 {
 	kMethod *mtd = sfp[pos].mtd;
 	kParam *pa = kMethod_param(mtd);
-	char mbuf[128];
 	DBG_ASSERT(IS_Method(mtd));
 	if(level != 0) {
 		MethodAttribute_p(_ctx, mtd, wb);
 	}
-	kwb_printf(wb, "%s %s.%s", T_ty(pa->rtype), T_cid(mtd->cid), T_mn(mbuf, mtd->mn));
+	kwb_printf(wb, "%s %s.%s%s", TY_t(pa->rtype), TY_t(mtd->cid), T_mn(mtd->mn));
 	if(level != 0) {
 		size_t i;
 		kwb_putc(wb, '(');
@@ -80,7 +79,7 @@ static void Method_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 			if(FN_isCOERCION(pa->p[i].fn)) {
 				kwb_printf(wb, "@Coercion ");
 			}
-			kwb_printf(wb, "%s %s", T_ty(pa->p[i].ty), T_fn(MN_UNMASK(pa->p[i].fn)));
+			kwb_printf(wb, "%s %s", TY_t(pa->p[i].ty), SYM_t(pa->p[i].fn));
 		}
 //		if(Param_isVARGs(DP(mtd)->mp)) {
 //			knh_write_delimdots(_ctx, w);
@@ -127,7 +126,7 @@ KMETHOD KonohaSpace_man(CTX, ksfp_t *sfp _RIX)
 	size_t start = kArray_size(list);
 	kKonohaSpace *ks = sfp[0].ks;
 	kclass_t *ct = O_ct(sfp[1].o);
-	DBG_P("*** man %s", T_cid(ct->cid));
+	DBG_P("*** man %s", TY_t(ct->cid));
 //	((struct _kclass*)CT_Method)->p = Method_p;
 	while(ks != NULL) {
 		copyMethodList(_ctx, ct->cid, ks->methods, list);

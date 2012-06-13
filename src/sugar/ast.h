@@ -98,7 +98,7 @@ static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _
 				ct = kClassTable_Generics(ct, p[0].ty, psize-1, p+1);
 			}
 			else if(ct->p0 == TY_void) {
-				SUGAR_P(ERR_, tk->uline, tk->lpos, "not generic type: %s", T_ty(TK_type(tk)));
+				SUGAR_P(ERR_, tk->uline, tk->lpos, "not generic type: %s", TY_t(TK_type(tk)));
 				return tk;
 			}
 			else {
@@ -156,12 +156,10 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 			tkB = abuf->toks[atop];
 			tk = TokenType_resolveGenerics(_ctx, ks, tk, tkB);
 			if(tk == NULL) {
-				DBG_P("APPEND tkB->tt=%s", T_tt(tkB->tt));
 				if(abuf != dst) {
 					kArray_add(dst, tkB);
 					kArray_clear(abuf, atop);
 				}
-				DBG_P("next=%d", next);
 				return next;
 			}
 			kArray_clear(abuf, atop);
@@ -193,10 +191,6 @@ static int makeTree(CTX, kKonohaSpace *ks, ktoken_t tt, kArray *tls, int s, int 
 	int i, probablyCloseBefore = e - 1;
 	kToken *tk = tls->toks[s];
 	DBG_ASSERT(tk->kw == 0);
-//	if(AST_PARENTHESIS <= tk->tt && tk->tt <= AST_BRACE) {  // already transformed
-//		kArray_add(tlsdst, tk);
-//		return s;
-//	}
 	struct _kToken *tkP = new_W(Token, 0);
 	kArray_add(tlsdst, tkP);
 	tkP->tt = tt; tkP->kw = tt; tkP->uline = tk->uline; tkP->topch = tk->topch; tkP->lpos = closech;
@@ -461,9 +455,16 @@ static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, 
 		}
 		return SYN_(ks, KW_Expr);  // expression
 	}
+	if(tk->tt == TK_USYMBOL) {
+		kToken *tk1 = TokenArray_lookAhead(_ctx, tls, s+1, e);
+		if(tk1->kw == KW_LET) {
+			return SYN_(ks, KW_StmtConstDecl);  // CONSTVAL = ...
+		}
+		return SYN_(ks, KW_Expr);
+	}
 	ksyntax_t *syn = SYN_(ks, tk->kw);
 	if(syn->syntaxRuleNULL == NULL) {
-		DBG_P("kw='%s', %d, %d", T_kw(syn->kw), syn->ParseExpr == kmodsugar->UndefinedParseExpr, kmodsugar->UndefinedExprTyCheck == syn->ExprTyCheck);
+		//DBG_P("kw='%s', %d, %d", T_kw(syn->kw), syn->ParseExpr == kmodsugar->UndefinedParseExpr, kmodsugar->UndefinedExprTyCheck == syn->ExprTyCheck);
 		int i;
 		for(i = s + 1; i < e; i++) {
 			tk = tls->toks[i];

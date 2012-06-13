@@ -60,12 +60,12 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 		kwb_t wb;
 		kwb_init(&base->cwb, &wb);
 		if(uline > 0) {
-			const char *file = T_file(uline);
+			const char *file = SS_t(uline);
 //			if(lpos != -1) {
-//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortname(file), (kushort_t)uline, (int)lpos+1);
+//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortfilename(file), (kushort_t)uline, (int)lpos+1);
 //			}
 //			else {
-				kwb_printf(&wb, "%s (%s:%d) " , msg, shortname(file), (kushort_t)uline);
+				kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
 //			}
 		}
 		else {
