@@ -162,7 +162,7 @@ static kBlock *Stmt_getBlock_(CTX, kStmt *stmt, kbytes_t name)
 }
 
 
-//define Term_fn(_ctx, tk) FN_UNMASK(Term_fnq(_ctx, tk))
+//define Term_fn(_ctx, tk) SYM_UNMASK(Term_fnq(_ctx, tk))
 //
 //ksymbol_t Term_fnq(CTX, kTerm *tk)
 //{

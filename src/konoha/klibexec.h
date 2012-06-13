@@ -450,7 +450,7 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 
 static const char* KTsymbol(CTX, char *buf, size_t bufsiz, ksymbol_t sym)
 {
-	int index = MN_UNMASK(sym);
+	int index = SYM_UNMASK(sym);
 	if(MN_isTOCID(sym)) {
 		snprintf(buf, bufsiz, "to%s", T_cid(index));
 	}
