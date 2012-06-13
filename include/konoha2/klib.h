@@ -45,18 +45,9 @@ static kinline uintptr_t strhash(const char *name, size_t len)
 	return hcode;
 }
 
-//static kinline uintptr_t casehash(const char *name, size_t len)
-//{
-//	uintptr_t i, hcode = 0;
-//	for(i = 0; i < len; i++) {
-//		hcode = tolower(name[i]) + (31 * hcode);
-//	}
-//	return hcode;
-//}
-
 // --------------------------------------------------------------------------
 
-static kinline const char* shortname(const char *str)
+static kinline const char* shortfilename(const char *str)
 {
 	/*XXX g++ 4.4.5 need char* cast to compile it. */
 	char *p = (char *) strrchr(str, '/');
@@ -65,6 +56,7 @@ static kinline const char* shortname(const char *str)
 
 #define S_file(X)  S_fileid(_ctx, X)
 #define T_file(X)  S_text(S_fileid(_ctx, X))
+
 static kinline kString* S_fileid(CTX, kline_t fileid)
 {
 	kline_t n = (fileid >> (sizeof(kshort_t) * 8));
@@ -116,6 +108,9 @@ static kinline kString* S_fn_(CTX, ksymbol_t sym)
 	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
 	return _ctx->share->unameList->strings[index];
 }
+
+
+
 
 static kinline uintptr_t longid(kushort_t packdom, kushort_t un)
 {
