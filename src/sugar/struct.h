@@ -316,7 +316,7 @@ static void KonohaSpace_importClassName(CTX, kKonohaSpace *ks, kpack_t packid, k
 		kclass_t *ct = CT_(i);
 		if(CT_isPrivate(ct)) continue;
 		if(ct->packid == packid) {
-			DBG_P("importing packid=%s.%s, %s..", T_PN(ct->packid), SYM_t(ct->nameid), T_PN(packid));
+			DBG_P("importing packid=%s.%s, %s..", PN_t(ct->packid), SYM_t(ct->nameid), PN_t(packid));
 			kv.key = ct->nameid;
 			kv.ty  = TY_TYPE;
 			kv.uval = (uintptr_t)ct;

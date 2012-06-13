@@ -701,7 +701,7 @@ static kString* CT_shortName(CTX, kclass_t *ct)
 static void CT_setName(CTX, struct _kclass *ct, kline_t pline)
 {
 	uintptr_t lname = longid(ct->packdom, ct->nameid);
-	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", T_PN(ct->packdom), T_PN(ct->packid), SYM_t(ct->nameid));
+	kreportf(DEBUG_, pline, "new class domain=%s, name='%s.%s'", PN_t(ct->packdom), PN_t(ct->packid), SYM_t(ct->nameid));
 	kclass_t *ct2 = (kclass_t*)map_getu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)NULL);
 	if(ct2 == NULL) {
 		map_addu(_ctx, _ctx->share->lcnameMapNN, lname, (uintptr_t)ct);
