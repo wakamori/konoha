@@ -569,8 +569,7 @@ static void dumpToken(CTX, kToken *tk)
 {
 	if(verbose_sugar) {
 		if(tk->tt == TK_MN) {
-			char mbuf[128];
-			DUMP_P("%s %d+%d: %s(%s)\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_mn(mbuf, tk->mn), kToken_s(tk));
+			DUMP_P("%s %d+%d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_mn(tk->mn), kToken_s(tk));
 		}
 		else {
 			DUMP_P("%s %d+%d: kw=%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_kw(tk->kw), kToken_s(tk));

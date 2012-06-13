@@ -448,35 +448,35 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 
 // -------------------
 
-static const char* KTsymbol(CTX, char *buf, size_t bufsiz, ksymbol_t sym)
-{
-	int index = SYM_UNMASK(sym);
-	if(MN_isTOCID(sym)) {
-		snprintf(buf, bufsiz, "to%s", T_cid(index));
-	}
-	else if(index < kArray_size(_ctx->share->unameList)) {
-		const char *name = S_text(_ctx->share->unameList->strings[index]);
-		if(MN_isISBOOL(sym)) {
-			snprintf(buf, bufsiz, "is%s", name);
-			buf[2] = toupper(buf[2]);
-		}
-		else if(MN_isGETTER(sym)) {
-			snprintf(buf, bufsiz, "get%s", name);
-			buf[3] = toupper(buf[3]);
-		}
-		else if(MN_isSETTER(sym)) {
-			snprintf(buf, bufsiz, "set%s", name);
-			buf[3] = toupper(buf[3]);
-		}
-		else {
-			snprintf(buf, bufsiz, "%s", name);
-		}
-	}
-	else {
-		snprintf(buf, bufsiz, "unknown symbol=%d !< %ld", index, kArray_size(_ctx->share->unameList));
-	}
-	return (const char*)buf;
-}
+//static const char* KTsymbol(CTX, char *buf, size_t bufsiz, ksymbol_t sym)
+//{
+//	int index = SYM_UNMASK(sym);
+//	if(MN_isTOCID(sym)) {
+//		snprintf(buf, bufsiz, "to%s", T_cid(index));
+//	}
+//	else if(index < kArray_size(_ctx->share->unameList)) {
+//		const char *name = S_text(_ctx->share->unameList->strings[index]);
+//		if(MN_isISBOOL(sym)) {
+//			snprintf(buf, bufsiz, "is%s", name);
+//			buf[2] = toupper(buf[2]);
+//		}
+//		else if(MN_isGETTER(sym)) {
+//			snprintf(buf, bufsiz, "get%s", name);
+//			buf[3] = toupper(buf[3]);
+//		}
+//		else if(MN_isSETTER(sym)) {
+//			snprintf(buf, bufsiz, "set%s", name);
+//			buf[3] = toupper(buf[3]);
+//		}
+//		else {
+//			snprintf(buf, bufsiz, "%s", name);
+//		}
+//	}
+//	else {
+//		snprintf(buf, bufsiz, "unknown symbol=%d !< %ld", index, kArray_size(_ctx->share->unameList));
+//	}
+//	return (const char*)buf;
+//}
 
 // -------------------------------------------------------------------------
 
@@ -783,7 +783,6 @@ static void klib2_init(struct _klib2 *l)
 	l->Kmap_reftrace = Kmap_reftrace;
 	l->Kmap_newentry = Kmap_newentry;
 	l->Kmap_get      = Kmap_getentry;
-//	l->Kmap_add      = Kmap_add;
 	l->Kmap_remove   = Kmap_remove;
 	l->Kmap_getcode  = Kmap_getcode;
 	l->KObject_getObject = KObject_getObjectNULL;
@@ -795,7 +794,6 @@ static void klib2_init(struct _klib2 *l)
 	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
-	l->KTsymbol      = KTsymbol;
 	l->Kreport       = Kreport;
 #ifdef __KERNEL__
 	l->Kreportf      = lkm_Kreportf;

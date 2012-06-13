@@ -100,17 +100,26 @@ static kinline kString* S_ty_(CTX, ktype_t ty)
 	return S_CT_(_ctx, CT_(ty));
 }
 
-#define S_fn(fn)   S_fn_(_ctx, fn)
-#define T_fn(fn)   S_text(S_fn_(_ctx, fn))
-static kinline kString* S_fn_(CTX, ksymbol_t sym)
+#define SYM_s(fn)   SYM_s_(_ctx, fn)
+#define SYM_T(fn)   S_text(SYM_s_(_ctx, fn))
+static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 {
 	size_t index = (size_t) SYM_UNMASK(sym);
 	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
 	return _ctx->share->unameList->strings[index];
 }
 
-
-
+static kinline const char* SYM_PRE(ksymbol_t sym)
+{
+	int mask = SYM_HEAD(sym) >> ((sizeof(ksymbol_t) * 2)-3);
+	fprintf(stderr, "mask=%d\n", mask);
+	DBG_ASSERT(mask < 8);
+	static const char* prefixes[] = {
+		/*000*/ "",   /*001*/ "get", /*010*/ "set", /*011*/ "@",
+		/*100*/ "is", /*101*/ "",    /*110*/ "to",  /*111*/ "as",
+	};
+	return prefixes[mask];
+}
 
 static kinline uintptr_t longid(kushort_t packdom, kushort_t un)
 {

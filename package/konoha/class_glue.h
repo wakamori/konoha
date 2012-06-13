@@ -308,7 +308,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			if(tk->topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
 				tkNEW->tt = TK_SYMBOL;
-				KSETv(tkNEW->text, S_fn(MN_new));
+				KSETv(tkNEW->text, SYM_s(MN_new));
 				tkNEW->uline = tkP->uline;
 				kArray_add(a, tkNEW);
 			}
