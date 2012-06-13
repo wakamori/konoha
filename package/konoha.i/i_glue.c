@@ -80,7 +80,7 @@ static void Method_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 			if(FN_isCOERCION(pa->p[i].fn)) {
 				kwb_printf(wb, "@Coercion ");
 			}
-			kwb_printf(wb, "%s %s", T_ty(pa->p[i].ty), T_fn(MN_UNMASK(pa->p[i].fn)));
+			kwb_printf(wb, "%s %s", T_ty(pa->p[i].ty), T_fn(SYM_UNMASK(pa->p[i].fn)));
 		}
 //		if(Param_isVARGs(DP(mtd)->mp)) {
 //			knh_write_delimdots(_ctx, w);

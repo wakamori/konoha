@@ -104,7 +104,7 @@ static kinline kString* S_ty_(CTX, ktype_t ty)
 #define T_fn(fn)   S_text(S_fn_(_ctx, fn))
 static kinline kString* S_fn_(CTX, ksymbol_t sym)
 {
-	size_t index = (size_t) MN_UNMASK(sym);
+	size_t index = (size_t) SYM_UNMASK(sym);
 	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
 	return _ctx->share->unameList->strings[index];
 }

@@ -257,10 +257,13 @@ typedef kushort_t       kparamid_t;
 #define TY_isUnbox(t)       FLAG_is(CT_(t)->cflag, kClass_UnboxType)
 #define CT_isUnbox(C)       FLAG_is(C->cflag, kClass_UnboxType)
 
+#define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
+#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
+
 #define FN_NONAME          ((ksymbol_t)-1)
 #define FN_NEWID           ((ksymbol_t)-2)
 #define _NEWID             FN_NEWID
-#define FN_UNMASK(fnq)     (fnq & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
+
 #define FN_BOXED           KFLAG_H0
 #define FN_UNBOX(fn)       (fn & ~(FN_BOXED))
 #define FN_isBOXED(fn)     ((fn & FN_BOXED) == FN_BOXED)
@@ -272,7 +275,6 @@ typedef kushort_t       kparamid_t;
 #define MN_NONAME    ((kmethodn_t)-1)
 #define MN_NEWID     ((kmethodn_t)-2)
 
-#define MN_UNMASK(fnq)       (fnq & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
 #define MN_SETTER     KFLAG_H2
@@ -281,17 +283,17 @@ typedef kushort_t       kparamid_t;
 #define MN_TOCID      (KFLAG_H0|KFLAG_H1)
 #define MN_ASCID      (KFLAG_H0|KFLAG_H1|KFLAG_H2)
 
-#define MN_isISBOOL(mn)   ((mn & MN_ISBOOL) == MN_ISBOOL)
-#define MN_toISBOOL(mn)   (mn | MN_ISBOOL)
-#define MN_isGETTER(mn)   ((mn & MN_GETTER) == MN_GETTER)
-#define MN_toGETTER(mn)   (mn | MN_GETTER)
-#define MN_isSETTER(mn)   ((mn & MN_SETTER) == MN_SETTER)
-#define MN_toSETTER(mn)   ((MN_UNMASK(mn)) | MN_SETTER)
+#define MN_isISBOOL(mn)   (SYM_HEAD(mn) == MN_ISBOOL)
+#define MN_toISBOOL(mn)   ((SYM_UNMASK(mn)) | MN_ISBOOL)
+#define MN_isGETTER(mn)   (SYM_HEAD(mn) == MN_GETTER)
+#define MN_toGETTER(mn)   ((SYM_UNMASK(mn)) | MN_GETTER)
+#define MN_isSETTER(mn)   (SYM_HEAD(mn) == MN_SETTER)
+#define MN_toSETTER(mn)   ((SYM_UNMASK(mn)) | MN_SETTER)
 
 #define MN_to(cid)        (cid | MN_TOCID)
-#define MN_isTOCID(mn)    ((mn & MN_TOCID) == MN_TOCID)
+#define MN_isTOCID(mn)    ((SYM_UNMASK(mn)) == MN_TOCID)
 #define MN_as(cid)        (cid | MN_ASCID)
-#define MN_isASCID(mn)    ((mn & MN_ASCID) == MN_ASCID)
+#define MN_isASCID(mn)    ((SYM_UNMASK(mn)) == MN_ASCID)
 
 /* ------------------------------------------------------------------------ */
 
