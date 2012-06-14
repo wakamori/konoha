@@ -330,7 +330,7 @@ static int PatternMatchFunc(CTX, kFunc *fo, kStmt *stmt, ksymbol_t name, kArray 
 
 static int PatternMatch(CTX, ksyntax_t *syn, kStmt *stmt, ksymbol_t name, kArray *tls, int s, int e)
 {
-	kFunc *fo = syn->PatternMatchNULL;
+	kFunc *fo = syn->PatternMatch;
 	int next;
 	if(IS_Array(fo)) {
 		int i;
@@ -370,8 +370,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 		if(rule->tt == TK_CODE) {
 			if(rule->kw != tk->kw) {
 				if(optional) return s;
-				kStmt_errline(stmt, tk->uline);
-				kStmt_p(stmt, ERR_, "%s needs '%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
+				kToken_p(stmt, tk, ERR_, "%s needs '%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
 				return -1;
 			}
 			ti++;
@@ -379,9 +378,8 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 		}
 		else if(rule->tt == TK_METANAME) {
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), rule->kw);
-			if(syn == NULL || syn->PatternMatchNULL == NULL) {
-				kStmt_errline(stmt, tk->uline);
-				kStmt_p(stmt, ERR_, "unknown syntax pattern: %s", KW_t(rule->kw));
+			if(syn == NULL || syn->PatternMatch == kmodsugar->UndefinedParseExpr/*NULL*/) {
+				kToken_p(stmt, tk, ERR_, "unknown syntax pattern: %s", KW_t(rule->kw));
 				return -1;
 			}
 			int c = e;
@@ -389,8 +387,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 				c = lookAheadKeyword(tls, ti+1, e, rules->toks[ri+1]);
 				if(c == -1) {
 					if(optional) return s;
-					kStmt_errline(stmt, tk->uline);
-					kStmt_p(stmt, ERR_, "%s needs '%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
+					kToken_p(stmt, tk, ERR_, "%s needs '%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
 					return -1;
 				}
 				ri++;
@@ -401,8 +398,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			if(next == -1) {
 				if(optional) return s;
 				if(err_count == ctxsugar->err_count) {
-					kStmt_errline(stmt, tk->uline);
-					kStmt_p(stmt, ERR_, "%s needs syntax pattern %s, not %s ..", T_statement(stmt->syn->kw), KW_t(rule->kw), kToken_s(tk));
+					kToken_p(stmt, tk, ERR_, "%s needs syntax pattern %s, not %s ..", T_statement(stmt->syn->kw), KW_t(rule->kw), kToken_s(tk));
 				}
 				return -1;
 			}
@@ -423,8 +419,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			}
 			else {
 				if(optional) return s;
-				kStmt_errline(stmt, tk->uline);
-				kStmt_p(stmt, ERR_, "%s needs '%c'", T_statement(stmt->syn->kw), rule->topch);
+				kToken_p(stmt, tk, ERR_, "%s needs '%c'", T_statement(stmt->syn->kw), rule->topch);
 				return -1;
 			}
 		}

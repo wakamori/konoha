@@ -266,7 +266,7 @@ static kbool_t global_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .name = NULL, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
-	SYN_setTopStmtTyCheck(ks, KW_StmtTypeDecl, GlobalTypeDecl);
+	SUGAR SYN_setSugarFunc(_ctx, ks, KW_StmtTypeDecl, SYNIDX_TopStmtTyCheck, new_SugarFunc(StmtTyCheck_GlobalTypeDecl));
 	if(O_cid(ks->scrobj) == TY_System) {
 		KDEFINE_CLASS defScript = {
 			.structname = "Script",
