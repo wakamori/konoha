@@ -53,6 +53,14 @@ static KMETHOD Array_set(CTX, ksfp_t *sfp _RIX)
 	}
 }
 
+//## method int Array.size();
+static KMETHOD Array_size(CTX, ksfp_t *sfp _RIX)
+{
+	kArray *a = sfp[0].a;
+	RETURNi_(kArray_size(a));
+}
+
+
 static KMETHOD Array_newArray(CTX, ksfp_t *sfp _RIX)
 {
 	struct _kArray *a = (struct _kArray *)sfp[0].o;
@@ -119,6 +127,7 @@ static	kbool_t array_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	intptr_t MethodData[] = {
 		_Public|_Im, _F(Array_get), TY_T0,   TY_Array, MN_("get"), 1, TY_Int, FN_("index"),
 		_Public,     _F(Array_set), TY_void, TY_Array, MN_("set"), 2, TY_Int, FN_("index"),  TY_T0, FN_("value"),
+		_Public,     _F(Array_size), TY_Int, TY_Array, MN_("size"), 0,
 		_Public,     _F(Array_newArray), TY_Array, TY_Array, MN_("newArray"), 1, TY_Int, FN_("size"),
 		_Public,     _F(Array_add1), TY_void, TY_Array, MN_("add"), 1, TY_T0, FN_("value"),
 		DEND,
