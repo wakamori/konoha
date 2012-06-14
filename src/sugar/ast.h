@@ -98,7 +98,7 @@ static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _
 				ct = kClassTable_Generics(ct, p[0].ty, psize-1, p+1);
 			}
 			else if(ct->p0 == TY_void) {
-				SUGAR_P(ERR_, tk->uline, tk->lpos, "not generic type: %s", TY_t(TK_type(tk)));
+				Token_pERR(_ctx, tk, "not generic type: %s", TY_t(TK_type(tk)));
 				return tk;
 			}
 			else {
@@ -310,21 +310,6 @@ static int Stmt_addAnnotation(CTX, kStmt *stmt, kArray *tls, int s, int e)
 		}
 	}
 	return i;
-}
-
-static void WARN_Ignored(CTX, kArray *tls, int s, int e)
-{
-	if(s < e) {
-		int i = s;
-		kwb_t wb;
-		kwb_init(&(_ctx->stack->cwb), &wb);
-		kwb_printf(&wb, "%s", kToken_s(tls->toks[i])); i++;
-		while(i < e) {
-			kwb_printf(&wb, " %s", kToken_s(tls->toks[i])); i++;
-		}
-		SUGAR_P(WARN_, tls->toks[s]->uline, tls->toks[s]->lpos, "ignored tokens: %s", kwb_top(&wb, 1));
-		kwb_free(&wb);
-	}
 }
 
 static int PatternMatchFunc(CTX, kFunc *fo, kStmt *stmt, ksymbol_t name, kArray *tls, int s, int e)

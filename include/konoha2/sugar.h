@@ -561,8 +561,6 @@ typedef struct {
 	kExpr *    (*new_TypedMethodCall)(CTX, kStmt *, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
 	void       (*Stmt_toExprCall)(CTX, kStmt *stmt, kMethod *mtd, int n, ...);
 
-	size_t     (*p)(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...);
-	kline_t    (*Expr_uline)(CTX, kExpr *expr, int level);
 	ksyntax_t* (*KonohaSpace_syntax)(CTX, kKonohaSpace *, ksymbol_t, int);
 	void       (*KonohaSpace_defineSyntax)(CTX, kKonohaSpace *, KDEFINE_SYNTAX *);
 
@@ -574,14 +572,16 @@ typedef struct {
 	kExpr*     (*new_ConsExpr)(CTX, ksyntax_t *syn, int n, ...);
 	kExpr *    (*Stmt_addExprParams)(CTX, kStmt *, kExpr *, kArray *tls, int s, int e, int allowEmpty);
 	kExpr *    (*Expr_rightJoin)(CTX, kExpr *, kStmt *, kArray *, int, int, int);
+
+	void       (*Token_pERR)(CTX, struct _kToken *tk, const char *fmt, ...);
+	kExpr *    (*Stmt_p)(CTX, kStmt *stmt, kToken *tk, int pe, const char *fmt, ...);
+
 } kmodsugar_t;
 
 #define EXPORT_SUGAR(base) \
 	base->keyword             = keyword;\
 	base->KonohaSpace_setTokenizer = KonohaSpace_setTokenizer;\
 	base->KonohaSpace_tokenize = KonohaSpace_tokenize;\
-	base->p                   = sugar_p;\
-	base->Expr_uline          = Expr_uline;\
 	base->Stmt_token          = Stmt_token;\
 	base->Stmt_block          = Stmt_block;\
 	base->Stmt_expr           = Stmt_expr;\
@@ -594,7 +594,7 @@ typedef struct {
 	base->Block_tyCheckAll    = Block_tyCheckAll;\
 	base->Expr_tyCheckCallParams = Expr_tyCheckCallParams;\
 	base->new_TypedMethodCall = new_TypedMethodCall;\
-	base->Stmt_toExprCall     = Stmt_toExprCall;\
+	/*base->Stmt_toExprCall     = Stmt_toExprCall;*/\
 	/*syntax*/\
 	base->KonohaSpace_defineSyntax  = KonohaSpace_defineSyntax;\
 	base->KonohaSpace_syntax        = KonohaSpace_syntax;\
@@ -606,6 +606,9 @@ typedef struct {
 	base->new_ConsExpr       = new_ConsExpr;\
 	base->Stmt_addExprParams = Stmt_addExprParams;\
 	base->Expr_rightJoin     = Expr_rightJoin;\
+	/*perror*/\
+	base->Token_pERR         = Token_pERR;\
+	base->Stmt_p             = Stmt_p;\
 
 
 typedef struct {

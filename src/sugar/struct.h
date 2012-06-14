@@ -552,19 +552,6 @@ static const char *T_tt(ktoken_t t)
 	return "TK_UNKNOWN";
 }
 
-#define kToken_s(tk) kToken_s_(_ctx, tk)
-static const char *kToken_s_(CTX, kToken *tk)
-{
-	switch((int)tk->tt) {
-	case TK_INDENT: return "end of line";
-	case TK_CODE: ;
-	case AST_BRACE: return "{... }";
-	case AST_PARENTHESIS: return "(... )";
-	case AST_BRACKET: return "[... ]";
-	default:  return S_text(tk->text);
-	}
-}
-
 static void dumpToken(CTX, kToken *tk)
 {
 	if(verbose_sugar) {

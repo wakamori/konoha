@@ -260,7 +260,6 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 			RETURN_(expr);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "syntax error: %s", S_text(tkNEW->text));
 }
 
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
@@ -285,7 +284,7 @@ static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 			KSETv(expr->cons->methods[0], mtd);
 			RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, stmt, expr, mtd, gma, reqty));
 		}
-		SUGAR p(_ctx, ERR_, tkN->uline, tkN->lpos, "undefined field: %s", S_text(tkN->text));
+		SUGAR Stmt_p(_ctx, stmt, tkN, ERR_, "undefined field: %s", S_text(tkN->text));
 	}
 	RETURN_(K_NULLEXPR);
 }
@@ -316,9 +315,6 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			tkP = tk;
 		}
 		kBlock *bk = SUGAR new_Block(_ctx, kStmt_ks(stmt), stmt, a, s, kArray_size(a), ';');
-//		struct _kToken *tkTY = new_W(Token, 0);
-//		tkTY->kw = KW_Type;
-//		tkTY->ty = ct->cid;
 		for (i = 0; i < kArray_size(bk->blocks); i++) {
 			kStmt *methodDecl = bk->blocks->stmts[i];
 			if(methodDecl->syn->kw == KW_StmtMethodDecl) {
@@ -449,7 +445,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kStmt *stmt, kE
 				defineField(_ctx, ct, flag, ty, name, knull(CT_(ty)), 0);
 			}
 			else {
-				SUGAR p(_ctx, ERR_, pline, -1, "expected const value as the field initial value: %s", S_text(name));
+				SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "const value is expected as the field initial value: %s", S_text(name));
 				return false;
 			}
 			return true;
@@ -461,7 +457,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kStmt *stmt, kE
 		}
 		return true;
 	}
-	SUGAR p(_ctx, ERR_, pline, -1, "expected field name");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "field name is expected");
 	return false;
 }
 
@@ -499,7 +495,7 @@ static void CT_checkMethodDecl(CTX, kToken *tkC, kBlock *bk, kStmt **lastStmtRef
 			lastStmtRef[0] = stmt;
 		}
 		else {
-			SUGAR p(_ctx, WARN_, stmt->uline, -1, "%s is not available within class clause", KW_t(stmt->syn->kw));
+			SUGAR Stmt_p(_ctx, stmt, NULL, WARN_, "%s is not available within the class clause", KW_t(stmt->syn->kw));
 		}
 	}
 }
@@ -518,11 +514,11 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 		supcid = TK_type(tkE);
 		supct = CT_(supcid);
 		if(CT_isFinal(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s is final", CT_t(supct));
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is final", CT_t(supct));
 			RETURNb_(false);
 		}
 		if(!CT_isDefined(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s has undefined field(s)", CT_t(supct));
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s has undefined field(s)", CT_t(supct));
 			RETURNb_(false);
 		}
 	}

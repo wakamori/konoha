@@ -84,7 +84,7 @@ static KMETHOD StmtTyCheck_break(CTX, ksfp_t *sfp _RIX)
 			RETURNb_(true);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "break statement not within a loop");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "break statement not within a loop");
 	RETURNb_(false);
 }
 
@@ -101,7 +101,7 @@ static KMETHOD StmtTyCheck_continue(CTX, ksfp_t *sfp _RIX)
 			RETURNb_(true);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "continue statement not within a loop");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "continue statement not within a loop");
 	RETURNb_((false));
 }
 

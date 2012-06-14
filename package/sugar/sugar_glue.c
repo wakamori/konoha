@@ -303,7 +303,7 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	USING_SUGAR;
 	int FN_buildid = FN_("buildid"), FN_key = FN_("key"), FN_defval = FN_("defval");
 	int FN_typeid = FN_("typeid"), FN_gma = FN_("gma"), FN_pol = FN_("pol");
-	int FN_name = FN_("name");
+//	int FN_name = FN_("name");
 //	int FN_tls = FN_("tokens"), FN_s = FN_("s"), FN_e = FN_("e");
 	intptr_t MethodData[] = {
 		_Public, _F(Token_isTypeName), TY_Boolean, TY_Token, MN_("isTypeName"), 0,
@@ -375,7 +375,7 @@ static KMETHOD StmtTyCheck_sugar(CTX, ksfp_t *sfp _RIX)
 		struct _ksyntax *syn = toks_syntax(_ctx, gma->genv->ks, tls);
 		if(syn != NULL) {
 			if(syn->syntaxRuleNULL != NULL) {
-				SUGAR p(_ctx, WARN_, stmt->uline, -1, "overriding syntax rule: %s", KW_t(syn->kw));
+				SUGAR Stmt_p(_ctx, stmt, NULL, WARN_, "overriding syntax rule: %s", KW_t(syn->kw));
 				kArray_clear(syn->syntaxRuleNULL, 0);
 			}
 			else {
@@ -389,9 +389,6 @@ static KMETHOD StmtTyCheck_sugar(CTX, ksfp_t *sfp _RIX)
 			}
 		}
 		kStmt_done(stmt);
-	}
-	if(r == 0) {
-		SUGAR p(_ctx, CRIT_, stmt->uline, -1, "invalid sugar syntax");
 	}
 	RETURNb_(r);
 }

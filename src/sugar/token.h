@@ -560,7 +560,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			if(tls->toks[i]->topch == '$') continue;
 		}
-		SUGAR_P(ERR_, tk->uline, tk->lpos, "illegal sugar syntax: %s", kToken_s(tk));
+		Token_pERR(_ctx, tk, "illegal sugar syntax: %s", kToken_s(tk));
 		return false;
 	}
 	return true;

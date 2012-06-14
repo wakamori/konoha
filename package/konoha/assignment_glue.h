@@ -54,7 +54,7 @@ static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 					}
 				}
 			}
-			SUGAR p(_ctx, ERR_, kExpr_uline(expr), -1, "variable name is expected");
+			SUGAR Stmt_p(_ctx, stmt, (kToken*)expr, ERR_, "variable name is expected");
 		}
 	}
 	RETURN_(K_NULLEXPR);

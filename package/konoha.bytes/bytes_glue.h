@@ -414,9 +414,7 @@ static KMETHOD ExprTyCheck_Squote(CTX, ksfp_t *sfp _RIX)
 		int ch = S_text(s)[0];
 		RETURN_(kExpr_setNConstValue(expr, TY_Int, ch));
 	} else {
-		kline_t uline = SUGAR Expr_uline(_ctx, expr, 1);
-		int lpos = -1;/*why?*/
-		SUGAR p(_ctx, ERR_, uline, lpos, "single quote doesn't accept multi characters, '%s'", S_text(s));
+		SUGAR Stmt_p(_ctx, stmt, (kToken*)expr, ERR_, "single quote doesn't accept multi characters, '%s'", S_text(s));
 	}
 	RETURN_(K_NULLEXPR);
 }
