@@ -98,7 +98,6 @@ typedef struct tenv_t {
 		kString *STR = sfp[1].s;\
 		int UL = (int)sfp[2].ivalue;\
 		(void)TK; (void)STR; (void)UL;\
-*****/
 
 // int PatternMatch.parseStmt(Token[] tls, int s, int e)
 #define VAR_PatternMatch(STMT, SYN, NAME, TLS, S, E) \
@@ -109,6 +108,44 @@ typedef struct tenv_t {
 		int S = (int)sfp[4].ivalue;\
 		int E = (int)sfp[5].ivalue;\
 		(void)STMT; (void)SYN; (void)NAME; (void)TLS; (void)S; (void)E;\
+
+// Expr Stmt.parseExpr(Token[] tls, int s, int c, int e)
+#define VAR_ParseExpr(STMT, SYN, TLS, S, C, E) \
+		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kArray *TLS = (kArray*)sfp[2].o;\
+		int S = (int)sfp[3].ivalue;\
+		int C = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
+		(void)STMT; (void)SYN; (void)TLS; (void)S; (void)C; (void)E;\
+
+// Expr Stmt.tycheck(Gamma gma)
+
+#define VAR_StmtTyCheck(STMT, SYN, GMA) \
+		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kGamma *GMA = (kGamma*)sfp[2].o;\
+		(void)STMT; (void)SYN; (void)GMA;\
+
+// Expr Expr.tycheck(Gamma gma, int t)
+
+#define VAR_ExprTyCheck(EXPR, SYN, GMA, TY) \
+		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+		kExpr *EXPR = (kExpr*)sfp[1].o;\
+		kGamma *GMA = (kGamma*)sfp[2].o;\
+		ktype_t TY = (ktype_t)sfp[3].ivalue;\
+		(void)EXPR; (void)SYN; (void)GMA; (void)TY;\
+
+*****/
+
+// int PatternMatch(Stmt stmt, int nameid, Token[] toks, int s, int e)
+#define VAR_PatternMatch(STMT, NAME, TLS, S, E) \
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		ksymbol_t NAME = (ksymbol_t)sfp[2].ivalue;\
+		kArray *TLS = (kArray*)sfp[3].o;\
+		int S = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
+		(void)STMT; (void)NAME; (void)TLS; (void)S; (void)E;\
 
 // Expr Stmt.parseExpr(Token[] tls, int s, int c, int e)
 #define VAR_ParseExpr(STMT, SYN, TLS, S, C, E) \

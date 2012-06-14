@@ -784,7 +784,7 @@ static KMETHOD ParseExpr_DOLLAR(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Expr(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	INIT_GCSTACK();
 	int r = -1;
 	dumpTokenArray(_ctx, 0, tls, s, e);
@@ -800,7 +800,7 @@ static KMETHOD PatternMatch_Expr(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Type(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	int r = -1;
 	kToken *tk = tls->toks[s];
 	if(TK_isType(tk)) {
@@ -812,7 +812,7 @@ static KMETHOD PatternMatch_Type(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Usymbol(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	int r = -1;
 	kToken *tk = tls->toks[s];
 	if(tk->tt == TK_USYMBOL) {
@@ -824,7 +824,7 @@ static KMETHOD PatternMatch_Usymbol(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Symbol(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	int r = -1;
 	kToken *tk = tls->toks[s];
 	if(tk->tt == TK_SYMBOL) {
@@ -836,7 +836,7 @@ static KMETHOD PatternMatch_Symbol(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Params(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	int r = -1;
 	kToken *tk = tls->toks[s];
 	if(tk->tt == AST_PARENTHESIS) {
@@ -852,7 +852,7 @@ static KMETHOD PatternMatch_Params(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Block(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	kToken *tk = tls->toks[s];
 	if(tk->tt == TK_CODE) {
 		kObject_setObject(stmt, name, tk);
@@ -873,7 +873,7 @@ static KMETHOD PatternMatch_Block(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD PatternMatch_Toks(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_PatternMatch(stmt, syn, name, tls, s, e);
+	VAR_PatternMatch(stmt, name, tls, s, e);
 	if(s < e) {
 		kArray *a = new_(TokenArray, (intptr_t)(e - s));
 		while(s < e) {
