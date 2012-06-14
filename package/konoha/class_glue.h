@@ -390,7 +390,7 @@ static size_t checkFieldSize(CTX, kBlock *bk)
 	size_t i, c = 0;
 	for(i = 0; i < kArray_size(bk->blocks); i++) {
 		kStmt *stmt = bk->blocks->stmts[i];
-		DBG_P("stmt->kw=%s", T_kw(stmt->syn->kw));
+		DBG_P("stmt->kw=%s", KW_t(stmt->syn->kw));
 		if(stmt->syn->kw == KW_StmtTypeDecl) {
 			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
 			if(expr->syn->kw == KW_COMMA) {
@@ -499,7 +499,7 @@ static void CT_checkMethodDecl(CTX, kToken *tkC, kBlock *bk, kStmt **lastStmtRef
 			lastStmtRef[0] = stmt;
 		}
 		else {
-			SUGAR p(_ctx, WARN_, stmt->uline, -1, "%s is not available within class clause", T_kw(stmt->syn->kw));
+			SUGAR p(_ctx, WARN_, stmt->uline, -1, "%s is not available within class clause", KW_t(stmt->syn->kw));
 		}
 	}
 }

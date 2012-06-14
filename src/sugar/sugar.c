@@ -48,19 +48,19 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ TOKEN("$ERR"), .flag = SYNFLAG_StmtBreakExec, },
-		{ TOKEN("$expr"), .rule ="$expr", ParseStmt_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
-		{ TOKEN("$SYMBOL"),  _TERM, ParseStmt_(Symbol),  ExprTyCheck_(Symbol),},
-		{ TOKEN("$USYMBOL"), _TERM, ParseStmt_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
+		{ TOKEN("$expr"), .rule ="$expr", PatternMatch_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
+		{ TOKEN("$SYMBOL"),  _TERM, PatternMatch_(Symbol),  ExprTyCheck_(Symbol),},
+		{ TOKEN("$USYMBOL"), _TERM, PatternMatch_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
 		{ TOKEN("$TEXT"), _TERM, ExprTyCheck_(Text),},
 		{ TOKEN("$INT"), _TERM, ExprTyCheck_(Int),},
 		{ TOKEN("$FLOAT"), _TERM, /* ExprTyCheck_(FLOAT), */},
-		{ TOKEN("$type"), _TERM, ParseStmt_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
+		{ TOKEN("$type"), _TERM, PatternMatch_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
 		{ TOKEN("()"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(Parenthesis), .priority_op2 = 16, ExprTyCheck_(FuncStyleCall),}, //AST_PARENTHESIS
 		{ TOKEN("[]"),  },  //AST_BRACKET
 		{ TOKEN("{}"),  }, // AST_BRACE
-		{ TOKEN("$block"), ParseStmt_(Block), ExprTyCheck_(Block), },
-		{ TOKEN("$params"), ParseStmt_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
-		{ TOKEN("$toks"), ParseStmt_(Toks), },
+		{ TOKEN("$block"), PatternMatch_(Block), ExprTyCheck_(Block), },
+		{ TOKEN("$params"), PatternMatch_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
+		{ TOKEN("$toks"), PatternMatch_(Toks), },
 		{ TOKEN("."), ParseExpr_(DOT), .priority_op2 = 16, },
 		{ TOKEN("/"), _OP, .op2 = "opDIV", .priority_op2 = 32, },
 		{ TOKEN("%"), _OP, .op2 = "opMOD", .priority_op2 = 32, },
@@ -272,11 +272,11 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	knull(base->cBlock);
 	kmodsugar_setup(_ctx, &base->h, 0);
 
-	KINITv(base->UndefinedParseExpr,   new_SugarMethod(UndefinedParseExpr));
-	KINITv(base->UndefinedStmtTyCheck, new_SugarMethod(UndefinedStmtTyCheck));
-	KINITv(base->UndefinedExprTyCheck, new_SugarMethod(UndefinedExprTyCheck));
-	KINITv(base->ParseExpr_Op,   new_SugarMethod(ParseExpr_Op));
-	KINITv(base->ParseExpr_Term, new_SugarMethod(ParseExpr_Term));
+	KINITv(base->UndefinedParseExpr,   new_SugarFunc(UndefinedParseExpr));
+	KINITv(base->UndefinedStmtTyCheck, new_SugarFunc(UndefinedStmtTyCheck));
+	KINITv(base->UndefinedExprTyCheck, new_SugarFunc(UndefinedExprTyCheck));
+	KINITv(base->ParseExpr_Op,   new_SugarFunc(ParseExpr_Op));
+	KINITv(base->ParseExpr_Term, new_SugarFunc(ParseExpr_Term));
 
 	defineDefaultSyntax(_ctx, base->rootks);
 	DBG_ASSERT(KW_("$params") == KW_Params);

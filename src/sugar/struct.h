@@ -42,7 +42,7 @@ static void syntax_reftrace(CTX, kmape_t *p)
 	ksyntax_t *syn = (ksyntax_t*)p->uvalue;
 	BEGIN_REFTRACE(6);
 	KREFTRACEn(syn->syntaxRuleNULL);
-	KREFTRACEn(syn->ParseStmtNULL);
+	KREFTRACEn(syn->PatternMatchNULL);
 	KREFTRACEv(syn->ParseExpr);
 	KREFTRACEv(syn->TopStmtTyCheck);
 	KREFTRACEv(syn->StmtTyCheck);
@@ -108,7 +108,7 @@ static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int i
 	}
 	L_NEW:;
 	if(isnew == 1) {
-		//DBG_P("creating new syntax %s old=%p", T_kw(kw), parent);
+		//DBG_P("creating new syntax %s old=%p", KW_t(kw), parent);
 		if(ks0->syntaxMapNN == NULL) {
 			((struct _kKonohaSpace*)ks0)->syntaxMapNN = kmap_init(0);
 		}
@@ -139,12 +139,12 @@ static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int i
 static ksymbol_t keyword(CTX, const char *name, size_t len, ksymbol_t def);
 static void parseSyntaxRule(CTX, const char *rule, kline_t pline, kArray *a);
 
-static void setSyntaxMethod(CTX, knh_Fmethod f, kMethod **synp, knh_Fmethod *p, kMethod **mp)
+static void setSugarFunc(CTX, knh_Fmethod f, kFunc **synp, knh_Fmethod *p, kFunc **mp)
 {
 	if(f != NULL) {
 		if(f != p[0]) {
 			p[0] = f;
-			mp[0] = new_SugarMethod(f);
+			mp[0] = new_SugarFunc(f);
 		}
 		KINITv(synp[0], mp[0]);  // FIXME: in case of
 	}
@@ -152,8 +152,8 @@ static void setSyntaxMethod(CTX, knh_Fmethod f, kMethod **synp, knh_Fmethod *p, 
 
 static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *syndef)
 {
-	knh_Fmethod pParseStmt = NULL, pParseExpr = NULL, pStmtTyCheck = NULL, pExprTyCheck = NULL;
-	kMethod *mParseStmt = NULL, *mParseExpr = NULL, *mStmtTyCheck = NULL, *mExprTyCheck = NULL;
+	knh_Fmethod pPatternMatch = NULL, pParseExpr = NULL, pStmtTyCheck = NULL, pExprTyCheck = NULL;
+	kFunc *mPatternMatch = NULL, *mParseExpr = NULL, *mStmtTyCheck = NULL, *mExprTyCheck = NULL;
 	while(syndef->name != NULL) {
 		keyword_t kw = keyword(_ctx, syndef->name, strlen(syndef->name), SYM_NEWID);
 		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syntax(_ctx, ks, kw, 1/*isnew*/);
@@ -175,11 +175,11 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 			KINITv(syn->syntaxRuleNULL, new_(TokenArray, 0));
 			parseSyntaxRule(_ctx, syndef->rule, 0, syn->syntaxRuleNULL);
 		}
-		setSyntaxMethod(_ctx, syndef->ParseStmt, &(syn->ParseStmtNULL), &pParseStmt, &mParseStmt);
-		setSyntaxMethod(_ctx, syndef->ParseExpr, &(syn->ParseExpr), &pParseExpr, &mParseExpr);
-		setSyntaxMethod(_ctx, syndef->TopStmtTyCheck, &(syn->TopStmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
-		setSyntaxMethod(_ctx, syndef->StmtTyCheck, &(syn->StmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
-		setSyntaxMethod(_ctx, syndef->ExprTyCheck, &(syn->ExprTyCheck), &pExprTyCheck, &mExprTyCheck);
+		setSugarFunc(_ctx, syndef->PatternMatch, &(syn->PatternMatchNULL), &pPatternMatch, &mPatternMatch);
+		setSugarFunc(_ctx, syndef->ParseExpr, &(syn->ParseExpr), &pParseExpr, &mParseExpr);
+		setSugarFunc(_ctx, syndef->TopStmtTyCheck, &(syn->TopStmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
+		setSugarFunc(_ctx, syndef->StmtTyCheck, &(syn->StmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
+		setSugarFunc(_ctx, syndef->ExprTyCheck, &(syn->ExprTyCheck), &pExprTyCheck, &mExprTyCheck);
 		if(syn->ParseExpr == kmodsugar->UndefinedParseExpr) {
 			if(FLAG_is(syn->flag, SYNFLAG_ExprOp)) {
 				KSETv(syn->ParseExpr, kmodsugar->ParseExpr_Op);
@@ -198,7 +198,7 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 static const char* T_statement_(CTX, ksymbol_t kw)
 {
 	static char buf[80];  // this is not good, but this is very rare case.
-	const char *statement = T_kw(kw), *postfix = " statement";
+	const char *statement = KW_t(kw), *postfix = " statement";
 	if(kw == KW_Expr) { statement = "expression"; postfix = ""; }
 	if(kw == KW_StmtTypeDecl) { statement = "variable"; postfix = " declaration"; }
 	if(kw == KW_StmtMethodDecl) { statement =  "function"; postfix = " declaration"; }
@@ -572,7 +572,7 @@ static void dumpToken(CTX, kToken *tk)
 			DUMP_P("%s %d+%d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_mn(tk->mn), kToken_s(tk));
 		}
 		else {
-			DUMP_P("%s %d+%d: kw=%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_kw(tk->kw), kToken_s(tk));
+			DUMP_P("%s %d+%d: kw=%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, KW_t(tk->kw), kToken_s(tk));
 		}
 	}
 }
@@ -710,7 +710,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 			DUMP_P("[%d] ExprTerm: null", n);
 		}
 		else if(Expr_isTerm(expr)) {
-			DUMP_P("[%d] ExprTerm: kw='%s' %s", n, T_kw(expr->tk->kw), kToken_s(expr->tk));
+			DUMP_P("[%d] ExprTerm: kw='%s' %s", n, KW_t(expr->tk->kw), kToken_s(expr->tk));
 			if(expr->ty != TY_var) {
 
 			}
@@ -722,7 +722,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 				DUMP_P("[%d] Cons: kw=NULL, size=%ld", n, kArray_size(expr->cons));
 			}
 			else {
-				DUMP_P("[%d] Cons: kw='%s', size=%ld", n, T_kw(expr->syn->kw), kArray_size(expr->cons));
+				DUMP_P("[%d] Cons: kw='%s', size=%ld", n, KW_t(expr->syn->kw), kArray_size(expr->cons));
 			}
 			if(expr->ty != TY_var) {
 
@@ -829,7 +829,7 @@ static void _dumpToken(CTX, void *arg, kvs_t *d)
 {
 	if((d->key & SYMKEY_BOXED) == SYMKEY_BOXED) {
 		keyword_t key = ~SYMKEY_BOXED & d->key;
-		DUMP_P("key='%s': ", T_kw(key));
+		DUMP_P("key='%s': ", KW_t(key));
 		if(IS_Token(d->oval)) {
 			dumpToken(_ctx, (kToken*)d->oval);
 		} else if (IS_Expr(d->oval)) {

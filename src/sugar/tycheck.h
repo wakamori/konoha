@@ -52,11 +52,8 @@ static gmabuf_t *Gamma_pop(CTX, kGamma *gma, gmabuf_t *oldone, gmabuf_t *checksu
 	return newone;
 }
 
-#define GAMMA_PUSH(G,B) \
-	gmabuf_t *oldbuf_ = Gamma_push(_ctx, G, B);
-
-#define GAMMA_POP(G,B) \
-	Gamma_pop(_ctx, G, oldbuf_, B);
+#define GAMMA_PUSH(G,B) gmabuf_t *oldbuf_ = Gamma_push(_ctx, G, B)
+#define GAMMA_POP(G,B)  Gamma_pop(_ctx, G, oldbuf_, B)
 
 // --------------------------------------------------------------------------
 
@@ -112,26 +109,36 @@ static KMETHOD UndefinedExprTyCheck(CTX, ksfp_t *sfp _RIX)
 		expr = kExpr_p(expr, ERR_, "undefined token type checker: '%s'", kToken_s(tk));
 	}
 	else {
-		expr = kExpr_p(expr, ERR_, "undefined operator type checker: %s",  T_kw(syn->kw));
+		expr = kExpr_p(expr, ERR_, "undefined operator type checker: %s",  KW_t(syn->kw));
 	}
 	RETURN_(expr);
 }
 
-static kExpr *ExprTyCheck(CTX, kExpr *expr, kGamma *gma, int reqty)
+static kExpr *ExprTyCheckFunc(CTX, kExpr *expr, kFunc *fo, kGamma *gma, int reqty)
 {
 	ksyntax_t *syn = expr->syn;
-	kMethod *mtd = syn->ExprTyCheck;
 	INIT_GCSTACK();
-	BEGIN_LOCAL(lsfp, 3);
-	KSETv(lsfp[K_CALLDELTA+0].o, (kObject*)expr);
+	BEGIN_LOCAL(lsfp, K_CALLDELTA + 4);
+	KSETv(lsfp[K_CALLDELTA+0].o, fo->self);
 	lsfp[K_CALLDELTA+0].ndata = (uintptr_t)syn;
-	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)gma);
-	lsfp[K_CALLDELTA+2].ivalue = reqty;
-	KCALL(lsfp, 0, mtd, 3, K_NULLEXPR);
+	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)expr);
+	KSETv(lsfp[K_CALLDELTA+2].o, (kObject*)gma);
+	lsfp[K_CALLDELTA+3].ivalue = reqty;
+	KCALL(lsfp, 0, fo->mtd, 4, K_NULLEXPR);
 	END_LOCAL();
 	RESET_GCSTACK();
 	DBG_ASSERT(IS_Expr(lsfp[0].o));
 	return (kExpr*)lsfp[0].o;
+}
+
+static kExpr *ExprTyCheck(CTX, kExpr *expr, kGamma *gma, int reqty)
+{
+	kFunc *fo = expr->syn->ExprTyCheck;
+	if(IS_Array(fo)) {
+		;
+	}
+	DBG_ASSERT(IS_Func(fo));
+	return ExprTyCheckFunc(_ctx, expr, fo, gma, reqty);
 }
 
 static void Expr_putConstValue(CTX, kExpr *expr, ksfp_t *sfp)
@@ -885,17 +892,31 @@ static KMETHOD UndefinedStmtTyCheck(CTX, ksfp_t *sfp _RIX)  // $expr
 	RETURNb_(0);
 }
 
+static kbool_t Stmt_TyCheckFunc(CTX, ksyntax_t *syn, kFunc *fo, kStmt *stmt, kGamma *gma)
+{
+	BEGIN_LOCAL(lsfp, K_CALLDELTA + 3);
+	KSETv(lsfp[K_CALLDELTA+0].o, (kObject*)fo->self);
+	lsfp[K_CALLDELTA+0].ndata = (uintptr_t)syn;  // quick trace
+	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)stmt);
+	KSETv(lsfp[K_CALLDELTA+2].o, (kObject*)gma);
+	KCALL(lsfp, 0, fo->mtd, 3, knull(CT_Boolean));
+	END_LOCAL();
+	DBG_P("syn='%s', result=%d", KW_t(syn->kw), lsfp[0].bvalue);
+	return lsfp[0].bvalue;
+}
+
 static kbool_t Stmt_TyCheck(CTX, ksyntax_t *syn, kStmt *stmt, kGamma *gma)
 {
-	kMethod *mtd = kGamma_isTOPLEVEL(gma) ? syn->TopStmtTyCheck : syn->StmtTyCheck;
-	BEGIN_LOCAL(lsfp, 5);
-	KSETv(lsfp[K_CALLDELTA+0].o, (kObject*)stmt);
-	lsfp[K_CALLDELTA+0].ndata = (uintptr_t)syn;  // quick trace
-	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)gma);
-	KCALL(lsfp, 0, mtd, 1, knull(CT_Boolean));
-	END_LOCAL();
-	DBG_P("syn='%s', result=%d", T_kw(syn->kw), lsfp[0].bvalue);
-	return lsfp[0].bvalue;
+	kFunc *fo = kGamma_isTOPLEVEL(gma) ? syn->TopStmtTyCheck : syn->StmtTyCheck;
+	if(IS_Array(fo)) { // @Future
+//		int i;
+//		kArray *a = (kArray*)fo;
+//		for(i = kArray_size(a) - 1; i > 0; i++) {
+//			Stmt_TyCheckFunc(_ctx, syn, a->funcs[i], stmt, gma);
+//		}
+	}
+	DBG_ASSERT(IS_Func(fo));
+	return Stmt_TyCheckFunc(_ctx, syn, fo, stmt, gma);
 }
 
 static kbool_t Block_tyCheckAll(CTX, kBlock *bk, kGamma *gma)

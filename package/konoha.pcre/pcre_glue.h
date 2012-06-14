@@ -516,7 +516,7 @@ static KMETHOD String_match(CTX, ksfp_t *sfp _RIX)
 		int i, isGlobalOption = Regex_isGlobalOption(re);
 		a = new_(Array, nmatch);/*TODO new_Array(CLASS_String)*/
 		BEGIN_LOCAL(lsfp, 1);
-		KSETv(lsfp[0].o, a);
+		KSETv(lsfp[0].a, a);
 		do {
 			int res = pcre_regexec(_ctx, re->reg, str, nmatch, pmatch, re->eflags);
 			if(res != 0) {
@@ -604,7 +604,7 @@ static KMETHOD String_split(CTX, ksfp_t *sfp _RIX)
 		if (str < eos) {
 			a = new_(Array, 0); // TODO new_Array(_ctx, CLASS_String, 0);
 			BEGIN_LOCAL(lsfp, 1);
-			KSETv(lsfp[0].o, a);
+			KSETv(lsfp[0].a, a);
 			while (str <= eos) {
 				int res = pcre_regexec(_ctx, re->reg, str, KREGEX_MATCHSIZE, pmatch, re->eflags);
 				if (res == 0) {
@@ -682,7 +682,7 @@ static kbool_t pcre_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 
 static Ftokenizer parseSLASH;
 
-static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	USING_SUGAR;
 	int ch, prev = '/', pos = tok_start + 1;

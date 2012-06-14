@@ -1033,7 +1033,7 @@ struct _kSystem {
 		tsfp[K_MTDIDX].mtdNC = MTD;\
 		tsfp[K_PCIDX].fname = __FILE__;\
 		tsfp[K_SHIFTIDX].shift = 0;\
-		KSETv(tsfp[K_RTNIDX].o, DEFVAL);\
+		KSETv(tsfp[K_RTNIDX].o, ((kObject*)DEFVAL));\
 		tsfp[K_RTNIDX].uline = __LINE__;\
 		klr_setesp(_ctx, tsfp + ARGC + 1);\
 		(MTD)->fcall_1(_ctx, tsfp K_RIXPARAM);\
@@ -1319,7 +1319,7 @@ typedef enum {
 #define RESET_GCSTACK()        kArray_clear(_ctx->stack->gcstack, gcstack_)
 
 #define KINITv(VAR, VAL)   OBJECT_SET(VAR, VAL)
-#define KSETv(VAR, VAL)    OBJECT_SET(VAR, VAL)
+#define KSETv(VAR, VAL)    /*OBJECT_SET(VAR, VAL)*/ VAR = VAL
 #define KINITp(parent, v, o) KINITv(v, o)
 #define KSETp(parent,  v, o) KSETv(v, o)
 #define KUNUSEv(V)  (V)->h.ct->free(_ctx, (V))
@@ -1345,7 +1345,7 @@ typedef enum {
 #define KNH_SAFEPOINT(_ctx, sfp)
 
 #define RETURN_(vv) do {\
-	KSETv(sfp[K_RIX].o, vv);\
+	KSETv(sfp[K_RIX].o, ((kObject*)vv));\
 	KNH_SAFEPOINT(_ctx, sfp);\
 	return; \
 } while (0)
