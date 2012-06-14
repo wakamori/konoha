@@ -507,7 +507,7 @@ static void CT_checkMethodDecl(CTX, kToken *tkC, kBlock *bk, kStmt **lastStmtRef
 static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tkC = kStmt_token(stmt, KW_Usymbol, NULL);
 	kToken *tkE= kStmt_token(stmt, KW_("extends"), NULL);
 	kflag_t cflag = 0;

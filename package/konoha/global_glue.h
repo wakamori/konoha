@@ -139,7 +139,7 @@ static ksymbol_t tosymbol(CTX, kExpr *expr)
 static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("global assignment .. ");
 	kObject *scr = gma->genv->ks->scrobj;
 	if(O_cid(scr) == TY_System) {
@@ -245,7 +245,7 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 static KMETHOD StmtTyCheck_GlobalTypeDecl(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
 	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
 

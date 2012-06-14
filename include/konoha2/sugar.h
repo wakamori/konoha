@@ -159,11 +159,10 @@ typedef struct tenv_t {
 
 // Expr Stmt.tycheck(Gamma gma)
 
-#define VAR_StmtTyCheck(STMT, SYN, GMA) \
-		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+#define VAR_StmtTyCheck(STMT, GMA) \
 		kStmt *STMT = (kStmt*)sfp[1].o;\
 		kGamma *GMA = (kGamma*)sfp[2].o;\
-		(void)STMT; (void)SYN; (void)GMA;\
+		(void)STMT; (void)GMA;\
 
 // Expr Expr.tycheck(Gamma gma, int t)
 

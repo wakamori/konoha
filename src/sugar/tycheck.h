@@ -406,7 +406,7 @@ static KMETHOD ExprTyCheck_Usymbol(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD StmtTyCheck_ConstDecl(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kbool_t r = false;
 	kKonohaSpace *ks = gma->genv->ks;
 	kToken *tk = kStmt_token(stmt, KW_Usymbol, NULL);
@@ -857,7 +857,7 @@ static KMETHOD ExprTyCheck_OR(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD StmtTyCheck_Expr(CTX, ksfp_t *sfp _RIX)  // $expr
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kbool_t r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, TPOL_ALLOWVOID);
 	kStmt_typed(stmt, EXPR);
 	RETURNb_(r);
@@ -886,9 +886,9 @@ static int addGammaStack(CTX, gstack_t *s, ktype_t ty, ksymbol_t fn)
 
 static KMETHOD UndefinedStmtTyCheck(CTX, ksfp_t *sfp _RIX)  // $expr
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	const char *location = kGamma_isTOPLEVEL(gma) ? "at the top level" : "inside the function";
-	SUGAR_P(ERR_, stmt->uline, -1, "%s is not available %s", T_statement(syn->kw), location);
+	SUGAR_P(ERR_, stmt->uline, -1, "%s is not available %s", T_statement(stmt->syn->kw), location);
 	RETURNb_(0);
 }
 
@@ -896,7 +896,7 @@ static kbool_t Stmt_TyCheckFunc(CTX, ksyntax_t *syn, kFunc *fo, kStmt *stmt, kGa
 {
 	BEGIN_LOCAL(lsfp, K_CALLDELTA + 3);
 	KSETv(lsfp[K_CALLDELTA+0].o, (kObject*)fo->self);
-	lsfp[K_CALLDELTA+0].ndata = (uintptr_t)syn;  // quick trace
+//	lsfp[K_CALLDELTA+0].ndata = (uintptr_t)syn;  // quick trace
 	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)stmt);
 	KSETv(lsfp[K_CALLDELTA+2].o, (kObject*)gma);
 	KCALL(lsfp, 0, fo->mtd, 3, knull(CT_Boolean));
@@ -1005,7 +1005,7 @@ static KMETHOD ExprTyCheck_Block(CTX, ksfp_t *sfp _RIX)
 static KMETHOD StmtTyCheck_if(CTX, ksfp_t *sfp _RIX)
 {
 	kbool_t r = 1;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	if((r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0))) {
 		kBlock *bkThen = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
 		kBlock *bkElse = kStmt_block(stmt, KW_else, K_NULLBLOCK);
@@ -1053,7 +1053,7 @@ static kStmt* Stmt_lookupIfStmtNULL(CTX, kStmt *stmt)
 static KMETHOD StmtTyCheck_else(CTX, ksfp_t *sfp _RIX)
 {
 	kbool_t r = 1;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kStmt *stmtIf = Stmt_lookupIfStmtNULL(_ctx, stmt);
 	if(stmtIf != NULL) {
 		kBlock *bkElse = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
@@ -1062,7 +1062,7 @@ static KMETHOD StmtTyCheck_else(CTX, ksfp_t *sfp _RIX)
 		r = Block_tyCheckAll(_ctx, bkElse, gma);
 	}
 	else {
-		SUGAR_P(ERR_, stmt->uline, -1, "else is not statement");
+		kStmt_p(stmt, ERR_, "else is not statement");
 		r = 0;
 	}
 	RETURNb_(r);
@@ -1070,7 +1070,7 @@ static KMETHOD StmtTyCheck_else(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD StmtTyCheck_return(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kbool_t r = 1;
 	ktype_t rtype = kMethod_rtype(gma->genv->mtd);
 	kStmt_typed(stmt, RETURN);
@@ -1079,7 +1079,7 @@ static KMETHOD StmtTyCheck_return(CTX, ksfp_t *sfp _RIX)
 	} else {
 		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
 		if (expr != NULL) {
-			SUGAR_P(WARN_, stmt->uline, -1, "ignored return value");
+			kStmt_p(stmt, WARN_, "ignored return value");
 			r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, 0);
 			kObject_removeKey(stmt, 1);
 		}
@@ -1174,7 +1174,7 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 
 static KMETHOD StmtTyCheck_TypeDecl(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
 	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
 	if(tk == NULL || !TK_isType(tk) || expr == NULL) {
@@ -1278,7 +1278,7 @@ static void Stmt_setMethodFunc(CTX, kStmt *stmt, kKonohaSpace *ks, kMethod *mtd)
 
 static KMETHOD StmtTyCheck_MethodDecl(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kbool_t r = false;
 	kKonohaSpace *ks = gma->genv->ks;
 	uintptr_t flag =  Stmt_flag(_ctx, stmt, MethodDeclFlag, 0);
@@ -1319,7 +1319,7 @@ static kbool_t StmtTypeDecl_setParam(CTX, kStmt *stmt, int n, kparam_t *p)
 
 static KMETHOD StmtTyCheck_ParamsDecl(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tkT = kStmt_token(stmt, KW_Type, NULL); // type
 	ktype_t rtype =  tkT == NULL ? TY_void : TK_type(tkT);
 	kParam *pa = NULL;
