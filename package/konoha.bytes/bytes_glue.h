@@ -407,7 +407,7 @@ static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 static KMETHOD ExprTyCheck_Squote(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tk = expr->tk;
 	kString *s = tk->text;
 	if (S_size(s) == 1) {

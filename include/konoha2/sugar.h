@@ -166,12 +166,11 @@ typedef struct tenv_t {
 
 // Expr Expr.tycheck(Gamma gma, int t)
 
-#define VAR_ExprTyCheck(EXPR, SYN, GMA, TY) \
-		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+#define VAR_ExprTyCheck(EXPR, GMA, TY) \
 		kExpr *EXPR = (kExpr*)sfp[1].o;\
 		kGamma *GMA = (kGamma*)sfp[2].o;\
 		ktype_t TY = (ktype_t)sfp[3].ivalue;\
-		(void)EXPR; (void)SYN; (void)GMA; (void)TY;\
+		(void)EXPR; (void)GMA; (void)TY;\
 
 //#define SYN_ExprFlag      1
 #define SYN_isExpr(syn)   TFLAG_is(kflag_t, syn->flag, SYN_ExprFlag)

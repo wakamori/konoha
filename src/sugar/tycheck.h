@@ -103,13 +103,13 @@ static kExpr *Expr_p(CTX, kExpr *expr, int pe, const char *fmt, ...)
 
 static KMETHOD UndefinedExprTyCheck(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	if(Expr_isTerm(expr)) {
 		kToken *tk = expr->tk;
 		expr = kExpr_p(expr, ERR_, "undefined token type checker: '%s'", kToken_s(tk));
 	}
 	else {
-		expr = kExpr_p(expr, ERR_, "undefined operator type checker: %s",  KW_t(syn->kw));
+		expr = kExpr_p(expr, ERR_, "undefined operator type checker: %s",  KW_t(expr->syn->kw));
 	}
 	RETURN_(expr);
 }
@@ -266,33 +266,33 @@ static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, keyword_t nameid, kGamma *gma,
 
 static KMETHOD ExprTyCheck_Text(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tk = expr->tk;
 	RETURN_(kExpr_setConstValue(expr, TY_String, tk->text));
 }
 
 static KMETHOD ExprTyCheck_Type(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	DBG_ASSERT(TK_isType(expr->tk));
 	RETURN_(kExpr_setVariable(expr, NULL, expr->tk->ty, 0, gma));
 }
 
 static KMETHOD ExprTyCheck_true(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	RETURN_(kExpr_setNConstValue(expr, TY_Boolean, (uintptr_t)1));
 }
 
 static KMETHOD ExprTyCheck_false(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	RETURN_(kExpr_setNConstValue(expr, TY_Boolean, (uintptr_t)0));
 }
 
 static KMETHOD ExprTyCheck_Int(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tk = expr->tk;
 	long long n = strtoll(S_text(tk->text), NULL, 0);
 	RETURN_(kExpr_setNConstValue(expr, TY_Int, (uintptr_t)n));
@@ -369,7 +369,7 @@ static kExpr* Expr_tyCheckVariable2(CTX, kExpr *expr, kGamma *gma, ktype_t reqty
 
 static KMETHOD ExprTyCheck_Symbol(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	RETURN_(Expr_tyCheckVariable2(_ctx, expr, gma, reqty));
 }
 
@@ -383,7 +383,7 @@ static kObject *KonohaSpace_getSymbolValueNULL(CTX, kKonohaSpace *ks, const char
 
 static KMETHOD ExprTyCheck_Usymbol(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tk = expr->tk;
 	ksymbol_t ukey = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NONAME);
 	if(ukey != SYM_NONAME) {
@@ -661,7 +661,7 @@ static kExpr *Expr_lookupMethod(CTX, kExpr *expr, kcid_t this_cid, kGamma *gma, 
 
 static KMETHOD ExprTyCheck_MethodCall(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kExpr *texpr = kExpr_tyCheckAt(expr, 1, gma, TY_var, 0);
 	if(texpr != K_NULLEXPR) {
 		kcid_t this_cid = texpr->ty;
@@ -757,7 +757,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kExpr *expr, kclass_t *ct, kGamma *gma
 
 static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	DBG_ASSERT(IS_Expr(kExpr_at(expr, 0)));
 	DBG_ASSERT(expr->cons->list[1] == K_NULL);
 	if(Expr_isSymbol(kExpr_at(expr, 0))) {
@@ -794,7 +794,7 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 //
 //static KMETHOD ExprTyCheck_FuncStyleCall0(CTX, ksfp_t *sfp _RIX)
 //{
-//	VAR_ExprTyCheck(expr, syn, gma, reqty);
+//	VAR_ExprTyCheck(expr, gma, reqty);
 //	kArray *cons = expr->cons;
 //	DBG_ASSERT(IS_Expr(cons->exprs[0]));
 //	DBG_ASSERT(cons->list[1] == K_NULL);
@@ -835,7 +835,7 @@ static kExpr *ExprTyCheck(CTX, kExpr *expr, kGamma *gma, int reqty);
 
 static KMETHOD ExprTyCheck_AND(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	if(kExpr_tyCheckAt(expr, 1, gma, TY_Boolean, 0) != K_NULLEXPR) {
 		if(kExpr_tyCheckAt(expr, 2, gma, TY_Boolean, 0) != K_NULLEXPR) {
 			RETURN_(kExpr_typed(expr, AND, TY_Boolean));
@@ -846,7 +846,7 @@ static KMETHOD ExprTyCheck_AND(CTX, ksfp_t *sfp _RIX)
 
 static KMETHOD ExprTyCheck_OR(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	if(kExpr_tyCheckAt(expr, 1, gma, TY_Boolean, 0) != K_NULLEXPR) {
 		if(kExpr_tyCheckAt(expr, 2, gma, TY_Boolean, 0) != K_NULLEXPR) {
 			RETURN_(kExpr_typed(expr, OR, TY_Boolean));
@@ -951,7 +951,7 @@ static kbool_t Block_tyCheckAll(CTX, kBlock *bk, kGamma *gma)
 
 static KMETHOD ExprTyCheck_Block(CTX, ksfp_t *sfp _RIX)
 {
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kExpr *texpr = K_NULLEXPR;
 	kStmt *lastExpr = NULL;
 	kline_t uline = expr->tk->uline;

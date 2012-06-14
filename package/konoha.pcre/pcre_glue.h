@@ -724,7 +724,7 @@ static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 static KMETHOD ExprTyCheck_Regex(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tk = expr->tk;
 	kRegex *r = new_(Regex, NULL);
 	DBG_ASSERT(kArray_size(tk->sub) == 2);

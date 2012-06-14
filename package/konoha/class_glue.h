@@ -272,7 +272,7 @@ static ksymbol_t tosymbolUM(CTX, kToken *tk)
 static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(expr, gma, reqty);
 	kToken *tkN = expr->cons->toks[0];
 	ksymbol_t fn = tosymbolUM(_ctx, tkN);
 	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, expr, 1, gma, TY_var, 0);
