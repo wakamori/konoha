@@ -249,8 +249,8 @@ typedef kushort_t       kmethodn_t;
 typedef kushort_t       kparamid_t;
 
 /* kcid_t */
-#define CLASS_newid        ((kcid_t)-1)
-#define TY_unknown         ((kcid_t)-2)
+#define CLASS_newid        ((ktype_t)-1)
+#define TY_unknown         ((ktype_t)-2)
 
 #define CT_(t)              (_ctx->share->ca.cts[t])
 #define CT_cparam(CT)       (_ctx->share->paramdomList->params[(CT)->paramdom])
@@ -260,20 +260,17 @@ typedef kushort_t       kparamid_t;
 #define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
 #define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
 
-#define FN_NONAME          ((ksymbol_t)-1)
-#define FN_NEWID           ((ksymbol_t)-2)
-#define _NEWID             FN_NEWID
+#define SYM_NONAME          ((ksymbol_t)-1)
+#define SYM_NEWID           ((ksymbol_t)-2)
+#define _NEWID             SYM_NEWID
 
-#define FN_BOXED           KFLAG_H0
-#define FN_UNBOX(fn)       (fn & ~(FN_BOXED))
-#define FN_isBOXED(fn)     ((fn & FN_BOXED) == FN_BOXED)
+#define SYMKEY_BOXED            KFLAG_H0
+#define SYMKEY_unbox(sym)       (sym & ~(SYMKEY_BOXED))
+#define SYMKEY_isBOXED(sym)     ((sym & SYMKEY_BOXED) == SYMKEY_BOXED)
 
 #define FN_COERCION        KFLAG_H0
 #define FN_Coersion        FN_COERCION
 #define FN_isCOERCION(fn)  ((fn & FN_COERCION) == FN_COERCION)
-
-#define MN_NONAME    ((kmethodn_t)-1)
-#define MN_NEWID     ((kmethodn_t)-2)
 
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
@@ -821,6 +818,7 @@ struct _kArray {
 		const struct _kString        **strings;
 		const struct _kParam         **params;
 		const struct _kMethod        **methods;
+		const struct _kFunc          **funcs;
 		const struct _kToken         **toks;
 		struct _kToken        **Wtoks;
 		const struct _kExpr          **exprs;
@@ -1036,7 +1034,7 @@ struct _kSystem {
 		tsfp[K_MTDIDX].mtdNC = MTD;\
 		tsfp[K_PCIDX].fname = __FILE__;\
 		tsfp[K_SHIFTIDX].shift = 0;\
-		KSETv(tsfp[K_RTNIDX].o, DEFVAL);\
+		KSETv(tsfp[K_RTNIDX].o, ((kObject*)DEFVAL));\
 		tsfp[K_RTNIDX].uline = __LINE__;\
 		klr_setesp(_ctx, tsfp + ARGC + 1);\
 		(MTD)->fcall_1(_ctx, tsfp K_RIXPARAM);\
@@ -1322,7 +1320,7 @@ typedef enum {
 #define RESET_GCSTACK()        kArray_clear(_ctx->stack->gcstack, gcstack_)
 
 #define KINITv(VAR, VAL)   OBJECT_SET(VAR, VAL)
-#define KSETv(VAR, VAL)    OBJECT_SET(VAR, VAL)
+#define KSETv(VAR, VAL)    /*OBJECT_SET(VAR, VAL)*/ VAR = VAL
 #define KINITp(parent, v, o) KINITv(v, o)
 #define KSETp(parent,  v, o) KSETv(v, o)
 #define KUNUSEv(V)  (V)->h.ct->free(_ctx, (V))
@@ -1348,7 +1346,7 @@ typedef enum {
 #define KNH_SAFEPOINT(_ctx, sfp)
 
 #define RETURN_(vv) do {\
-	KSETv(sfp[K_RIX].o, vv);\
+	KSETv(sfp[K_RIX].o, ((kObject*)vv));\
 	KNH_SAFEPOINT(_ctx, sfp);\
 	return; \
 } while (0)

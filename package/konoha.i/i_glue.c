@@ -104,7 +104,7 @@ static void dumpMethod(CTX, ksfp_t *sfp, kMethod *mtd)
 {
 	kwb_t wb;
 	kwb_init(&(_ctx->stack->cwb), &wb);
-	KSETv(sfp[2].o, mtd);
+	KSETv(sfp[2].mtd, mtd);
 	O_ct(mtd)->p(_ctx, sfp, 2, &wb, 1);
 	fprintf(stdout, "%s\n", kwb_top(&wb, 1));
 	kwb_free(&wb);

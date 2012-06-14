@@ -120,7 +120,7 @@ static KMETHOD Expr_getSingle(CTX, ksfp_t *sfp _RIX)
 static kArray *get_stack(CTX, kArray *g)
 {
 	if (!g->list[0]) {
-		KSETv(g->list[0], new_(Array, 0));
+		KSETv(g->list[0], ((kObject*)new_(Array, 0)));
 	}
 	return (kArray*)g->list[0];
 }
@@ -687,8 +687,8 @@ static void KMethod_genCode(CTX, kMethod *mtd, kBlock *bk)
 	DBG_P("START CODE GENERATION..");
 	BEGIN_LOCAL(lsfp, 8);
 
-	KSETv(lsfp[K_CALLDELTA+1].o, mtd);
-	KSETv(lsfp[K_CALLDELTA+2].o, bk);
+	KSETv(lsfp[K_CALLDELTA+1].mtd, mtd);
+	KSETv(lsfp[K_CALLDELTA+2].o, (kObject*)bk);
 	KCALL(lsfp, 0, GenCodeMtd, 2, K_NULL);
 	END_LOCAL();
 }

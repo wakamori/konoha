@@ -31,9 +31,9 @@
 static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
-	kExpr *lexpr = kExpr_tyCheckAt(expr, 1, gma, TY_var, TPOL_ALLOWVOID);
-	kExpr *rexpr = kExpr_tyCheckAt(expr, 2, gma, lexpr->ty, 0);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
+	kExpr *lexpr = kExpr_tyCheckAt(stmt, expr, 1, gma, TY_var, TPOL_ALLOWVOID);
+	kExpr *rexpr = kExpr_tyCheckAt(stmt, expr, 2, gma, lexpr->ty, 0);
 	if(rexpr != K_NULLEXPR && lexpr != K_NULLEXPR) {
 		if(rexpr != K_NULLEXPR) {
 			if(lexpr->build == TEXPR_LOCAL || lexpr->build == TEXPR_LOCAL_ || lexpr->build == TEXPR_FIELD) {
@@ -50,11 +50,11 @@ static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 					if(mtd != NULL) {
 						KSETv(lexpr->cons->methods[0], mtd);
 						kArray_add(lexpr->cons, rexpr);
-						RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, lexpr, mtd, gma, reqty));
+						RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, stmt, lexpr, mtd, gma, reqty));
 					}
 				}
 			}
-			SUGAR p(_ctx, ERR_, kExpr_uline(expr), -1, "variable name is expected");
+			SUGAR Stmt_p(_ctx, stmt, (kToken*)expr, ERR_, "variable name is expected");
 		}
 	}
 	RETURN_(K_NULLEXPR);
@@ -150,7 +150,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 static KMETHOD ParseExpr_OprAssignment(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
+	VAR_ParseExpr(stmt, tls, s, c, e);
 	size_t atop = kArray_size(tls);
 	s = transform_oprAssignment(_ctx, tls, s, c, e);
 	kExpr *expr = SUGAR Stmt_newExpr2(_ctx, stmt, tls, s, kArray_size(tls));

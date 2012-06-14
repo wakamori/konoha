@@ -39,8 +39,9 @@ extern "C" {
 #endif
 
 typedef ksymbol_t keyword_t;
-#define T_kw(X)   T_kw_(_ctx, X)
-#define Skeyword(X)   Skw_(_ctx, X)
+
+#define KW_t(X)   KW_t_(_ctx, X)
+//#define Skeyword(X)   Skw_(_ctx, X)
 
 #define kflag_clear(flag)  (flag) = 0
 #define K_CHECKSUM 1
@@ -79,7 +80,7 @@ struct _kpackage {
 // tokenizer
 #define KCHAR_MAX  41
 struct tenv_t;
-typedef int (*Ftokenizer)(CTX, struct _kToken *, struct tenv_t *, int, kMethod *thunk);
+typedef int (*Ftokenizer)(CTX, struct _kToken *, struct tenv_t *, int, kFunc *thunk);
 
 typedef struct tenv_t {
 	const char   *source;
@@ -90,6 +91,7 @@ typedef struct tenv_t {
 	const Ftokenizer *fmat;
 } tenv_t;
 
+/******
 // ParseToken
 #define VAR_ParseToken(TK, STR, UL) \
 		struct _kToken *TK = (struct _kToken*)sfp[0].o;\
@@ -97,42 +99,79 @@ typedef struct tenv_t {
 		int UL = (int)sfp[2].ivalue;\
 		(void)TK; (void)STR; (void)UL;\
 
-// int ParseStmt.parseStmt(Token[] tls, int s, int e)
-#define VAR_ParseStmt(STMT, SYN, NAME, TLS, S, E) \
-		kStmt *STMT = (kStmt*)sfp[0].o;\
+// int PatternMatch.parseStmt(Token[] tls, int s, int e)
+#define VAR_PatternMatch(STMT, SYN, NAME, TLS, S, E) \
 		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
-		ksymbol_t NAME = (ksymbol_t)sfp[1].ivalue;\
-		kArray *TLS = (kArray*)sfp[2].o;\
-		int S = (int)sfp[3].ivalue;\
-		int E = (int)sfp[4].ivalue;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		ksymbol_t NAME = (ksymbol_t)sfp[2].ivalue;\
+		kArray *TLS = (kArray*)sfp[3].o;\
+		int S = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
 		(void)STMT; (void)SYN; (void)NAME; (void)TLS; (void)S; (void)E;\
 
 // Expr Stmt.parseExpr(Token[] tls, int s, int c, int e)
 #define VAR_ParseExpr(STMT, SYN, TLS, S, C, E) \
-		kStmt *STMT = (kStmt*)sfp[0].o;\
 		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
-		kArray *TLS = (kArray*)sfp[1].o;\
-		int S = (int)sfp[2].ivalue;\
-		int C = (int)sfp[3].ivalue;\
-		int E = (int)sfp[4].ivalue;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kArray *TLS = (kArray*)sfp[2].o;\
+		int S = (int)sfp[3].ivalue;\
+		int C = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
 		(void)STMT; (void)SYN; (void)TLS; (void)S; (void)C; (void)E;\
 
 // Expr Stmt.tycheck(Gamma gma)
 
 #define VAR_StmtTyCheck(STMT, SYN, GMA) \
-		kStmt *STMT = (kStmt*)sfp[0].o;\
 		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
-		kGamma *GMA = (kGamma*)sfp[1].o;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kGamma *GMA = (kGamma*)sfp[2].o;\
 		(void)STMT; (void)SYN; (void)GMA;\
 
 // Expr Expr.tycheck(Gamma gma, int t)
 
 #define VAR_ExprTyCheck(EXPR, SYN, GMA, TY) \
-		kExpr *EXPR = (kExpr*)sfp[0].o;\
 		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
-		kGamma *GMA = (kGamma*)sfp[1].o;\
-		ktype_t TY = (ktype_t)sfp[2].ivalue;\
+		kExpr *EXPR = (kExpr*)sfp[1].o;\
+		kGamma *GMA = (kGamma*)sfp[2].o;\
+		ktype_t TY = (ktype_t)sfp[3].ivalue;\
 		(void)EXPR; (void)SYN; (void)GMA; (void)TY;\
+
+*****/
+
+// int PatternMatch(Stmt stmt, int nameid, Token[] toks, int s, int e)
+#define VAR_PatternMatch(STMT, NAME, TLS, S, E) \
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		ksymbol_t NAME = (ksymbol_t)sfp[2].ivalue;\
+		kArray *TLS = (kArray*)sfp[3].o;\
+		int S = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
+		(void)STMT; (void)NAME; (void)TLS; (void)S; (void)E;\
+
+// Expr ParseExpr(Stmt stmt, Token[] tls, int s, int c, int e)
+#define VAR_ParseExpr(STMT, TLS, S, C, E) \
+		ksyntax_t *syn = (ksyntax_t*)sfp[0].ndata;\
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kArray *TLS = (kArray*)sfp[2].o;\
+		int S = (int)sfp[3].ivalue;\
+		int C = (int)sfp[4].ivalue;\
+		int E = (int)sfp[5].ivalue;\
+		(void)syn; (void)STMT; (void)TLS; (void)S; (void)C; (void)E;\
+
+// Expr Stmt.tycheck(Gamma gma)
+
+#define VAR_StmtTyCheck(STMT, GMA) \
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kGamma *GMA = (kGamma*)sfp[2].o;\
+		(void)STMT; (void)GMA;\
+
+// Expr Expr.tycheck(Gamma gma, int t)
+
+#define VAR_ExprTyCheck(STMT, EXPR, GMA, TY) \
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kExpr *EXPR = (kExpr*)sfp[2].o;\
+		kGamma *GMA = (kGamma*)sfp[3].o;\
+		ktype_t TY = (ktype_t)sfp[4].ivalue;\
+		(void)STMT; (void)EXPR; (void)GMA; (void)TY;\
 
 //#define SYN_ExprFlag      1
 #define SYN_isExpr(syn)   TFLAG_is(kflag_t, syn->flag, SYN_ExprFlag)
@@ -141,25 +180,25 @@ typedef const struct _ksyntax ksyntax_t;
 struct _ksyntax {
 	keyword_t kw;  kflag_t flag;
 	kArray   *syntaxRuleNULL;
-	kMethod  *ParseStmtNULL;
-	kMethod  *ParseExpr;
-	kMethod  *TopStmtTyCheck;
-	kMethod  *StmtTyCheck;
-	kMethod  *ExprTyCheck;
+	kFunc    *PatternMatchNULL;
+	kFunc    *ParseExpr;
+	kFunc    *TopStmtTyCheck;
+	kFunc    *StmtTyCheck;
+	kFunc    *ExprTyCheck;
 	// binary
 	ktype_t    ty;   kshort_t priority;
 	kmethodn_t op2;  kmethodn_t op1;      // & a
 };
 
 #define TOKEN(T)  .name = T
-#define ParseStmt_(NAME)  .ParseStmt = ParseStmt_##NAME
-#define ParseExpr_(NAME)   .ParseExpr = ParseExpr_##NAME
+#define PatternMatch_(NAME)    .PatternMatch   = PatternMatch_##NAME
+#define ParseExpr_(NAME)       .ParseExpr      = ParseExpr_##NAME
 #define TopStmtTyCheck_(NAME)  .TopStmtTyCheck = StmtTyCheck_##NAME
-#define StmtTyCheck_(NAME)     .StmtTyCheck = StmtTyCheck_##NAME
-#define ExprTyCheck_(NAME)     .ExprTyCheck = ExprTyCheck_##NAME
+#define StmtTyCheck_(NAME)     .StmtTyCheck    = StmtTyCheck_##NAME
+#define ExprTyCheck_(NAME)     .ExprTyCheck    = ExprTyCheck_##NAME
 
-#define _TERM  .flag = SYNFLAG_ExprTerm
-#define _OP    .flag = SYNFLAG_ExprOp
+#define _TERM     .flag = SYNFLAG_ExprTerm
+#define _OP       .flag = SYNFLAG_ExprOp
 #define _OPLeft   .flag = (SYNFLAG_ExprOp|SYNFLAG_ExprLeftJoinOp2)
 
 #define SYNFLAG_ExprTerm           ((kflag_t)1)
@@ -179,31 +218,31 @@ typedef struct KDEFINE_SYNTAX {
 	const char *op1;
 	int priority_op2;
 	int type;
-	knh_Fmethod ParseStmt;
+	knh_Fmethod PatternMatch;
 	knh_Fmethod ParseExpr;
 	knh_Fmethod TopStmtTyCheck;
 	knh_Fmethod StmtTyCheck;
 	knh_Fmethod ExprTyCheck;
 } KDEFINE_SYNTAX;
 
-#define new_SugarMethod(F)     new_kMethod(0, 0, 0, F)
+#define new_SugarFunc(F)     new_(Func, new_kMethod(0, 0, 0, F))
 
 #define SYN_setTopStmtTyCheck(KS, KW, F) do {\
 		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
 		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->TopStmtTyCheck, new_SugarMethod(StmtTyCheck_##F));\
+		KSETv(syn_->TopStmtTyCheck, new_SugarFunc(StmtTyCheck_##F));\
 	}while(0)\
 
 #define SYN_setStmtTyCheck(KS, KW, F) do {\
 		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
 		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->StmtTyCheck, new_SugarMethod(StmtTyCheck_##F));\
+		KSETv(syn_->StmtTyCheck, new_SugarFunc(StmtTyCheck_##F));\
 	}while(0)\
 
 #define SYN_setExprTyCheck(KS, KW, F) do {\
 		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
 		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->ExprTyCheck, new_SugarMethod(ExprTyCheck_##F));\
+		KSETv(syn_->ExprTyCheck, new_SugarFunc(ExprTyCheck_##F));\
 	}while(0)\
 
 
@@ -215,14 +254,11 @@ struct _kKonohaSpace {
 	const Ftokenizer *fmat;
 	struct kmap_t    *syntaxMapNN;
 	//
-//	void             *gluehdr;
 	kObject          *scrobj;
-//	kcid_t static_cid;   kcid_t function_cid;
 	kArray*           methods;  // default K_EMPTYARRAY
-	karray_t          cl;  // const
+	karray_t          cl;       // const variable
 };
 
-typedef kshort_t    ksugar_t;
 typedef kshort_t    kexpr_t;
 
 typedef enum {
@@ -301,7 +337,6 @@ static inline void kToken_setmn(kToken *tk, kmethodn_t mn, mntype_t mn_type)
 #define TEXPR_LET           12
 #define TEXPR_STACKTOP      13
 #define TEXPR_MAX           14
-
 
 #define Expr_isCONST(o)     (TEXPR_CONST <= (o)->build && (o)->build <= TEXPR_NCONST)
 #define Expr_isTerm(o)      (TFLAG_is(uintptr_t,(o)->h.magicflag,kObject_Local1))
@@ -442,7 +477,7 @@ struct _kGamma {
 
 #define KW_Block   11
 #define KW_Params  12
-#define       KW_ExprMethodCall  12/*FIXME*/
+#define            KW_ExprMethodCall  KW_Params
 #define KW_Toks    13
 
 #define KW_DOT     14
@@ -499,15 +534,15 @@ typedef struct {
 	struct kmap_t         *packageMapNO;
 	kKonohaSpace         *rootks;
 
-	kMethod *UndefinedParseExpr;
-	kMethod *UndefinedStmtTyCheck;
-	kMethod *UndefinedExprTyCheck;
-	kMethod *ParseExpr_Term;
-	kMethod *ParseExpr_Op;
+	kFunc *UndefinedParseExpr;
+	kFunc *UndefinedStmtTyCheck;
+	kFunc *UndefinedExprTyCheck;
+	kFunc *ParseExpr_Term;
+	kFunc *ParseExpr_Op;
 
 	// export
 	keyword_t  (*keyword)(CTX, const char*, size_t, ksymbol_t);
-	void (*KonohaSpace_setTokenizer)(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kMethod *mtd/*future extension*/);
+	void (*KonohaSpace_setTokenizer)(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo);
 	void (*KonohaSpace_tokenize)(CTX, kKonohaSpace *, const char *, kline_t, kArray *);
 
 	kExpr* (*Expr_setConstValue)(CTX, kExpr *expr, ktype_t ty, kObject *o);
@@ -519,15 +554,13 @@ typedef struct {
 	const char* (*Stmt_text)(CTX, kStmt *stmt, keyword_t kw, const char *def);
 	kBlock* (*Stmt_block)(CTX, kStmt *stmt, keyword_t kw, kBlock *def);
 
-	kExpr*     (*Expr_tyCheckAt)(CTX, kExpr *, size_t, kGamma *, ktype_t, int);
+	kExpr*     (*Expr_tyCheckAt)(CTX, kStmt *, kExpr *, size_t, kGamma *, ktype_t, int);
 	kbool_t    (*Stmt_tyCheckExpr)(CTX, kStmt*, ksymbol_t, kGamma *, ktype_t, int);
 	kbool_t    (*Block_tyCheckAll)(CTX, kBlock *, kGamma *);
-	kExpr *    (*Expr_tyCheckCallParams)(CTX, kExpr *, kMethod *, kGamma *, ktype_t);
-	kExpr *    (*new_TypedMethodCall)(CTX, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
+	kExpr *    (*Expr_tyCheckCallParams)(CTX, kStmt *, kExpr *, kMethod *, kGamma *, ktype_t);
+	kExpr *    (*new_TypedMethodCall)(CTX, kStmt *, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
 	void       (*Stmt_toExprCall)(CTX, kStmt *stmt, kMethod *mtd, int n, ...);
 
-	size_t     (*p)(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...);
-	kline_t    (*Expr_uline)(CTX, kExpr *expr, int level);
 	ksyntax_t* (*KonohaSpace_syntax)(CTX, kKonohaSpace *, ksymbol_t, int);
 	void       (*KonohaSpace_defineSyntax)(CTX, kKonohaSpace *, KDEFINE_SYNTAX *);
 
@@ -539,14 +572,16 @@ typedef struct {
 	kExpr*     (*new_ConsExpr)(CTX, ksyntax_t *syn, int n, ...);
 	kExpr *    (*Stmt_addExprParams)(CTX, kStmt *, kExpr *, kArray *tls, int s, int e, int allowEmpty);
 	kExpr *    (*Expr_rightJoin)(CTX, kExpr *, kStmt *, kArray *, int, int, int);
+
+	void       (*Token_pERR)(CTX, struct _kToken *tk, const char *fmt, ...);
+	kExpr *    (*Stmt_p)(CTX, kStmt *stmt, kToken *tk, int pe, const char *fmt, ...);
+
 } kmodsugar_t;
 
 #define EXPORT_SUGAR(base) \
 	base->keyword             = keyword;\
 	base->KonohaSpace_setTokenizer = KonohaSpace_setTokenizer;\
 	base->KonohaSpace_tokenize = KonohaSpace_tokenize;\
-	base->p                   = sugar_p;\
-	base->Expr_uline          = Expr_uline;\
 	base->Stmt_token          = Stmt_token;\
 	base->Stmt_block          = Stmt_block;\
 	base->Stmt_expr           = Stmt_expr;\
@@ -559,7 +594,7 @@ typedef struct {
 	base->Block_tyCheckAll    = Block_tyCheckAll;\
 	base->Expr_tyCheckCallParams = Expr_tyCheckCallParams;\
 	base->new_TypedMethodCall = new_TypedMethodCall;\
-	base->Stmt_toExprCall     = Stmt_toExprCall;\
+	/*base->Stmt_toExprCall     = Stmt_toExprCall;*/\
 	/*syntax*/\
 	base->KonohaSpace_defineSyntax  = KonohaSpace_defineSyntax;\
 	base->KonohaSpace_syntax        = KonohaSpace_syntax;\
@@ -571,6 +606,9 @@ typedef struct {
 	base->new_ConsExpr       = new_ConsExpr;\
 	base->Stmt_addExprParams = Stmt_addExprParams;\
 	base->Expr_rightJoin     = Expr_rightJoin;\
+	/*perror*/\
+	base->Token_pERR         = Token_pERR;\
+	base->Stmt_p             = Stmt_p;\
 
 
 typedef struct {
@@ -592,7 +630,7 @@ typedef struct {
 
 #ifdef USING_SUGAR_AS_BUILTIN
 
-#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, FN_NONAME)
+#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                KonohaSpace_syntax(_ctx, KS, KW, 0)
 
 #define kStmt_token(STMT, KW, DEF)  Stmt_token(_ctx, STMT, KW, DEF)
@@ -607,8 +645,8 @@ typedef struct {
 #define kExpr_setNConstValue(EXPR, T, D)  Expr_setNConstValue(_ctx, EXPR, T, D)
 #define new_Variable(B, T, I, G)          Expr_setVariable(_ctx, NULL, TEXPR_##B, T, I, G)
 #define kExpr_setVariable(E, B, T, I, G)  Expr_setVariable(_ctx, E, TEXPR_##B, T, I, G)
-#define kExpr_tyCheckAt(E, N, GMA, T, P)     Expr_tyCheckAt(_ctx, E, N, GMA, T, P)
-#define kStmt_tyCheck(E, NI, GMA, T, P)      Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
+#define kExpr_tyCheckAt(STMT, E, N, GMA, T, P)     Expr_tyCheckAt(_ctx, STMT, E, N, GMA, T, P)
+//#define kStmt_tyCheck(E, NI, GMA, T, P)      Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
 
 #else/*SUGAR_EXPORTS*/
 #define USING_SUGAR                          const kmodsugar_t *_e = (const kmodsugar_t *)kmodsugar
@@ -621,7 +659,7 @@ typedef struct {
 #define TY_Gamma                             _e->cGamma->cid
 #define TY_TokenArray                        _e->cTokenArray->cid
 
-#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, FN_NONAME)
+#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                         _e->KonohaSpace_syntax(_ctx, KS, KW, 0)
 #define NEWSYN_(KS, KW)                      (struct _ksyntax*)_e->KonohaSpace_syntax(_ctx, KS, KW, 1)
 
@@ -637,14 +675,14 @@ typedef struct {
 #define kExpr_setNConstValue(EXPR, T, D)     _e->Expr_setNConstValue(_ctx, EXPR, T, D)
 #define new_Variable(B, T, I, G)             _e->Expr_setVariable(_ctx, NULL, TEXPR_##B, T, I, G)
 #define kExpr_setVariable(E, B, T, I, G)     _e->Expr_setVariable(_ctx, E, TEXPR_##B, T, I, G)
-#define kExpr_tyCheckAt(E, N, GMA, T, P)     _e->Expr_tyCheckAt(_ctx, E, N, GMA, T, P)
-#define kStmt_tyCheck(E, NI, GMA, T, P)      _e->Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
+#define kExpr_tyCheckAt(STMT, E, N, GMA, T, P)     _e->Expr_tyCheckAt(_ctx, STMT, E, N, GMA, T, P)
+//#define kStmt_tyCheck(E, NI, GMA, T, P)      _e->Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
 
 #endif/*SUGAR_EXPORTS*/
 
 ///* ------------------------------------------------------------------------ */
 
-static inline const char *T_kw_(CTX, keyword_t kw)
+static inline const char *KW_t_(CTX, keyword_t kw)
 {
 	kArray *a = kmodsugar->keywordList;
 	DBG_ASSERT(kw < kArray_size(a));
@@ -666,7 +704,7 @@ static inline kKonohaSpace *Stmt_ks(CTX, kStmt *stmt)
 static inline void Stmt_setsyn(CTX, kStmt *stmt, ksyntax_t *syn)
 {
 //	if(syn == NULL && stmt->syn != NULL) {
-//		DBG_P("DONE: STMT='%s'", T_kw(syn->kw));
+//		DBG_P("DONE: STMT='%s'", KW_t(syn->kw));
 //	}
 	((struct _kStmt*)stmt)->syn = syn;
 }
@@ -689,7 +727,6 @@ static inline kExpr *Expr_typed(kExpr *expr, int build, ktype_t ty)
 	((struct _kExpr*)expr)->ty = ty;
 	return expr;
 }
-
 
 #ifdef __cplusplus
 }

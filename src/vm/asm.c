@@ -848,7 +848,7 @@ static void JumpStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void UndefinedStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	DBG_ABORT("undefined asm syntax kw='%s'", T_kw(stmt->syn->kw));
+	DBG_ABORT("undefined asm syntax kw='%s'", KW_t(stmt->syn->kw));
 }
 
 static void BLOCK_asm(CTX, kBlock *bk, int shift)
