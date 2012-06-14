@@ -22,7 +22,6 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-
 static void karray_init(CTX, karray_t *m, size_t bytemax)
 {
 	m->bytesize = 0;
@@ -186,15 +185,6 @@ static void kmap_shiftptr(kmap_t *kmap, intptr_t shift)
 		}
 	}
 }
-
-//static void Kmap_add(kmap_t* kmap, kmape_t *ne)
-//{
-//	DBG_ASSERT(ne->next == NULL);
-//	kmape_t **hlist = kmap->hentry;
-//	size_t idx = ne->hcode % kmap->hmax;
-//	ne->next = hlist[idx];
-//	hlist[idx] = ne;
-//}
 
 static kmape_t *Kmap_newentry(CTX, kmap_t *kmap, kuint_t hcode)
 {
