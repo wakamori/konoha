@@ -13,7 +13,7 @@ PWD   := $(shell pwd)
 VERBOSE=0
 EXTRA_CFLAGS :=
 EXTRA_CFLAGS += -Wno-declaration-after-statement
-EXTRA_CFLAGS += -I$(SRCDIR)/include -I$(SRCDIR)/module/lkm/
+EXTRA_CFLAGS += -I$(SRCDIR)/include -I$(SRCDIR)/platform/lkm/
 
 default:
 	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules KBUILD_VERBOSE=$(VERBOSE)
