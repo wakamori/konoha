@@ -54,6 +54,14 @@ static void Json_free(CTX, kObject *o)
 	}
 }
 
+static void Json_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
+{
+	struct _kJson *json = (struct _kJson *)sfp[pos].o;
+	char* data = json_dumps(json->obj, JSON_ENSURE_ASCII);
+	kwb_printf(wb, "%s", data);
+	free(data);
+}
+
 #define _Public   kMethod_Public
 #define _Const    kMethod_Const
 #define _Coercion kMethod_Coercion
@@ -131,34 +139,35 @@ static KMETHOD Json_getInt(CTX, ksfp_t *sfp _RIX)
 }
 
 //## Array Json.getArray(String key);
-//static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
-//{
-//	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;
-//	if (!json_is_object(obj)) {
-//		RETURN_(K_NULL);
-//	}
-//	const char *key = S_text(sfp[1].s);
-//	json_t* ja = json_object_get(obj, key);
-//	if (!json_is_array(ja)) {
-//		RETURN_(K_NULL);
-//	}
-//	ja = json_incref(ja);
-//	int i;
-//	struct _kArray *a = (struct _kArray*)new_(Array, 0);
-//	size_t size = json_array_size(ja);
-//	a->bytemax = size * sizeof(void*);
-//	kArray_setsize((kArray*)a, size);
-//	a->list = (kObject**)KCALLOC(a->bytemax, 1);
-//	for (i = 0; i < size; i++) {
-//		struct _kJson* json = (struct _kJson*)new_kObject(O_ct(sfp[0].o), NULL);
-//		json->obj = json_array_get(ja, i);
-//		json_incref(json->obj);
-//		KSETv(a->list[i], json);
-//	}
-//	//fprintf(stderr, "key = '%s'\n", key);
-//	//fprintf(stderr, "ret='%s'\n", str);
-//	RETURN_(a);
-//}
+static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
+{
+	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;
+	if (!json_is_object(obj)) {
+		RETURN_(K_NULL);
+	}
+	const char *key = S_text(sfp[1].s);
+	json_t* ja = json_object_get(obj, key);
+	if (!json_is_array(ja)) {
+		RETURN_(K_NULL);
+	}
+	ja = json_incref(ja);
+	int i;
+	struct _kArray* a = (struct _kArray*)new_kObject(CT_Array, NULL);
+	size_t size = json_array_size(ja);
+	//a->bytemax = size * sizeof(void*);
+	//kArray_setsize((kArray*)a, size);
+	//a->list = (kObject**)KCALLOC(a->bytemax, size);
+	for (i = 0; i < size; i++) {
+		struct _kJson* json = (struct _kJson*)new_kObject(O_ct(sfp[0].o), NULL);
+		json->obj = json_array_get(ja, i);
+		json_incref(json->obj);
+		printf("json='%s'\n", json_dumps(json->obj, JSON_ENSURE_ASCII));
+		kArray_add(a, json);
+	}
+	//fprintf(stderr, "key = '%s'\n", key);
+	//fprintf(stderr, "ret='%s'\n", str);
+	RETURN_(a);
+}
 
 //## String Json.getString(String key);
 static KMETHOD Json_getString(CTX, ksfp_t *sfp _RIX)
@@ -358,25 +367,31 @@ static	kbool_t json_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		.cflag = kClass_Final,
 		.init = Json_init,
 		.free = Json_free,
+		.p    = Json_p,
 	};
 	kclass_t *cJson = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &defJson, pline);
 	struct _kclass *ct = (struct _kclass *)CT_Json;
-	ct->p0 = TY_String; // default
+	//ct->p0 = TY_String; // default
+
+	kparam_t ps = {TY_Json, FN_("json")};
+	kclass_t *CT_JsonArray2 = kClassTable_Generics(CT_Array, TY_Json, 1, &ps);
+	kcid_t TY_JsonArray = CT_JsonArray2->cid;
+
 	intptr_t MethodData[] = {
-		_Public|_Const|_Im, _F(Json_new),       TY_Json,    TY_Json, MN_("new"),       0,
-		_Public|_Const|_Im, _F(Json_parse),     TY_Json,    TY_Json, MN_("parse"),     1, TY_String, FN_("data"),
-		_Public|_Const|_Im, _F(Json_get),       TY_Json,    TY_Json, MN_("get"),       1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_getInt),    TY_Int,     TY_Json, MN_("getInt"),    1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_getBool),   TY_Boolean, TY_Json, MN_("getBool"),   1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_getFloat),  TY_Float,   TY_Json, MN_("getFloat"),  1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_getString), TY_String,  TY_Json, MN_("getString"), 1, TY_String, FN_("key"),
-		//_Public|_Const|_Im, _F(Json_getArray),  TY_Array,   TY_Json, MN_("getArray"), 1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_set),       TY_void,    TY_Json, MN_("set"),       2, TY_String, FN_("key"), TY_Json, FN_("value"),
-		_Public|_Const|_Im, _F(Json_setInt),    TY_void,    TY_Json, MN_("setInt"),    2, TY_String, FN_("key"), TY_Int, FN_("value"),
-		_Public|_Const|_Im, _F(Json_setBool),   TY_void,    TY_Json, MN_("setBool"),   2, TY_String, FN_("key"), TY_Boolean, FN_("value"),
-		_Public|_Const|_Im, _F(Json_setFloat),  TY_void,    TY_Json, MN_("setFloat"),  2, TY_String, FN_("key"), TY_Float, FN_("value"),
-		_Public|_Const|_Im, _F(Json_setString), TY_void,    TY_Json, MN_("setString"), 2, TY_String, FN_("key"), TY_String, FN_("value"),
-		_Public|_Const|_Im, _F(Json_dump),      TY_String,  TY_Json, MN_("dump"),      0,
+		_Public|_Const|_Im, _F(Json_new),       TY_Json,    TY_Json, MN_("new"),          0,
+		_Public|_Const|_Im, _F(Json_parse),     TY_Json,    TY_Json, MN_("parse"),        1, TY_String, FN_("data"),
+		_Public|_Const|_Im, _F(Json_get),       TY_Json,    TY_Json, MN_("get"),          1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getInt),    TY_Int,     TY_Json, MN_("getInt"),       1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getBool),   TY_Boolean, TY_Json, MN_("getBool"),      1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getFloat),  TY_Float,   TY_Json, MN_("getFloat"),     1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getString), TY_String,  TY_Json, MN_("getString"),    1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getArray),  TY_JsonArray,   TY_Json, MN_("getArray"), 1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_set),       TY_void,    TY_Json, MN_("set"),          2, TY_String, FN_("key"), TY_Json, FN_("value"),
+		_Public|_Const|_Im, _F(Json_setInt),    TY_void,    TY_Json, MN_("setInt"),       2, TY_String, FN_("key"), TY_Int, FN_("value"),
+		_Public|_Const|_Im, _F(Json_setBool),   TY_void,    TY_Json, MN_("setBool"),      2, TY_String, FN_("key"), TY_Boolean, FN_("value"),
+		_Public|_Const|_Im, _F(Json_setFloat),  TY_void,    TY_Json, MN_("setFloat"),     2, TY_String, FN_("key"), TY_Float, FN_("value"),
+		_Public|_Const|_Im, _F(Json_setString), TY_void,    TY_Json, MN_("setString"),    2, TY_String, FN_("key"), TY_String, FN_("value"),
+		_Public|_Const|_Im, _F(Json_dump),      TY_String,  TY_Json, MN_("dump"),         0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);

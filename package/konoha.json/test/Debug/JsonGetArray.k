@@ -13,9 +13,13 @@ void main() {
 	int max = f.read(buf, 0, bufsize);
 	String str = buf.toString().substring(0, max);
 	Json j = new Json();
-	p(j);
 	Json parsed = j.parse(str);
-	p(parsed.getString("string"));
+	Json[] a = parsed.getArray("array");
+	//p(a);
+	p(a[0]);
+	//p(a[0].getString("foo"));
+	//p("hi");
+
 }
 
 main();
