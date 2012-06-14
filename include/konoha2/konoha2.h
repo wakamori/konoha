@@ -40,6 +40,11 @@
 #endif
 #endif
 
+/* - 2012/06/14 */
+//#define K_CODENAME "Miyajima"
+/*2012/06/14 -  */
+#define K_CODENAME "The Summer Palace, Beijing"
+
 #ifndef K_REVISION
 #define K_REVISION  1
 #endif
