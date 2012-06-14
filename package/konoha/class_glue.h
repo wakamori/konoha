@@ -241,8 +241,8 @@ static kExpr* NewExpr(CTX, ksyntax_t *syn, kToken *tk, ktype_t ty, uintptr_t val
 static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
-	assert(s == c);
+	VAR_ParseExpr(stmt, tls, s, c, e);
+	DBG_ASSERT(s == c);
 	kToken *tkNEW = tls->toks[s];
 	if(s + 2 < kArray_size(tls)) {
 		kToken *tk1 = tls->toks[s+1];

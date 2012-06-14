@@ -51,7 +51,7 @@ static const char* T_emsg(CTX, int pe)
 	return "(unknown)";
 }
 
-static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va_list ap)
+static kString* vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va_list ap)
 {
 	const char *msg = T_emsg(_ctx, pe);
 	size_t errref = ((size_t)-1);
@@ -61,12 +61,7 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 		kwb_init(&base->cwb, &wb);
 		if(uline > 0) {
 			const char *file = SS_t(uline);
-//			if(lpos != -1) {
-//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortfilename(file), (kushort_t)uline, (int)lpos+1);
-//			}
-//			else {
-				kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
-//			}
+			kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
 		}
 		else {
 			kwb_printf(&wb, "%s " , msg);
@@ -80,59 +75,88 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 			base->err_count ++;
 		}
 		kreport(pe, S_text(emsg));
+		return emsg;
 	}
-	return errref;
+	return NULL;
 }
 
 #define SUGAR_P(PE, UL, POS, FMT, ...)  sugar_p(_ctx, PE, UL, POS, FMT,  ## __VA_ARGS__)
 #define ERR_SyntaxError(UL)  SUGAR_P(ERR_, UL, -1, "syntax sugar error at %s:%d", __FUNCTION__, __LINE__)
 
-static size_t sugar_p(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...)
+static kString* sugar_p(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	size_t errref = vperrorf(_ctx, pe, uline, lpos, fmt, ap);
+	kString *errmsg = vperrorf(_ctx, pe, uline, lpos, fmt, ap);
 	va_end(ap);
-	return errref;
+	return errmsg;
 }
 
-#define kToken_p(TK, PE, FMT, ...)   Token_p(_ctx, TK, PE, FMT, ## __VA_ARGS__)
 #define kExpr_p(E, PE, FMT, ...)     Expr_p(_ctx, E, PE, FMT, ## __VA_ARGS__)
-static kExpr* Token_p(CTX, kToken *tk, int pe, const char *fmt, ...)
+#define kToken_p(TK, PE, FMT, ...)   K_NULLEXPR
+
+static void Token_pERR(CTX, struct _kToken *tk, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vperrorf(_ctx, pe, tk->uline, tk->lpos, fmt, ap);
+	kString *errmsg = vperrorf(_ctx, ERR_, tk->uline, -1, fmt, ap);
+	va_end(ap);
+	KSETv(tk->text, errmsg);
+	tk->tt = TK_ERR;
+}
+
+//#define kerrno   Kerrno(_ctx)
+//#define kstrerror(ENO)  Kstrerror(_ctx, ENO)
+//
+//static int Kerrno(CTX)
+//{
+//	return kArray_size(ctxsugar->errors);
+//}
+//
+//static kString* Kstrerror(CTX, int eno)
+//{
+//	ctxsugar_t *base = ctxsugar;
+//	size_t i;
+//	for(i = eno; i < kArray_size(base->errors); i++) {
+//		kString *emsg = base->errors->strings[i];
+//		if(strstr(S_text(emsg), "(error)") != NULL) {
+//			return emsg;
+//		}
+//	}
+//	DBG_ABORT("kerrno=%d, |errmsgs|=%d", kerrno, kArray_size(base->errors));
+//	return TS_EMPTY;
+//}
+
+#define kStmt_toERR(STMT, ENO)  Stmt_toERR(_ctx, STMT, ENO)
+#define kStmt_isERR(STMT)       ((STMT)->build == TSTMT_ERR)
+static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int isnew);
+static void Stmt_toERR(CTX, kStmt *stmt, kString *errmsg)
+{
+	((struct _kStmt*)stmt)->syn   = SYN_(kStmt_ks(stmt), KW_Err);
+	((struct _kStmt*)stmt)->build = TSTMT_ERR;
+	kObject_setObject(stmt, KW_Err, errmsg);
+}
+
+static inline void kStmt_errline(kStmt *stmt, kline_t uline)
+{
+	((struct _kStmt*)stmt)->uline = uline;
+}
+
+#define kStmt_p(STMT, PE, FMT, ...)   Stmt_p(_ctx, STMT, NULL, PE, FMT, ## __VA_ARGS__)
+static kExpr* Stmt_p(CTX, kStmt *stmt, kToken *tk, int pe, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	if(tk != NULL) {
+		kStmt_errline(stmt, tk->uline);
+	}
+	kString *errmsg = vperrorf(_ctx, pe, stmt->uline, -1, fmt, ap);
+	if(pe <= ERR_ && !kStmt_isERR(stmt)) {
+		kStmt_toERR(stmt, errmsg);
+	}
 	va_end(ap);
 	return K_NULLEXPR;
 }
-
-#define kerrno   Kerrno(_ctx)
-#define kstrerror(ENO)  Kstrerror(_ctx, ENO)
-
-static int Kerrno(CTX)
-{
-	return kArray_size(ctxsugar->errors);
-}
-
-static kString* Kstrerror(CTX, int eno)
-{
-	ctxsugar_t *base = ctxsugar;
-	size_t i;
-	for(i = eno; i < kArray_size(base->errors); i++) {
-		kString *emsg = base->errors->strings[i];
-		if(strstr(S_text(emsg), "(error)") != NULL) {
-			return emsg;
-		}
-	}
-	DBG_ABORT("kerrno=%d, |errmsgs|=%d", kerrno, kArray_size(base->errors));
-	return TS_EMPTY;
-}
-
-//static void WARN_MustCloseWith(CTX, kline_t uline, int ch)
-//{
-//	SUGAR_P(WARN_, uline, 0, "must close with %c", ch);
-//}
 
 #ifdef __cplusplus
 }

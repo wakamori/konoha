@@ -147,15 +147,15 @@ typedef struct tenv_t {
 		int E = (int)sfp[5].ivalue;\
 		(void)STMT; (void)NAME; (void)TLS; (void)S; (void)E;\
 
-// Expr Stmt.parseExpr(Token[] tls, int s, int c, int e)
-#define VAR_ParseExpr(STMT, SYN, TLS, S, C, E) \
-		ksyntax_t *SYN = (ksyntax_t*)sfp[0].ndata;\
+// Expr ParseExpr(Stmt stmt, Token[] tls, int s, int c, int e)
+#define VAR_ParseExpr(STMT, TLS, S, C, E) \
+		ksyntax_t *syn = (ksyntax_t*)sfp[0].ndata;\
 		kStmt *STMT = (kStmt*)sfp[1].o;\
 		kArray *TLS = (kArray*)sfp[2].o;\
 		int S = (int)sfp[3].ivalue;\
 		int C = (int)sfp[4].ivalue;\
 		int E = (int)sfp[5].ivalue;\
-		(void)STMT; (void)SYN; (void)TLS; (void)S; (void)C; (void)E;\
+		(void)syn; (void)STMT; (void)TLS; (void)S; (void)C; (void)E;\
 
 // Expr Stmt.tycheck(Gamma gma)
 

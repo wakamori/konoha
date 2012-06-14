@@ -135,7 +135,7 @@ static kbool_t array_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
+	VAR_ParseExpr(stmt, tls, s, c, e);
 	DBG_P("parse bracket!!");
 	kToken *tk = tls->toks[c];
 	if(s == c) { // TODO
@@ -155,7 +155,7 @@ static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 			struct _kToken *tkN = new_W(Token, 0);
 			tkN->tt = TK_MN; tkN->mn = MN_toGETTER(0);
 			tkN->uline = tk->uline;
-			syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
+			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			lexpr  = SUGAR new_ConsExpr(_ctx, syn, 2, tkN, lexpr);
 			lexpr = SUGAR Stmt_addExprParams(_ctx, stmt, lexpr, tk->sub, 0, kArray_size(tk->sub), 1/*allowEmpty*/);
 		}

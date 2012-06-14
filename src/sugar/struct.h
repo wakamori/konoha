@@ -853,14 +853,6 @@ static void dumpStmt(CTX, kStmt *stmt)
 	}
 }
 
-#define kStmt_toERR(STMT, ENO)  Stmt_toERR(_ctx, STMT, ENO)
-static void Stmt_toERR(CTX, kStmt *stmt, int eno)
-{
-	((struct _kStmt*)stmt)->syn = SYN_(kStmt_ks(stmt), KW_Err);
-	((struct _kStmt*)stmt)->build = TSTMT_ERR;
-	kObject_setObject(stmt, KW_Err, kstrerror(eno));
-}
-
 #define AKEY(T)   T, (sizeof(T)-1)
 
 typedef struct flagop_t {

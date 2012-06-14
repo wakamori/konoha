@@ -30,12 +30,6 @@ extern "C" {
 
 /* ------------------------------------------------------------------------ */
 
-static void Token_toERR(CTX, struct _kToken *tk, size_t errref)
-{
-	tk->tt = TK_ERR;
-	KSETv(tk->text, ctxsugar->errors->strings[errref]);
-}
-
 static inline int lpos(tenv_t *tenv, const char *s)
 {
 	return (tenv->bol == NULL) ? -1 : s - tenv->bol;
@@ -199,8 +193,7 @@ static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kF
 		prev = ch;
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with */");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with */");
 	}
 	return pos-1;/*EOF*/
 }
@@ -246,8 +239,7 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 		kwb_putc(&wb, ch);
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with \"");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with \"");
 	}
 	kwb_free(&wb);
 	return pos-1;
@@ -261,8 +253,7 @@ static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc
 static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "undefined token character: %c", tenv->source[tok_start]);
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "undefined token character: %c", tenv->source[tok_start]);
 	}
 	while(tenv->source[++tok_start] != 0);
 	return tok_start;
@@ -420,8 +411,7 @@ static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 		}
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with }");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with }");
 	}
 	return pos-1;
 }

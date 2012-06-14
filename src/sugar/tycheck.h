@@ -413,7 +413,7 @@ static KMETHOD StmtTyCheck_ConstDecl(CTX, ksfp_t *sfp _RIX)
 	ksymbol_t ukey = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 	kvs_t *kv = KonohaSpace_getConstNULL(_ctx, ks, ukey);
 	if(kv != NULL) {
-		SUGAR_P(ERR_, stmt->uline, -1, "already defined name: %s", kToken_s(tk));
+		kStmt_p(stmt, ERR_, "already defined name: %s", kToken_s(tk));
 	}
 	else {
 		r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, TPOL_CONST);
@@ -932,9 +932,9 @@ static kbool_t Block_tyCheckAll(CTX, kBlock *bk, kGamma *gma)
 			result = 0;
 			break;
 		}
-		int estart = kerrno;
+//		int estart = kerrno;
 		if(!Stmt_TyCheck(_ctx, syn, stmt, gma)) {
-			kStmt_toERR(stmt, estart);
+//			kStmt_toERR(stmt, estart);
 			kGamma_setERROR(gma, 1);
 			result = 0;
 			break;

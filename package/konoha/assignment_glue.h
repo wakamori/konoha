@@ -150,7 +150,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 static KMETHOD ParseExpr_OprAssignment(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
+	VAR_ParseExpr(stmt, tls, s, c, e);
 	size_t atop = kArray_size(tls);
 	s = transform_oprAssignment(_ctx, tls, s, c, e);
 	kExpr *expr = SUGAR Stmt_newExpr2(_ctx, stmt, tls, s, kArray_size(tls));
