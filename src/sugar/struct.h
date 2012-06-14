@@ -673,9 +673,9 @@ static kExpr* new_TypedConsExpr(CTX, int build, ktype_t ty, int n, ...)
 	return (kExpr*)expr;
 }
 
-static kExpr *Expr_tyCheckCallParams(CTX, kExpr *expr, kMethod *mtd, kGamma *gma, ktype_t reqty);
+static kExpr *Expr_tyCheckCallParams(CTX, kStmt *stmt, kExpr *expr, kMethod *mtd, kGamma *gma, ktype_t reqty);
 
-static kExpr* new_TypedMethodCall(CTX, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...)
+static kExpr* new_TypedMethodCall(CTX, kStmt *stmt, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...)
 {
 	va_list ap;
 	va_start(ap, n);
@@ -687,7 +687,7 @@ static kExpr* new_TypedMethodCall(CTX, ktype_t ty, kMethod *mtd, kGamma *gma, in
 	va_end(ap);
 	expr->build = TEXPR_CALL;
 	expr->ty = ty;
-	return Expr_tyCheckCallParams(_ctx, (kExpr*)expr, mtd, gma, ty);
+	return Expr_tyCheckCallParams(_ctx, stmt, (kExpr*)expr, mtd, gma, ty);
 }
 
 

@@ -164,7 +164,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 		RETURNb_(false);
 	}
 	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", SYM_t(fn), TY_t(expr->ty));
-	expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
+	expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
 	kObject_setObject(stmt, KW_Expr, expr);
 	kStmt_typed(stmt, EXPR);
 	RETURNb_(true);
@@ -200,7 +200,7 @@ static kbool_t appendSetterStmt(CTX, kExpr *expr, kStmt **lastStmtRef)
 	return true;
 }
 
-static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **lastStmtRef)
+static kbool_t Expr_declType(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **lastStmtRef)
 {
 	USING_SUGAR;
 	kObject *scr = gma->genv->ks->scrobj;
@@ -212,7 +212,7 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, expr, scr, gma, ty, lastStmtRef[0]->uline);
 		if(mtd != NULL) {
 			kExpr *vexpr = new_Variable(NULL, ty, 0, gma);
-			expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), vexpr);
+			expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), vexpr);
 			PUSH_GCSTACK(expr);
 			return appendSetterStmt(_ctx, expr, lastStmtRef);
 		}
@@ -220,13 +220,13 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 	}
 	else if(expr->syn->kw == KW_LET) {
 		kExpr *lexpr = kExpr_at(expr, 1);
-		if(SUGAR Expr_tyCheckAt(_ctx, expr, 2, gma, ty, 0) == K_NULLEXPR) {
+		if(SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 2, gma, ty, 0) == K_NULLEXPR) {
 			// this is neccesarry to avoid 'int a = a + 1;';
 			return false;
 		}
 		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, lexpr, scr, gma, ty, lastStmtRef[0]->uline);
 		if(mtd != NULL) {
-			expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), kExpr_at(expr, 2));
+			expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), kExpr_at(expr, 2));
 			PUSH_GCSTACK(expr);
 			return appendSetterStmt(_ctx, expr, lastStmtRef);
 		}
@@ -234,7 +234,7 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 	} else if(expr->syn->kw == KW_COMMA) {
 		size_t i;
 		for(i = 1; i < kArray_size(expr->cons); i++) {
-			if(!Expr_declType(_ctx, kExpr_at(expr, i), gma, ty, lastStmtRef)) return false;
+			if(!Expr_declType(_ctx, stmt, kExpr_at(expr, i), gma, ty, lastStmtRef)) return false;
 		}
 		return true;
 	}
@@ -254,7 +254,7 @@ static KMETHOD StmtTyCheck_GlobalTypeDecl(CTX, ksfp_t *sfp _RIX)
 //		RETURNb_(false);
 //	}
 	kStmt_done(stmt);
-	RETURNb_(Expr_declType(_ctx, expr, gma, TK_type(tk), &stmt));
+	RETURNb_(Expr_declType(_ctx, stmt, expr, gma, TK_type(tk), &stmt));
 }
 
 typedef const struct _kScript kScript;

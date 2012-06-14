@@ -272,10 +272,10 @@ static ksymbol_t tosymbolUM(CTX, kToken *tk)
 static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, gma, reqty);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	kToken *tkN = expr->cons->toks[0];
 	ksymbol_t fn = tosymbolUM(_ctx, tkN);
-	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, expr, 1, gma, TY_var, 0);
+	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 1, gma, TY_var, 0);
 	if(self != K_NULLEXPR) {
 		kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toGETTER(fn));
 		if(mtd == NULL) {
@@ -283,7 +283,7 @@ static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 		}
 		if(mtd != NULL) {
 			KSETv(expr->cons->methods[0], mtd);
-			RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, expr, mtd, gma, reqty));
+			RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, stmt, expr, mtd, gma, reqty));
 		}
 		SUGAR p(_ctx, ERR_, tkN->uline, tkN->lpos, "undefined field: %s", S_text(tkN->text));
 	}
@@ -423,7 +423,7 @@ static void CT_setField(CTX, struct _kclass *ct, kclass_t *supct, int fctsize)
 	}
 }
 
-static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kflag_t flag, ktype_t ty, kline_t pline)
+static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kStmt *stmt, kExpr *expr, kflag_t flag, ktype_t ty, kline_t pline)
 {
 	USING_SUGAR;
 	if(Expr_isTerm(expr)) {
@@ -434,7 +434,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kf
 	else if(expr->syn->kw == KW_LET) {
 		kExpr *lexpr = kExpr_at(expr, 1);
 		if(Expr_isTerm(lexpr)) {
-			kExpr *vexpr = SUGAR Expr_tyCheckAt(_ctx, expr, 2, gma, ty, 0);
+			kExpr *vexpr = SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 2, gma, ty, 0);
 			if(vexpr == K_NULLEXPR) {
 				return false;
 			}
@@ -457,7 +457,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kf
 	} else if(expr->syn->kw == KW_COMMA) {
 		size_t i;
 		for(i = 1; i < kArray_size(expr->cons); i++) {
-			if(!CT_declType(_ctx, ct, gma, kExpr_at(expr, i), flag, ty, pline)) return false;
+			if(!CT_declType(_ctx, ct, gma, stmt, kExpr_at(expr, i), flag, ty, pline)) return false;
 		}
 		return true;
 	}
@@ -475,7 +475,7 @@ static kbool_t CT_addClassFields(CTX, struct _kclass *ct, kGamma *gma, kBlock *b
 			kflag_t flag = kField_Getter | kField_Setter;
 			kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
 			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
-			if(!CT_declType(_ctx, ct, gma, expr, flag, TK_type(tk), pline)) {
+			if(!CT_declType(_ctx, ct, gma, stmt, expr, flag, TK_type(tk), pline)) {
 				return false;
 			}
 		}

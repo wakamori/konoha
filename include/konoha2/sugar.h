@@ -166,11 +166,12 @@ typedef struct tenv_t {
 
 // Expr Expr.tycheck(Gamma gma, int t)
 
-#define VAR_ExprTyCheck(EXPR, GMA, TY) \
-		kExpr *EXPR = (kExpr*)sfp[1].o;\
-		kGamma *GMA = (kGamma*)sfp[2].o;\
-		ktype_t TY = (ktype_t)sfp[3].ivalue;\
-		(void)EXPR; (void)GMA; (void)TY;\
+#define VAR_ExprTyCheck(STMT, EXPR, GMA, TY) \
+		kStmt *STMT = (kStmt*)sfp[1].o;\
+		kExpr *EXPR = (kExpr*)sfp[2].o;\
+		kGamma *GMA = (kGamma*)sfp[3].o;\
+		ktype_t TY = (ktype_t)sfp[4].ivalue;\
+		(void)STMT; (void)EXPR; (void)GMA; (void)TY;\
 
 //#define SYN_ExprFlag      1
 #define SYN_isExpr(syn)   TFLAG_is(kflag_t, syn->flag, SYN_ExprFlag)
@@ -553,11 +554,11 @@ typedef struct {
 	const char* (*Stmt_text)(CTX, kStmt *stmt, keyword_t kw, const char *def);
 	kBlock* (*Stmt_block)(CTX, kStmt *stmt, keyword_t kw, kBlock *def);
 
-	kExpr*     (*Expr_tyCheckAt)(CTX, kExpr *, size_t, kGamma *, ktype_t, int);
+	kExpr*     (*Expr_tyCheckAt)(CTX, kStmt *, kExpr *, size_t, kGamma *, ktype_t, int);
 	kbool_t    (*Stmt_tyCheckExpr)(CTX, kStmt*, ksymbol_t, kGamma *, ktype_t, int);
 	kbool_t    (*Block_tyCheckAll)(CTX, kBlock *, kGamma *);
-	kExpr *    (*Expr_tyCheckCallParams)(CTX, kExpr *, kMethod *, kGamma *, ktype_t);
-	kExpr *    (*new_TypedMethodCall)(CTX, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
+	kExpr *    (*Expr_tyCheckCallParams)(CTX, kStmt *, kExpr *, kMethod *, kGamma *, ktype_t);
+	kExpr *    (*new_TypedMethodCall)(CTX, kStmt *, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
 	void       (*Stmt_toExprCall)(CTX, kStmt *stmt, kMethod *mtd, int n, ...);
 
 	size_t     (*p)(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...);
@@ -641,8 +642,8 @@ typedef struct {
 #define kExpr_setNConstValue(EXPR, T, D)  Expr_setNConstValue(_ctx, EXPR, T, D)
 #define new_Variable(B, T, I, G)          Expr_setVariable(_ctx, NULL, TEXPR_##B, T, I, G)
 #define kExpr_setVariable(E, B, T, I, G)  Expr_setVariable(_ctx, E, TEXPR_##B, T, I, G)
-#define kExpr_tyCheckAt(E, N, GMA, T, P)     Expr_tyCheckAt(_ctx, E, N, GMA, T, P)
-#define kStmt_tyCheck(E, NI, GMA, T, P)      Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
+#define kExpr_tyCheckAt(STMT, E, N, GMA, T, P)     Expr_tyCheckAt(_ctx, STMT, E, N, GMA, T, P)
+//#define kStmt_tyCheck(E, NI, GMA, T, P)      Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
 
 #else/*SUGAR_EXPORTS*/
 #define USING_SUGAR                          const kmodsugar_t *_e = (const kmodsugar_t *)kmodsugar
@@ -671,8 +672,8 @@ typedef struct {
 #define kExpr_setNConstValue(EXPR, T, D)     _e->Expr_setNConstValue(_ctx, EXPR, T, D)
 #define new_Variable(B, T, I, G)             _e->Expr_setVariable(_ctx, NULL, TEXPR_##B, T, I, G)
 #define kExpr_setVariable(E, B, T, I, G)     _e->Expr_setVariable(_ctx, E, TEXPR_##B, T, I, G)
-#define kExpr_tyCheckAt(E, N, GMA, T, P)     _e->Expr_tyCheckAt(_ctx, E, N, GMA, T, P)
-#define kStmt_tyCheck(E, NI, GMA, T, P)      _e->Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
+#define kExpr_tyCheckAt(STMT, E, N, GMA, T, P)     _e->Expr_tyCheckAt(_ctx, STMT, E, N, GMA, T, P)
+//#define kStmt_tyCheck(E, NI, GMA, T, P)      _e->Stmt_tyCheck(_ctx, STMT, NI, GMA, T, P)
 
 #endif/*SUGAR_EXPORTS*/
 

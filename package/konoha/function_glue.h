@@ -132,7 +132,7 @@ static kbool_t function_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 static KMETHOD ExprTyCheck_Float(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, gma, reqty);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	kToken *tk = expr->tk;
 	sfp[4].fvalue = strtod(S_text(tk->text), NULL);
 	RETURN_(kExpr_setNConstValue(expr, TY_Float, sfp[4].ndata));

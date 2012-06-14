@@ -31,9 +31,9 @@
 static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, gma, reqty);
-	kExpr *lexpr = kExpr_tyCheckAt(expr, 1, gma, TY_var, TPOL_ALLOWVOID);
-	kExpr *rexpr = kExpr_tyCheckAt(expr, 2, gma, lexpr->ty, 0);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
+	kExpr *lexpr = kExpr_tyCheckAt(stmt, expr, 1, gma, TY_var, TPOL_ALLOWVOID);
+	kExpr *rexpr = kExpr_tyCheckAt(stmt, expr, 2, gma, lexpr->ty, 0);
 	if(rexpr != K_NULLEXPR && lexpr != K_NULLEXPR) {
 		if(rexpr != K_NULLEXPR) {
 			if(lexpr->build == TEXPR_LOCAL || lexpr->build == TEXPR_LOCAL_ || lexpr->build == TEXPR_FIELD) {
@@ -50,7 +50,7 @@ static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 					if(mtd != NULL) {
 						KSETv(lexpr->cons->methods[0], mtd);
 						kArray_add(lexpr->cons, rexpr);
-						RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, lexpr, mtd, gma, reqty));
+						RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, stmt, lexpr, mtd, gma, reqty));
 					}
 				}
 			}

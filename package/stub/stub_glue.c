@@ -28,7 +28,7 @@
 // Expr Expr.tyCheckStub(Gamma gma, int reqtyid);
 //static KMETHOD ExprTyCheck_stub(CTX, ksfp_t *sfp _RIX)
 //{
-//	VAR_ExprTyCheck(expr, gma, reqty);
+//	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 //	DBG_P("stub: size=%d", kArray_size(expr->consNUL));
 //	RETURN_(K_NULLEXPR);
 //}
