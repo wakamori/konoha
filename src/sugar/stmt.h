@@ -168,7 +168,7 @@ static kBlock *Stmt_getBlock_(CTX, kStmt *stmt, kbytes_t name)
 //{
 //	ksymbol_t fn = FN_;
 //	if(TT_(tk) == TT_NAME || TT_(tk) == TT_UNAME) {
-//		fn = knh_getfnq(_ctx, TK_tobytes(tk), FN_NEWID);
+//		fn = knh_getfnq(_ctx, TK_tobytes(tk), SYM_NEWID);
 //	}
 //	return fn;
 //}
@@ -177,11 +177,11 @@ static kBlock *Stmt_getBlock_(CTX, kStmt *stmt, kbytes_t name)
 //{
 //	if(TT_(tk) == TT_FUNCNAME || TT_(tk) == TT_NAME || TT_(tk) == TT_UNAME || TT_(tk) == TT_UFUNCNAME) {
 //		TT_(tk) = TT_MN;
-//		(tk)->mn = knh_getmn(_ctx, TK_tobytes(tk), MN_NEWID);
+//		(tk)->mn = knh_getmn(_ctx, TK_tobytes(tk), SYM_NEWID);
 //	}
 //	if(TT_(tk) == TT_NEW) {
 //		TT_(tk) = TT_MN;
-//		(tk)->mn = knh_getmn(_ctx, TK_tobytes(tk), MN_NEWID);
+//		(tk)->mn = knh_getmn(_ctx, TK_tobytes(tk), SYM_NEWID);
 //	}
 //	DBG_ASSERT(TT_(tk) == TT_MN);
 //	if(Term_isISBOOL(tk)) {

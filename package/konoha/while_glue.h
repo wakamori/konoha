@@ -42,7 +42,7 @@ static kbool_t while_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 static KMETHOD StmtTyCheck_while(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("while statement .. ");
 	int ret = false;
 	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
@@ -56,7 +56,7 @@ static KMETHOD StmtTyCheck_while(CTX, ksfp_t *sfp _RIX)
 static KMETHOD StmtTyCheck_for(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("for statement .. ");
 	int ret = false;
 	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
@@ -75,33 +75,33 @@ static inline kStmt* kStmt_getParentNULL(kStmt *stmt)
 static KMETHOD StmtTyCheck_break(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kStmt *p = stmt;
 	while((p = kStmt_getParentNULL(p)) != NULL) {
 		if(FLAG_is(p->syn->flag, SYNFLAG_StmtJumpSkip)) {
-			kObject_setObject(stmt, syn->kw, p);
+			kObject_setObject(stmt, stmt->syn->kw, p);
 			kStmt_typed(stmt, JUMP);
 			RETURNb_(true);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "break statement not within a loop");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "break statement not within a loop");
 	RETURNb_(false);
 }
 
 static KMETHOD StmtTyCheck_continue(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("continue statement .. ");
 	kStmt *p = stmt;
 	while((p = kStmt_getParentNULL(p)) != NULL) {
 		if(FLAG_is(p->syn->flag, SYNFLAG_StmtJumpAhead)) {
-			kObject_setObject(stmt, syn->kw, p);
+			kObject_setObject(stmt, stmt->syn->kw, p);
 			kStmt_typed(stmt, JUMP);
 			RETURNb_(true);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "continue statement not within a loop");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "continue statement not within a loop");
 	RETURNb_((false));
 }
 

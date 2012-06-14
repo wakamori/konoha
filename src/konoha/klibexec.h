@@ -312,7 +312,7 @@ static ksymbol_t Kmap_getcode(CTX, kmap_t *kmp, kArray *list, const char *name, 
 		}
 		e = e->next;
 	}
-	if(def == FN_NEWID) {
+	if(def == SYM_NEWID) {
 		kString *skey = new_kString(name, len, spol);
 		uintptr_t sym = kArray_size(list);
 		kArray_add(list, skey);
@@ -462,7 +462,7 @@ void KONOHA_reftraceObject(CTX, kObject *o)
 		kvs_t *d = o->h.kvproto->kvs;
 		BEGIN_REFTRACE(pmax);
 		for(i = 0; i < pmax; i++) {
-			if(FN_isBOXED(d->key)) {
+			if(SYMKEY_isBOXED(d->key)) {
 				KREFTRACEv(d->oval);
 			}
 			d++;
@@ -505,14 +505,14 @@ static void KObject_protoEach(CTX, kObject *o, void *thunk, void (*f)(CTX, void 
 
 static kObject* KObject_getObjectNULL(CTX, kObject *o, ksymbol_t key, kObject *defval)
 {
-	kvs_t *d = kvproto_get(o->h.kvproto, key | FN_BOXED);
+	kvs_t *d = kvproto_get(o->h.kvproto, key | SYMKEY_BOXED);
 	return (d != NULL) ? d->oval : defval;
 }
 
 static void KObject_setObject(CTX, kObject *o, ksymbol_t key, ktype_t ty, kObject *val)
 {
 	W(kObject, o);
-	kvproto_set(_ctx, &Wo->h.kvproto, key | FN_BOXED, ty, (uintptr_t)val);
+	kvproto_set(_ctx, &Wo->h.kvproto, key | SYMKEY_BOXED, ty, (uintptr_t)val);
 	WASSERT(o);
 }
 
@@ -531,7 +531,7 @@ static void KObject_setUnboxedValue(CTX, kObject *o, ksymbol_t key, ktype_t ty, 
 
 static void KObject_removeKey(CTX, kObject *o, ksymbol_t key)
 {
-	kvs_t *d = kvproto_get(o->h.kvproto, key | FN_BOXED);
+	kvs_t *d = kvproto_get(o->h.kvproto, key | SYMKEY_BOXED);
 	if(d != NULL) {
 		d->key = 0; d->ty = 0; d->uval = 0;
 	}
