@@ -818,6 +818,7 @@ struct _kArray {
 		const struct _kString        **strings;
 		const struct _kParam         **params;
 		const struct _kMethod        **methods;
+		const struct _kFunc          **funcs;
 		const struct _kToken         **toks;
 		struct _kToken        **Wtoks;
 		const struct _kExpr          **exprs;
