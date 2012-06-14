@@ -331,11 +331,21 @@ static int PatternMatchFunc(CTX, kFunc *fo, kStmt *stmt, ksymbol_t name, kArray 
 static int PatternMatch(CTX, ksyntax_t *syn, kStmt *stmt, ksymbol_t name, kArray *tls, int s, int e)
 {
 	kFunc *fo = syn->PatternMatchNULL;
+	int next;
 	if(IS_Array(fo)) {
-		;
+		int i;
+		kArray *a = (kArray*)fo;
+		for(i = kArray_size(a) - 1; i > 0; i++) {
+			next = PatternMatchFunc(_ctx, fo, stmt, name, tls, s, e);
+			if(kStmt_isERR(stmt)) return -1;
+			if(next > s) return next;
+		}
+		fo = a->funcs[0];
 	}
 	DBG_ASSERT(IS_Func(fo));
-	return PatternMatchFunc(_ctx, fo, stmt, name, tls, s, e);
+	next = PatternMatchFunc(_ctx, fo, stmt, name, tls, s, e);
+	if(kStmt_isERR(stmt)) return -1;
+	return (next > s) ? next : -1;
 }
 
 static int lookAheadKeyword(kArray *tls, int s, int e, kToken *rule)
@@ -534,15 +544,23 @@ static kExpr *ParseExprFunc(CTX, ksyntax_t *syn, kFunc *fo, kStmt *stmt, kArray 
 static kExpr *ParseExpr(CTX, ksyntax_t *syn, kStmt *stmt, kArray *tls, int s, int c, int e)
 {
 	kFunc *fo = (syn == NULL || syn->ParseExpr == NULL) ? kmodsugar->UndefinedParseExpr : syn->ParseExpr;
+	kExpr *texpr;
 	if(IS_Array(fo)) {
-		;
+		int i;
+		kArray *a = (kArray*)fo;
+		for(i = kArray_size(a) - 1; i > 0; i++) {
+			texpr = ParseExprFunc(_ctx, syn, fo, stmt, tls, s, c, e);
+			if(kStmt_isERR(stmt)) return K_NULLEXPR;
+			if(texpr != K_NULLEXPR) return texpr;
+		}
+		fo = a->funcs[0];
 	}
 	DBG_ASSERT(IS_Func(fo));
-	kExpr *expr = ParseExprFunc(_ctx, syn, fo, stmt, tls, s, c, e);
-	if(expr == K_NULLEXPR && !kStmt_isERR(stmt)) {
+	texpr = ParseExprFunc(_ctx, syn, fo, stmt, tls, s, c, e);
+	if(texpr == K_NULLEXPR && !kStmt_isERR(stmt)) {
 		kStmt_p(stmt, ERR_, "syntax error: operator %s", kToken_s(tls->toks[c]));
 	}
-	return expr;
+	return texpr;
 }
 
 /* ------------------------------------------------------------------------ */
