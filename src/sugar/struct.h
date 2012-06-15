@@ -42,7 +42,7 @@ static void syntax_reftrace(CTX, kmape_t *p)
 	ksyntax_t *syn = (ksyntax_t*)p->uvalue;
 	BEGIN_REFTRACE(6);
 	KREFTRACEn(syn->syntaxRuleNULL);
-	KREFTRACEn(syn->PatternMatchNULL);
+	KREFTRACEv(syn->PatternMatch);
 	KREFTRACEv(syn->ParseExpr);
 	KREFTRACEv(syn->TopStmtTyCheck);
 	KREFTRACEv(syn->StmtTyCheck);
@@ -86,12 +86,17 @@ static void KonohaSpace_free(CTX, kObject *o)
 	KARRAY_FREE(&ks->cl);
 }
 
-static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int isnew)
+// syntax
+static void checkFuncArray(CTX, kFunc **synp);
+static ksymbol_t keyword(CTX, const char *name, size_t len, ksymbol_t def);
+static void parseSyntaxRule(CTX, const char *rule, kline_t pline, kArray *a);
+
+static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, keyword_t kw, int isnew)
 {
 	kKonohaSpace *ks = ks0;
 	uintptr_t hcode = kw;
 	ksyntax_t *parent = NULL;
-	assert(ks0 != NULL);/* scan-build: remove warning */
+	assert(ks0 != NULL);  /* scan-build: remove warning */
 	while(ks != NULL) {
 		if(ks->syntaxMapNN != NULL) {
 			kmape_t *e = kmap_get(ks->syntaxMapNN, hcode);
@@ -108,36 +113,75 @@ static ksyntax_t* KonohaSpace_syntax(CTX, kKonohaSpace *ks0, keyword_t kw, int i
 	}
 	L_NEW:;
 	if(isnew == 1) {
-		//DBG_P("creating new syntax %s old=%p", KW_t(kw), parent);
 		if(ks0->syntaxMapNN == NULL) {
 			((struct _kKonohaSpace*)ks0)->syntaxMapNN = kmap_init(0);
 		}
 		kmape_t *e = kmap_newentry(ks0->syntaxMapNN, hcode);
-//		kmap_add(ks0->syntaxMapNN, e);
 		struct _ksyntax *syn = (struct _ksyntax*)KCALLOC(sizeof(ksyntax_t), 1);
 		e->uvalue = (uintptr_t)syn;
 
 		if(parent != NULL) {  // TODO: RCGC
 			memcpy(syn, parent, sizeof(ksyntax_t));
+			checkFuncArray(_ctx, &(syn->PatternMatch));
+			checkFuncArray(_ctx, &(syn->ParseExpr));
+			checkFuncArray(_ctx, &(syn->TopStmtTyCheck));
+			checkFuncArray(_ctx, &(syn->StmtTyCheck));
+			checkFuncArray(_ctx, &(syn->ExprTyCheck));
 		}
 		else {
 			syn->kw = kw;
 			syn->ty  = TY_unknown;
 			syn->op1 = SYM_NONAME;
 			syn->op2 = SYM_NONAME;
+			KINITv(syn->PatternMatch, kmodsugar->UndefinedParseExpr);  // never called and avoid nullcheck
 			KINITv(syn->ParseExpr, kmodsugar->UndefinedParseExpr);
 			KINITv(syn->TopStmtTyCheck, kmodsugar->UndefinedStmtTyCheck);
 			KINITv(syn->StmtTyCheck, kmodsugar->UndefinedStmtTyCheck);
 			KINITv(syn->ExprTyCheck, kmodsugar->UndefinedExprTyCheck);
 		}
-		//syn->parent = parent;
 		return syn;
 	}
 	return NULL;
 }
 
-static ksymbol_t keyword(CTX, const char *name, size_t len, ksymbol_t def);
-static void parseSyntaxRule(CTX, const char *rule, kline_t pline, kArray *a);
+static void checkFuncArray(CTX, kFunc **synp)
+{
+	if(synp[0] != NULL && IS_Array(synp[0])) {
+		size_t i;
+		kArray *newa = new_(Array, 8), *a = (kArray*)synp[0];
+		for(i = 0; i < kArray_size(a); i++) {
+			kArray_add(newa, a->list[i]);
+		}
+		KSETv(synp[0], (kFunc*)newa);
+	}
+}
+
+static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo)
+{
+	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
+	kFunc **synp = &(syn->PatternMatch);
+	DBG_ASSERT(idx <= SYNIDX_ExprTyCheck);
+	KSETv(synp[idx], fo);
+}
+
+static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo)
+{
+	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
+	kFunc **synp = &(syn->PatternMatch);
+	DBG_ASSERT(idx <= SYNIDX_ExprTyCheck);
+	if(synp[idx] == kmodsugar->UndefinedParseExpr || synp[idx] == kmodsugar->UndefinedStmtTyCheck || synp[idx] == kmodsugar->UndefinedExprTyCheck) {
+		KSETv(synp[idx], fo);
+	}
+	kArray *a = (kArray*)synp[idx];
+	if(!IS_Array(a)) {
+		PUSH_GCSTACK(fo);
+		a = new_(Array, 0);
+		kArray_add(a, synp[idx]);
+		KSETv(synp[idx], (kFunc*)a);
+	}
+	kArray_add(a, fo);
+}
+
 
 static void setSugarFunc(CTX, knh_Fmethod f, kFunc **synp, knh_Fmethod *p, kFunc **mp)
 {
@@ -146,7 +190,7 @@ static void setSugarFunc(CTX, knh_Fmethod f, kFunc **synp, knh_Fmethod *p, kFunc
 			p[0] = f;
 			mp[0] = new_SugarFunc(f);
 		}
-		KINITv(synp[0], mp[0]);  // FIXME: in case of
+		KINITv(synp[0], mp[0]);
 	}
 }
 
@@ -156,7 +200,7 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 	kFunc *mPatternMatch = NULL, *mParseExpr = NULL, *mStmtTyCheck = NULL, *mExprTyCheck = NULL;
 	while(syndef->name != NULL) {
 		keyword_t kw = keyword(_ctx, syndef->name, strlen(syndef->name), SYM_NEWID);
-		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syntax(_ctx, ks, kw, 1/*isnew*/);
+		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syn(_ctx, ks, kw, 1/*isnew*/);
 		//syn->token = syndef->name;
 		syn->flag  |= ((kflag_t)syndef->flag);
 		if(syndef->type != 0) {
@@ -175,7 +219,7 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 			KINITv(syn->syntaxRuleNULL, new_(TokenArray, 0));
 			parseSyntaxRule(_ctx, syndef->rule, 0, syn->syntaxRuleNULL);
 		}
-		setSugarFunc(_ctx, syndef->PatternMatch, &(syn->PatternMatchNULL), &pPatternMatch, &mPatternMatch);
+		setSugarFunc(_ctx, syndef->PatternMatch, &(syn->PatternMatch), &pPatternMatch, &mPatternMatch);
 		setSugarFunc(_ctx, syndef->ParseExpr, &(syn->ParseExpr), &pParseExpr, &mParseExpr);
 		setSugarFunc(_ctx, syndef->TopStmtTyCheck, &(syn->TopStmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
 		setSugarFunc(_ctx, syndef->StmtTyCheck, &(syn->StmtTyCheck), &pStmtTyCheck, &mStmtTyCheck);
@@ -206,9 +250,7 @@ static const char* T_statement_(CTX, ksymbol_t kw)
 	return (const char*)buf;
 }
 
-
 // USymbolTable
-
 static int comprKeyVal(const void *a, const void *b)
 {
 	int akey = SYMKEY_unbox(((kvs_t*)a)->key);
