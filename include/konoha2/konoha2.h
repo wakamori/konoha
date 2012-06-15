@@ -292,9 +292,9 @@ typedef kushort_t       kparamid_t;
 #define MN_isSETTER(mn)   (SYM_HEAD(mn) == MN_SETTER)
 #define MN_toSETTER(mn)   ((SYM_UNMASK(mn)) | MN_SETTER)
 
-#define MN_to(cid)        (cid | MN_TOCID)
+#define MN_to(cid)        ((CT_(cid)->nameid) | MN_TOCID)
 #define MN_isTOCID(mn)    ((SYM_UNMASK(mn)) == MN_TOCID)
-#define MN_as(cid)        (cid | MN_ASCID)
+#define MN_as(cid)        ((CT_(cid)->nameid) | MN_ASCID)
 #define MN_isASCID(mn)    ((SYM_UNMASK(mn)) == MN_ASCID)
 
 /* ------------------------------------------------------------------------ */
