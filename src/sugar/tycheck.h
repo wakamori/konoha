@@ -88,11 +88,25 @@ static kExpr *ExprTyCheckFunc(CTX, kFunc *fo, kStmt *stmt, kExpr *expr, kGamma *
 static kExpr *ExprTyCheck(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, int reqty)
 {
 	kFunc *fo = expr->syn->ExprTyCheck;
+	kExpr *texpr;
 	if(IS_Array(fo)) {
-		;
+		int i;
+		kArray *a = (kArray*)fo;
+		for(i = kArray_size(a) - 1; i > 0; i++) {
+			texpr = ExprTyCheckFunc(_ctx, a->funcs[i], stmt, expr, gma, reqty);
+			if(kStmt_isERR(stmt)) return K_NULLEXPR;
+			if(texpr->ty != TY_var) return texpr;
+		}
+		fo = a->funcs[0];
 	}
 	DBG_ASSERT(IS_Func(fo));
-	return ExprTyCheckFunc(_ctx, fo, stmt, expr, gma, reqty);
+	texpr = ExprTyCheckFunc(_ctx, fo, stmt, expr, gma, reqty);
+	if(kStmt_isERR(stmt)) return K_NULLEXPR;
+//	FIXME: CHECK ALL VAR_ExprTyCheck
+//	if(texpr->ty == TY_var && texpr != K_NULLEXPR) {
+//		texpr = kExpr_p(stmt, expr, ERR_, "typing error");
+//	}
+	return texpr;
 }
 
 static void Expr_putConstValue(CTX, kExpr *expr, ksfp_t *sfp)
@@ -157,6 +171,7 @@ static kExpr *new_BoxingExpr(CTX, kExpr *expr, ktype_t reqty)
 static kExpr *Expr_tyCheck(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t reqty, int pol)
 {
 	kExpr *texpr = expr;
+	if(kStmt_isERR(stmt)) texpr = K_NULLEXPR;
 	if(expr->ty == TY_var && expr != K_NULLEXPR) {
 		if(!IS_Expr(expr)) {
 			expr = new_ConstValue(O_cid(expr), expr);
@@ -164,6 +179,7 @@ static kExpr *Expr_tyCheck(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t r
 		}
 		texpr = ExprTyCheck(_ctx, stmt, expr, gma, reqty);
 	}
+	if(kStmt_isERR(stmt)) texpr = K_NULLEXPR;
 	if(texpr != K_NULLEXPR) {
 		//DBG_P("type=%s, reqty=%s", TY_t(expr->ty), TY_t(reqty));
 		if(texpr->ty == TY_void) {

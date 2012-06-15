@@ -322,7 +322,7 @@ static void shell(CTX)
 static void show_version(CTX)
 {
 	int i;
-	fprintf(stdout, "Konoha 2.0-alpha (Miyajima) (%d, %s)\n", K_REVISION, __DATE__);
+	fprintf(stdout, "Konoha 2.0-beta (%s) (%x, %s)\n", K_CODENAME, K_REVISION, __DATE__);
 	fprintf(stdout, "[gcc %s]\n", __VERSION__);
 	fprintf(stdout, "options:");
 	for(i = 0; i < MOD_MAX; i++) {
