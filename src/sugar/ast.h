@@ -505,9 +505,7 @@ static void Block_addStmtLine(CTX, kBlock *bk, kArray *tls, int s, int e, kToken
 	}
 	else {
 		s = Stmt_addAnnotation(_ctx, stmt, tls, s, e);
-		if(!Stmt_parseSyntaxRule(_ctx, stmt, tls, s, e)) {
-			DBG_ASSERT(!kStmt_isERR(stmt));
-		}
+		Stmt_parseSyntaxRule(_ctx, stmt, tls, s, e);
 	}
 	DBG_ASSERT(stmt->syn != NULL);
 }
