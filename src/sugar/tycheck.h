@@ -713,7 +713,6 @@ static KMETHOD ExprTyCheck_FuncStyleCall(CTX, ksfp_t *sfp _RIX)
 	DBG_ASSERT(expr->cons->list[1] == K_NULL);
 	if(Expr_isSymbol(kExpr_at(expr, 0))) {
 		kMethod *mtd = Expr_lookUpFuncOrMethod(_ctx, expr, gma, reqty);
-		DBG_P("mtd=%p", mtd);
 		if(mtd != NULL) {
 			RETURN_(Expr_tyCheckCallParams(_ctx, stmt, expr, mtd, gma, reqty));
 		}
@@ -773,8 +772,6 @@ static KMETHOD ExprTyCheck_OR(CTX, ksfp_t *sfp _RIX)
 		}
 	}
 }
-
-
 
 static KMETHOD StmtTyCheck_Expr(CTX, ksfp_t *sfp _RIX)  // $expr
 {

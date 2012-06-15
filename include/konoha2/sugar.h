@@ -190,26 +190,6 @@ typedef struct KDEFINE_SYNTAX {
 
 #define new_SugarFunc(F)     new_(Func, new_kMethod(0, 0, 0, F))
 
-/**
-#define SYN_setTopStmtTyCheck(KS, KW, F) do {\
-		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
-		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->TopStmtTyCheck, new_SugarFunc(StmtTyCheck_##F));\
-	}while(0)\
-
-#define SYN_setStmtTyCheck(KS, KW, F) do {\
-		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
-		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->StmtTyCheck, new_SugarFunc(StmtTyCheck_##F));\
-	}while(0)\
-
-#define SYN_setExprTyCheck(KS, KW, F) do {\
-		struct _ksyntax *syn_ = NEWSYN_(KS, KW);\
-		DBG_ASSERT(syn_ != NULL);\
-		KSETv(syn_->ExprTyCheck, new_SugarFunc(ExprTyCheck_##F));\
-	}while(0)\
-**/
-
 typedef const struct _kKonohaSpace kKonohaSpace;
 struct _kKonohaSpace {
 	kObjectHeader h;
@@ -325,7 +305,6 @@ struct _kExpr {
 		uintptr_t  ndata;
 		intptr_t   index;
 		uintptr_t  cid;
-//		uintptr_t	   mn;
 	};
 };
 
@@ -377,9 +356,7 @@ typedef struct {
 
 typedef struct gmabuf_t {
 	kflag_t  flag;    kflag_t  cflag;
-
 	kKonohaSpace     *ks;
-
 	kcid_t            this_cid;
 	kcid_t            static_cid;
 	kMethod*          mtd;
@@ -413,8 +390,8 @@ struct _kGamma {
 #define kStmtArray              kArray
 
 #define IS_Token(O)  ((O)->h.ct == CT_Token)
-#define IS_Expr(O)  ((O)->h.ct == CT_Expr)
-#define IS_Stmt(O)  ((O)->h.ct == CT_Stmt)
+#define IS_Expr(O)   ((O)->h.ct == CT_Expr)
+#define IS_Stmt(O)   ((O)->h.ct == CT_Stmt)
 #define IS_Block(O)  ((O)->h.ct == CT_Block)
 #define IS_Gamma(O)  ((O)->h.ct == CT_Gamma)
 
@@ -680,7 +657,9 @@ static inline void Stmt_setsyn(CTX, kStmt *stmt, ksyntax_t *syn)
 #define kStmt_typed(STMT, T)  Stmt_typed(STMT, TSTMT_##T)
 static inline void Stmt_typed(kStmt *stmt, int build)
 {
-	((struct _kStmt*)stmt)->build = build;
+	if(stmt->build != TSTMT_ERR) {
+		((struct _kStmt*)stmt)->build = build;
+	}
 }
 
 static inline void kExpr_setsyn(kExpr *expr, ksyntax_t *syn)
