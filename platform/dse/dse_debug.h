@@ -23,28 +23,20 @@
  ***************************************************************************/
 
 /* ************************************************************************ */
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
 
-#include "dse.h"
+#ifndef DSE_DEBUG_H_
+#define DSE_DEBUG_H_
 
-#define HTTPD_ADDR "0.0.0.0"
-#define HTTPD_PORT 8080
-
-#ifdef __cplusplus
-extern "C" {
+#include <assert.h>
+#define DSE_DEBUG 1
+#if defined(DSE_DEBUG)
+#define D_(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#define A_(stmt) assert(stmt);
+#else
+#define D_(fmt, ...)
+#define A_(stmt)
 #endif
 
-int main (int argc, char **av)
-{
-	struct dDserv *dserv = NULL;
-	dserv = dserv_new();
-	dserv_start(dserv, HTTPD_ADDR, HTTPD_PORT);
-	dserv_close(dserv);
-	return 0;
-}
 
-#ifdef __cplusplus
-}
-#endif
+
+#endif /* DSE_DEBUG_H_ */

@@ -130,6 +130,36 @@ static KMETHOD Json_getInt(CTX, ksfp_t *sfp _RIX)
 	RETURNi_((kint_t)val);
 }
 
+//## Array Json.getArray(String key);
+//static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
+//{
+//	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;
+//	if (!json_is_object(obj)) {
+//		RETURN_(K_NULL);
+//	}
+//	const char *key = S_text(sfp[1].s);
+//	json_t* ja = json_object_get(obj, key);
+//	if (!json_is_array(ja)) {
+//		RETURN_(K_NULL);
+//	}
+//	ja = json_incref(ja);
+//	int i;
+//	struct _kArray *a = (struct _kArray*)new_(Array, 0);
+//	size_t size = json_array_size(ja);
+//	a->bytemax = size * sizeof(void*);
+//	kArray_setsize((kArray*)a, size);
+//	a->list = (kObject**)KCALLOC(a->bytemax, 1);
+//	for (i = 0; i < size; i++) {
+//		struct _kJson* json = (struct _kJson*)new_kObject(O_ct(sfp[0].o), NULL);
+//		json->obj = json_array_get(ja, i);
+//		json_incref(json->obj);
+//		KSETv(a->list[i], json);
+//	}
+//	//fprintf(stderr, "key = '%s'\n", key);
+//	//fprintf(stderr, "ret='%s'\n", str);
+//	RETURN_(a);
+//}
+
 //## String Json.getString(String key);
 static KMETHOD Json_getString(CTX, ksfp_t *sfp _RIX)
 {
@@ -191,59 +221,6 @@ static KMETHOD Json_getFloat(CTX, ksfp_t *sfp _RIX)
 	//fprintf(stderr, "ret='%lf'\n", val);
 	RETURNf_(val);
 }
-
-//## String Json.getArray(String key);
-//static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
-//{
-//	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;
-//	size_t i;
-//	if (!json_is_object(obj)) {
-//		RETURN_(K_NULL);
-//	}
-//	const char *key = S_text(sfp[1].s);
-//	json_t* a = json_object_get(obj, key);
-//	if (!json_is_array(a)) {
-//		RETURN_(K_NULL);
-//	}
-//	json_t* data;
-//	kArray* ret = new_(Array, 0);
-//	for (i; i < json_array_size(a); i++) {
-//		data = json_array_get(a, i);
-//		if (!json_is_object(data)) {
-//			RETURN_(K_NULL);
-//		}
-//		switch (json_typeof(data)) {
-//			case JSON_OBJECT:
-//				kArray_add(a, );
-//				break;
-//			case JSON_ARRAY:
-//				kArray_add(a, );
-//				break;
-//			case JSON_STRING:
-//				kArray_add(a, );
-//				break;
-//			case JSON_INTEGER:
-//				kArray_add(a, );
-//				break;
-//			case JSON_REAL
-//				kArray_add(a, );
-//				break;
-//			case JSON_TRUE:
-//				kArray_add(a, );
-//				break;
-//			case JSON_FALSE:
-//				kArray_add(a, );
-//				break;
-//			case JSON_NULL:
-//				kArray_add(a, );
-//				break;
-//			default:
-//				kArray_add(a, );
-//				break;
-//		}
-//	}
-//}
-
 
 //## void Json.set(String key, Json value);
 static KMETHOD Json_set(CTX, ksfp_t *sfp _RIX)
@@ -359,6 +336,17 @@ static KMETHOD Json_setBool(CTX, ksfp_t *sfp _RIX)
 	RETURNvoid_();
 }
 
+//## String Json.dump();
+static KMETHOD Json_dump(CTX, ksfp_t *sfp _RIX)
+{
+	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;
+	if (!json_is_object(obj)) {
+		DBG_P("ERROR: Object is not Json object.");
+		RETURNvoid_();
+	}
+	char* data = json_dumps(obj, JSON_ENSURE_ASCII);
+	RETURN_(new_kString(data, strlen(data), 0));
+}
 /* ------------------------------------------------------------------------ */
 
 static	kbool_t json_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
@@ -382,11 +370,13 @@ static	kbool_t json_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		_Public|_Const|_Im, _F(Json_getBool),   TY_Boolean, TY_Json, MN_("getBool"),   1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_getFloat),  TY_Float,   TY_Json, MN_("getFloat"),  1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_getString), TY_String,  TY_Json, MN_("getString"), 1, TY_String, FN_("key"),
+		//_Public|_Const|_Im, _F(Json_getArray),  TY_Array,   TY_Json, MN_("getArray"), 1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_set),       TY_void,    TY_Json, MN_("set"),       2, TY_String, FN_("key"), TY_Json, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setInt),    TY_void,    TY_Json, MN_("setInt"),    2, TY_String, FN_("key"), TY_Int, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setBool),   TY_void,    TY_Json, MN_("setBool"),   2, TY_String, FN_("key"), TY_Boolean, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setFloat),  TY_void,    TY_Json, MN_("setFloat"),  2, TY_String, FN_("key"), TY_Float, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setString), TY_void,    TY_Json, MN_("setString"), 2, TY_String, FN_("key"), TY_String, FN_("value"),
+		_Public|_Const|_Im, _F(Json_dump),      TY_String,  TY_Json, MN_("dump"),      0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);

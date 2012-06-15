@@ -30,18 +30,12 @@ extern "C" {
 
 /* ------------------------------------------------------------------------ */
 
-static void Token_toERR(CTX, struct _kToken *tk, size_t errref)
-{
-	tk->tt = TK_ERR;
-	KSETv(tk->text, ctxsugar->errors->strings[errref]);
-}
-
 static inline int lpos(tenv_t *tenv, const char *s)
 {
 	return (tenv->bol == NULL) ? -1 : s - tenv->bol;
 }
 
-static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kMethod *thunk)
+static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *thunk)
 {
 	int ch, c = 0;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -56,14 +50,14 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kMethod *
 	return pos-1;
 }
 
-static int parseNL(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kMethod *thunk)
+static int parseNL(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *thunk)
 {
 	tenv->uline += 1;
 	tenv->bol = tenv->source + pos + 1;
 	return parseINDENT(_ctx, tk, tenv, pos+1, thunk);
 }
 
-static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start, dot = 0;
 	const char *ts = tenv->source;
@@ -89,7 +83,7 @@ static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMetho
 	return pos - 1;  // next
 }
 
-static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start;
 	const char *ts = tenv->source;
@@ -104,7 +98,7 @@ static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMe
 	return pos - 1;  // next
 }
 
-static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start;
 	const char *ts = tenv->source;
@@ -119,7 +113,7 @@ static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kM
 	return pos - 1;  // next
 }
 
-static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start;
 	const char *ts = tenv->source;
@@ -133,7 +127,7 @@ static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kM
 	return pos - 1;  // next
 }
 
-static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	if(IS_NOTNULL(tk)) {
 		const char *s = tenv->source + tok_start;
@@ -144,7 +138,7 @@ static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMetho
 	return tok_start+1;
 }
 
-static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -169,7 +163,7 @@ static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod
 	return pos-1;
 }
 
-static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, pos = tok_start;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -178,7 +172,7 @@ static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMeth
 	return pos-1;/*EOF*/
 }
 
-static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, prev = 0, level = 1, pos = tok_start + 2;
 	/*@#nnnn is line number */
@@ -199,13 +193,12 @@ static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kM
 		prev = ch;
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with */");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with */");
 	}
 	return pos-1;/*EOF*/
 }
 
-static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	const char *ts = tenv->source + tok_start;
 	if(ts[1] == '/') {
@@ -217,7 +210,7 @@ static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMet
 	return parseOP(_ctx, tk, tenv, tok_start, thunk);
 }
 
-static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	kwb_t wb;
 	kwb_init(&(_ctx->stack->cwb), &wb);
@@ -246,29 +239,27 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMe
 		kwb_putc(&wb, ch);
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with \"");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with \"");
 	}
 	kwb_free(&wb);
 	return pos-1;
 }
 
-static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	return tok_start+1;
 }
 
-static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "undefined token character: %c", tenv->source[tok_start]);
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "undefined token character: %c", tenv->source[tok_start]);
 	}
 	while(tenv->source[++tok_start] != 0);
 	return tok_start;
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk);
+static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk);
 
 static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _NULL      0
@@ -395,7 +386,7 @@ static int kchar(const char *t, int pos)
 	return (ch < 0) ? _MULTI : cMatrix[ch];
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	int ch, level = 1, pos = tok_start + 1;
 	const Ftokenizer *fmat = tenv->fmat;
@@ -420,8 +411,7 @@ static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMet
 		}
 	}
 	if(IS_NOTNULL(tk)) {
-		size_t errref = SUGAR_P(ERR_, tk->uline, tk->lpos, "must close with }");
-		Token_toERR(_ctx, tk, errref);
+		Token_pERR(_ctx, tk, "must close with }");
 	}
 	return pos-1;
 }
@@ -467,7 +457,7 @@ static const Ftokenizer *KonohaSpace_tokenizerMatrix(CTX, kKonohaSpace *ks)
 	return ks->fmat;
 }
 
-static void KonohaSpace_setTokenizer(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kMethod *mtd/*future extension*/)
+static void KonohaSpace_setTokenizer(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo)
 {
 	int kchar = (ch < 0) ? _MULTI : cMatrix[ch];
 	Ftokenizer *fmat = (Ftokenizer*)KonohaSpace_tokenizerMatrix(_ctx, ks);
@@ -541,7 +531,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			else {
 				tk->tt = TK_CODE;
-				tk->kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), FN_NEWID);
+				tk->kw = keyword(_ctx, S_text(tk->text), S_size(tk->text), SYM_NEWID);
 			}
 			kArray_add(adst, tk);
 			continue;
@@ -549,7 +539,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 		if(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL) {
 			if(i > 0 && tls->toks[i-1]->topch == '$') {
 				snprintf(nbuf, sizeof(nbuf), "$%s", S_text(tk->text));
-				tk->kw = keyword(_ctx, (const char*)nbuf, strlen(nbuf), FN_NEWID);
+				tk->kw = keyword(_ctx, (const char*)nbuf, strlen(nbuf), SYM_NEWID);
 				tk->tt = TK_METANAME;
 				if(nameid == 0) nameid = tk->kw;
 				tk->nameid = nameid;
@@ -558,7 +548,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			if(i + 1 < e && tls->toks[i+1]->topch == ':') {
 				kToken *tk = tls->toks[i];
-				nameid = keyword(_ctx, S_text(tk->text), S_size(tk->text), FN_NEWID);
+				nameid = keyword(_ctx, S_text(tk->text), S_size(tk->text), SYM_NEWID);
 				i++;
 				continue;
 			}
@@ -570,7 +560,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			if(tls->toks[i]->topch == '$') continue;
 		}
-		SUGAR_P(ERR_, tk->uline, tk->lpos, "illegal sugar syntax: %s", kToken_s(tk));
+		Token_pERR(_ctx, tk, "illegal sugar syntax: %s", kToken_s(tk));
 		return false;
 	}
 	return true;

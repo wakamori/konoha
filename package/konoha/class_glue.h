@@ -148,10 +148,10 @@ static KMETHOD KonohaSpace_defineClass(CTX, ksfp_t *sfp _RIX)
 	ktype_t supcid = sfp[3].ivalue == 0 ? TY_Object :(ktype_t)sfp[3].ivalue;
 	kclass_t *supct = kclass(supcid, sfp[K_RTNIDX].uline);
 	if(CT_isFinal(supct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s is final", T_cid(supcid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s is final", TY_t(supcid));
 	}
 	if(!CT_isDefined(supct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has undefined field(s)", T_cid(supcid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has undefined field(s)", TY_t(supcid));
 	}
 	kclass_t *ct = defineClass(_ctx, sfp[0].ks, sfp[1].ivalue, sfp[2].s, supct, sfp[4].ivalue, sfp[K_RTNIDX].uline);
 	RETURNi_(ct->cid);
@@ -163,7 +163,7 @@ static void defineField(CTX, struct _kclass *ct, int flag, ktype_t ty, kString *
 	ct->fsize += 1;
 	ct->fields[pos].flag = flag;
 	ct->fields[pos].ty = ty;
-	ct->fields[pos].fn = ksymbol(S_text(name), S_size(name), FN_NEWID, SYMPOL_NAME);
+	ct->fields[pos].fn = ksymbolA(S_text(name), S_size(name), SYM_NEWID);
 	if(TY_isUnbox(ty)) {
 		if(value != NULL) {
 			ct->WnulvalNUL->ndata[pos] = O_unbox(value);
@@ -189,7 +189,7 @@ static KMETHOD KonohaSpace_defineClassField(CTX, ksfp_t *sfp _RIX)
 	kObject *value = sfp[5].o;
 	struct _kclass *ct = (struct _kclass*)kclass(cid, sfp[K_RTNIDX].uline);
 	if(CT_isDefined(ct)) {
-		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has no undefined field", T_cid(ct->cid));
+		kreportf(CRIT_, sfp[K_RTNIDX].uline, "%s has no undefined field", TY_t(ct->cid));
 	}
 	defineField(_ctx, ct, flag, ty, name, value, 0);
 	if(CT_isDefined(ct)) {
@@ -241,8 +241,8 @@ static kExpr* NewExpr(CTX, ksyntax_t *syn, kToken *tk, ktype_t ty, uintptr_t val
 static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
-	assert(s == c);
+	VAR_ParseExpr(stmt, tls, s, c, e);
+	DBG_ASSERT(s == c);
 	kToken *tkNEW = tls->toks[s];
 	if(s + 2 < kArray_size(tls)) {
 		kToken *tk1 = tls->toks[s+1];
@@ -260,22 +260,21 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 			RETURN_(expr);
 		}
 	}
-	SUGAR p(_ctx, ERR_, stmt->uline, -1, "syntax error: %s", S_text(tkNEW->text));
 }
 
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
 {
 	DBG_ASSERT(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL || tk->tt == TK_MSYMBOL);
-	return ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
+	return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 }
 
 static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	kToken *tkN = expr->cons->toks[0];
 	ksymbol_t fn = tosymbolUM(_ctx, tkN);
-	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, expr, 1, gma, TY_var, 0);
+	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 1, gma, TY_var, 0);
 	if(self != K_NULLEXPR) {
 		kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toGETTER(fn));
 		if(mtd == NULL) {
@@ -283,9 +282,9 @@ static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 		}
 		if(mtd != NULL) {
 			KSETv(expr->cons->methods[0], mtd);
-			RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, expr, mtd, gma, reqty));
+			RETURN_(SUGAR Expr_tyCheckCallParams(_ctx, stmt, expr, mtd, gma, reqty));
 		}
-		SUGAR p(_ctx, ERR_, tkN->uline, tkN->lpos, "undefined field: %s", S_text(tkN->text));
+		SUGAR Stmt_p(_ctx, stmt, tkN, ERR_, "undefined field: %s", S_text(tkN->text));
 	}
 	RETURN_(K_NULLEXPR);
 }
@@ -308,7 +307,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			if(tk->topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
 				tkNEW->tt = TK_SYMBOL;
-				KSETv(tkNEW->text, S_fn(MN_new));
+				KSETv(tkNEW->text, SYM_s(MN_new));
 				tkNEW->uline = tkP->uline;
 				kArray_add(a, tkNEW);
 			}
@@ -316,9 +315,6 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			tkP = tk;
 		}
 		kBlock *bk = SUGAR new_Block(_ctx, kStmt_ks(stmt), stmt, a, s, kArray_size(a), ';');
-//		struct _kToken *tkTY = new_W(Token, 0);
-//		tkTY->kw = KW_Type;
-//		tkTY->ty = ct->cid;
 		for (i = 0; i < kArray_size(bk->blocks); i++) {
 			kStmt *methodDecl = bk->blocks->stmts[i];
 			if(methodDecl->syn->kw == KW_StmtMethodDecl) {
@@ -390,7 +386,7 @@ static size_t checkFieldSize(CTX, kBlock *bk)
 	size_t i, c = 0;
 	for(i = 0; i < kArray_size(bk->blocks); i++) {
 		kStmt *stmt = bk->blocks->stmts[i];
-		DBG_P("stmt->kw=%s", T_kw(stmt->syn->kw));
+		DBG_P("stmt->kw=%s", KW_t(stmt->syn->kw));
 		if(stmt->syn->kw == KW_StmtTypeDecl) {
 			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
 			if(expr->syn->kw == KW_COMMA) {
@@ -423,7 +419,7 @@ static void CT_setField(CTX, struct _kclass *ct, kclass_t *supct, int fctsize)
 	}
 }
 
-static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kflag_t flag, ktype_t ty, kline_t pline)
+static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kStmt *stmt, kExpr *expr, kflag_t flag, ktype_t ty, kline_t pline)
 {
 	USING_SUGAR;
 	if(Expr_isTerm(expr)) {
@@ -434,7 +430,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kf
 	else if(expr->syn->kw == KW_LET) {
 		kExpr *lexpr = kExpr_at(expr, 1);
 		if(Expr_isTerm(lexpr)) {
-			kExpr *vexpr = SUGAR Expr_tyCheckAt(_ctx, expr, 2, gma, ty, 0);
+			kExpr *vexpr = SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 2, gma, ty, 0);
 			if(vexpr == K_NULLEXPR) {
 				return false;
 			}
@@ -449,7 +445,7 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kf
 				defineField(_ctx, ct, flag, ty, name, knull(CT_(ty)), 0);
 			}
 			else {
-				SUGAR p(_ctx, ERR_, pline, -1, "expected const value as the field initial value: %s", S_text(name));
+				SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "const value is expected as the field initial value: %s", S_text(name));
 				return false;
 			}
 			return true;
@@ -457,11 +453,11 @@ static kbool_t CT_declType(CTX, struct _kclass *ct, kGamma *gma, kExpr *expr, kf
 	} else if(expr->syn->kw == KW_COMMA) {
 		size_t i;
 		for(i = 1; i < kArray_size(expr->cons); i++) {
-			if(!CT_declType(_ctx, ct, gma, kExpr_at(expr, i), flag, ty, pline)) return false;
+			if(!CT_declType(_ctx, ct, gma, stmt, kExpr_at(expr, i), flag, ty, pline)) return false;
 		}
 		return true;
 	}
-	SUGAR p(_ctx, ERR_, pline, -1, "expected field name");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "field name is expected");
 	return false;
 }
 
@@ -475,7 +471,7 @@ static kbool_t CT_addClassFields(CTX, struct _kclass *ct, kGamma *gma, kBlock *b
 			kflag_t flag = kField_Getter | kField_Setter;
 			kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
 			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
-			if(!CT_declType(_ctx, ct, gma, expr, flag, TK_type(tk), pline)) {
+			if(!CT_declType(_ctx, ct, gma, stmt, expr, flag, TK_type(tk), pline)) {
 				return false;
 			}
 		}
@@ -499,7 +495,7 @@ static void CT_checkMethodDecl(CTX, kToken *tkC, kBlock *bk, kStmt **lastStmtRef
 			lastStmtRef[0] = stmt;
 		}
 		else {
-			SUGAR p(_ctx, WARN_, stmt->uline, -1, "%s is not available within class clause", T_kw(stmt->syn->kw));
+			SUGAR Stmt_p(_ctx, stmt, NULL, WARN_, "%s is not available within the class clause", KW_t(stmt->syn->kw));
 		}
 	}
 }
@@ -507,7 +503,7 @@ static void CT_checkMethodDecl(CTX, kToken *tkC, kBlock *bk, kStmt **lastStmtRef
 static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tkC = kStmt_token(stmt, KW_Usymbol, NULL);
 	kToken *tkE= kStmt_token(stmt, KW_("extends"), NULL);
 	kflag_t cflag = 0;
@@ -518,11 +514,11 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 		supcid = TK_type(tkE);
 		supct = CT_(supcid);
 		if(CT_isFinal(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s is final", T_CT(supct));
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is final", CT_t(supct));
 			RETURNb_(false);
 		}
 		if(!CT_isDefined(supct)) {
-			SUGAR p(_ctx, ERR_, stmt->uline, -1, "%s has undefined field(s)", T_CT(supct));
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s has undefined field(s)", CT_t(supct));
 			RETURNb_(false);
 		}
 	}

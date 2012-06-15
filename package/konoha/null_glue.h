@@ -47,8 +47,8 @@ static kbool_t null_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 static KMETHOD ExprTyCheck_null(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
-	DBG_P("typing null as %s", T_ty(reqty));
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
+	DBG_P("typing null as %s", TY_t(reqty));
 	if(reqty == TY_var) reqty = TY_Object;
 	RETURN_(kExpr_setVariable(expr, NULL, reqty, 0, gma));
 }

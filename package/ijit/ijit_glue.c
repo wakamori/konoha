@@ -120,7 +120,7 @@ static KMETHOD Expr_getSingle(CTX, ksfp_t *sfp _RIX)
 static kArray *get_stack(CTX, kArray *g)
 {
 	if (!g->list[0]) {
-		KSETv(g->list[0], new_(Array, 0));
+		KSETv(g->list[0], ((kObject*)new_(Array, 0)));
 	}
 	return (kArray*)g->list[0];
 }
@@ -284,7 +284,6 @@ static void jitcache_set(CTX, kMethod *mtd, kObject *f)
 	kmap_t *map = kmodjit->jitcache;
 	kmape_t *newe = kmap_newentry(map, hcode);
 	newe->uvalue = (uintptr_t) f;
-	kmap_add(map, newe);
 }
 
 //## Function System.getJITCache(Method mtd);
@@ -585,11 +584,12 @@ static KMETHOD Method_getReturnType(CTX, ksfp_t *sfp _RIX)
 //## String mtd.getFname();
 static KMETHOD Method_getFname(CTX, ksfp_t *sfp _RIX)
 {
-	kMethod *mtd = sfp[0].mtd;
-	int mn = mtd->mn;
-	char mbuf[128];
-	T_mn(mbuf, mn);
-	RETURN_(new_kString(mbuf, strlen(mbuf), 0));
+	abort();  // MN_T is modified more compact interface by kimio
+//	kMethod *mtd = sfp[0].mtd;
+//	int mn = mtd->mn;
+//	char mbuf[128];
+//	T_mn(mbuf, mn);
+//	RETURN_(new_kString(mbuf, strlen(mbuf), 0));
 }
 
 //## String mtd.getCname();
@@ -597,7 +597,7 @@ static KMETHOD Method_getCname(CTX, ksfp_t *sfp _RIX)
 {
 	kMethod *mtd = sfp[0].mtd;
 	kcid_t cid = mtd->cid;
-	const char *cname = T_cid(cid);
+	const char *cname = TY_t(cid);
 	RETURN_(new_kString(cname, strlen(cname), 0));
 }
 
@@ -687,8 +687,8 @@ static void KMethod_genCode(CTX, kMethod *mtd, kBlock *bk)
 	DBG_P("START CODE GENERATION..");
 	BEGIN_LOCAL(lsfp, 8);
 
-	KSETv(lsfp[K_CALLDELTA+1].o, mtd);
-	KSETv(lsfp[K_CALLDELTA+2].o, bk);
+	KSETv(lsfp[K_CALLDELTA+1].mtd, mtd);
+	KSETv(lsfp[K_CALLDELTA+2].o, (kObject*)bk);
 	KCALL(lsfp, 0, GenCodeMtd, 2, K_NULL);
 	END_LOCAL();
 }

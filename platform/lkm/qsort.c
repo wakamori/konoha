@@ -30,10 +30,14 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)qsort.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
+#ifndef __KERNEL__
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
 #include <stdlib.h>
+#else
+#include "konoha_lkm.h"
+#endif
 
 #ifdef I_AM_QSORT_R
 typedef int		 cmp_t(void *, const void *, const void *);
@@ -91,9 +95,6 @@ swapfunc(a, b, n, swaptype)
 
 static inline char *
 med3(char *a, char *b, char *c, cmp_t *cmp, void *thunk
-#ifndef I_AM_QSORT_R
-__unused
-#endif
 )
 {
 	return CMP(thunk, a, b) < 0 ?

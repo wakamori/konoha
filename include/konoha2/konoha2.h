@@ -40,6 +40,11 @@
 #endif
 #endif
 
+/* - 2012/06/14 */
+//#define K_CODENAME "Miyajima"
+/*2012/06/14 -  */
+#define K_CODENAME "The Summer Palace, Beijing"
+
 #ifndef K_REVISION
 #define K_REVISION  1
 #endif
@@ -167,7 +172,7 @@ typedef kushort_t                 kfileid_t;
 #define URI_UNMASK(fileid)           (fileid)
 
 #define URI__(fileid) S_text(knh_getURN(_ctx, fileid))
-#define shortname__(fileid) knh_sfile(URI__(fileid))
+#define shortfilename__(fileid) knh_sfile(URI__(fileid))
 
 typedef uintptr_t                 kline_t;
 #define NOPLINE                   0
@@ -245,52 +250,52 @@ typedef kushort_t       kpack_t;   /* package id*/
 typedef kushort_t       kcid_t;    /* class id */
 typedef kushort_t       ktype_t;     /* extended ktype_t */
 typedef kushort_t       ksymbol_t;
-typedef kushort_t       kuname_t;
 typedef kushort_t       kmethodn_t;
 typedef kushort_t       kparamid_t;
 
 /* kcid_t */
-#define CLASS_newid        ((kcid_t)-1)
-#define TY_unknown         ((kcid_t)-2)
+#define CLASS_newid        ((ktype_t)-1)
+#define TY_unknown         ((ktype_t)-2)
 
 #define CT_(t)              (_ctx->share->ca.cts[t])
 #define CT_cparam(CT)       (_ctx->share->paramdomList->params[(CT)->paramdom])
 #define TY_isUnbox(t)       FLAG_is(CT_(t)->cflag, kClass_UnboxType)
 #define CT_isUnbox(C)       FLAG_is(C->cflag, kClass_UnboxType)
 
-#define FN_NONAME          ((ksymbol_t)-1)
-#define FN_NEWID           ((ksymbol_t)-2)
-#define _NEWID             FN_NEWID
-#define FN_UNMASK(fnq)     (fnq & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
-#define FN_BOXED           KFLAG_H0
-#define FN_UNBOX(fn)       (fn & ~(FN_BOXED))
-#define FN_isBOXED(fn)     ((fn & FN_BOXED) == FN_BOXED)
+#define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
+#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
+
+#define SYM_NONAME          ((ksymbol_t)-1)
+#define SYM_NEWID           ((ksymbol_t)-2)
+#define _NEWID             SYM_NEWID
+
+#define SYMKEY_BOXED            KFLAG_H0
+#define SYMKEY_unbox(sym)       (sym & ~(SYMKEY_BOXED))
+#define SYMKEY_isBOXED(sym)     ((sym & SYMKEY_BOXED) == SYMKEY_BOXED)
 
 #define FN_COERCION        KFLAG_H0
 #define FN_Coersion        FN_COERCION
 #define FN_isCOERCION(fn)  ((fn & FN_COERCION) == FN_COERCION)
 
-#define MN_NONAME    ((kmethodn_t)-1)
-#define MN_NEWID     ((kmethodn_t)-2)
-
-#define MN_UNMASK(fnq)       (fnq & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
 #define MN_SETTER     KFLAG_H2
+#define MN_Annotation (KFLAG_H1|KFLAG_H2)
+
 #define MN_TOCID      (KFLAG_H0|KFLAG_H1)
 #define MN_ASCID      (KFLAG_H0|KFLAG_H1|KFLAG_H2)
 
-#define MN_isISBOOL(mn)   ((mn & MN_ISBOOL) == MN_ISBOOL)
-#define MN_toISBOOL(mn)   (mn | MN_ISBOOL)
-#define MN_isGETTER(mn)   ((mn & MN_GETTER) == MN_GETTER)
-#define MN_toGETTER(mn)   (mn | MN_GETTER)
-#define MN_isSETTER(mn)   ((mn & MN_SETTER) == MN_SETTER)
-#define MN_toSETTER(mn)   ((MN_UNMASK(mn)) | MN_SETTER)
+#define MN_isISBOOL(mn)   (SYM_HEAD(mn) == MN_ISBOOL)
+#define MN_toISBOOL(mn)   ((SYM_UNMASK(mn)) | MN_ISBOOL)
+#define MN_isGETTER(mn)   (SYM_HEAD(mn) == MN_GETTER)
+#define MN_toGETTER(mn)   ((SYM_UNMASK(mn)) | MN_GETTER)
+#define MN_isSETTER(mn)   (SYM_HEAD(mn) == MN_SETTER)
+#define MN_toSETTER(mn)   ((SYM_UNMASK(mn)) | MN_SETTER)
 
 #define MN_to(cid)        (cid | MN_TOCID)
-#define MN_isTOCID(mn)    ((mn & MN_TOCID) == MN_TOCID)
+#define MN_isTOCID(mn)    ((SYM_UNMASK(mn)) == MN_TOCID)
 #define MN_as(cid)        (cid | MN_ASCID)
-#define MN_isASCID(mn)    ((mn & MN_ASCID) == MN_ASCID)
+#define MN_isASCID(mn)    ((SYM_UNMASK(mn)) == MN_ASCID)
 
 /* ------------------------------------------------------------------------ */
 
@@ -300,7 +305,7 @@ struct  kcontext_t;
 typedef const struct kcontext_t *const CTX_t;
 #define CTX      CTX_t _ctx
 
-#define MOD_MAX    128
+#define MOD_MAX    32
 struct _kObject;
 
 #define MOD_logger   0
@@ -350,9 +355,6 @@ typedef struct kcontext_t {
 	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
-#ifdef __KERNEL__
-	char buffer[256];
-#endif
 } kcontext_t ;
 
 typedef struct kshare_t {
@@ -371,8 +373,8 @@ typedef struct kshare_t {
 	struct kmap_t         *packMapNN;
 	const struct _kArray         *unameList;  // NAME, Name, INT_MAX Int_MAX
 	struct kmap_t         *unameMapNN;
-	const struct _kArray         *symbolList;   // name, f,
-	struct kmap_t         *symbolMapNN;
+//	const struct _kArray         *symbolList;   // name, f,
+//	struct kmap_t         *symbolMapNN;
 	const struct _kArray         *paramList;
 	struct kmap_t         *paramMapNN;
 	const struct _kArray         *paramdomList;
@@ -514,7 +516,7 @@ struct _kclass {
 	kfield_t  *fields;
 	kushort_t  fsize;         kushort_t fallocsize;
 	const char               *DBG_NAME;
-	kuname_t                  nameid;
+	ksymbol_t                  nameid;
 	kushort_t                 optvalue;
 
 	const struct _kArray     *methods;
@@ -821,6 +823,7 @@ struct _kArray {
 		const struct _kString        **strings;
 		const struct _kParam         **params;
 		const struct _kMethod        **methods;
+		const struct _kFunc          **funcs;
 		const struct _kToken         **toks;
 		struct _kToken        **Wtoks;
 		const struct _kExpr          **exprs;
@@ -1036,7 +1039,7 @@ struct _kSystem {
 		tsfp[K_MTDIDX].mtdNC = MTD;\
 		tsfp[K_PCIDX].fname = __FILE__;\
 		tsfp[K_SHIFTIDX].shift = 0;\
-		KSETv(tsfp[K_RTNIDX].o, DEFVAL);\
+		KSETv(tsfp[K_RTNIDX].o, ((kObject*)DEFVAL));\
 		tsfp[K_RTNIDX].uline = __LINE__;\
 		klr_setesp(_ctx, tsfp + ARGC + 1);\
 		(MTD)->fcall_1(_ctx, tsfp K_RIXPARAM);\
@@ -1079,7 +1082,7 @@ struct _klib2 {
 	kmap_t*  (*Kmap_init)(CTX, size_t);
 	kmape_t* (*Kmap_newentry)(CTX, kmap_t *, uintptr_t);
 	kmape_t* (*Kmap_get)(kmap_t *, uintptr_t);
-	void (*Kmap_add)(kmap_t *, kmape_t *);
+//	void (*Kmap_add)(kmap_t *, kmape_t *);
 	void (*Kmap_remove)(kmap_t *, kmape_t *);
 	void (*Kmap_reftrace)(CTX, kmap_t *, void (*)(CTX, kmape_t*));
 	void (*Kmap_free)(CTX, kmap_t *, void (*)(CTX, void *));
@@ -1088,9 +1091,7 @@ struct _klib2 {
 
 	kline_t     (*Kfileid)(CTX, const char *, size_t, int spol, ksymbol_t def);
 	kpack_t     (*Kpack)(CTX, const char *, size_t, int spol, ksymbol_t def);
-	kuname_t    (*Kuname)(CTX, const char*, size_t, int spol, ksymbol_t def);
-	ksymbol_t   (*Ksymbol)(CTX, const char *, size_t, ksymbol_t def, int);
-	const char* (*KTsymbol)(CTX, char *, size_t, ksymbol_t mn);
+	ksymbol_t   (*Ksymbol2)(CTX, const char*, size_t, int spol, ksymbol_t def);
 
 	kbool_t     (*KimportPackage)(CTX, const struct _kKonohaSpace*, const char *, kline_t);
 	kclass_t*   (*Kclass)(CTX, kcid_t, kline_t);
@@ -1175,22 +1176,12 @@ struct _klib2 {
 #define kmap_init(INIT)           (KPI)->Kmap_init(_ctx, INIT)
 #define kmap_newentry(M, H)       (KPI)->Kmap_newentry(_ctx, M, H)
 #define kmap_get(M, K)            (KPI)->Kmap_get(M, K)
-#define kmap_add(M, E)            (KPI)->Kmap_add(M, E)
 #define kmap_remove(M, E)         (KPI)->Kmap_remove(_ctx, M, E)
 #define kmap_reftrace(M, F)       (KPI)->Kmap_reftrace(_ctx, M, F)
 #define kmap_free(M, F)           (KPI)->Kmap_free(_ctx, M, F)
 #define kmap_getcode(M,L,N,NL,H,POL,DEF)  (KPI)->Kmap_getcode(_ctx, M, L, N, NL, H, POL, DEF)
 
 #define kclass(CID, UL)           (KPI)->Kclass(_ctx, CID, UL)
-#define SYMPOL_RAW                0
-#define SYMPOL_NAME               1
-#define SYMPOL_METHOD             2
-#define ksymbol(T,L,D,P)          (KPI)->Ksymbol(_ctx, T, L, D, P)
-#define KSYMBOL(T)                (KPI)->Ksymbol(_ctx, T, sizeof(T)-1, FN_NEWID, SYMPOL_RAW)
-#define FN_(T)                    ksymbol(T, (sizeof(T)-1), FN_NEWID, SYMPOL_NAME)
-#define MN_(T)                    ksymbol(T, (sizeof(T)-1), FN_NEWID, SYMPOL_METHOD)
-#define MN_new                    1  /* @see */
-#define T_mn(B, X)                (KPI)->KTsymbol(_ctx, B, sizeof(B), X)
 
 #define FILEID_NATIVE             0
 #define FILEID_(T)                (KPI)->Kfileid(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII, _NEWID)
@@ -1199,8 +1190,15 @@ struct _klib2 {
 #define PN_sugar                  1
 #define PN_(T)                    (KPI)->Kpack(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII|SPOL_POOL, _NEWID)
 #define kpack(T,L,SPOL,DEF)       (KPI)->Kpack(_ctx, T, L, SPOL, DEF)
-#define UN_(T)                    (KPI)->Kuname(_ctx, T, sizeof(T)-1, SPOL_TEXT|SPOL_ASCII|SPOL_POOL, _NEWID)
-#define kuname(T, L, SPOL,DEF)    (KPI)->Kuname(_ctx, T, L, SPOL, DEF)
+
+#define ksymbolA(T, L, DEF)       (KPI)->Ksymbol2(_ctx, T, L, SPOL_ASCII, DEF)
+#define ksymbolSPOL(T, L, SPOL, DEF)       (KPI)->Ksymbol2(_ctx, T, L, SPOL, DEF)
+#define ksymbol(T)
+#define SYM_(T)                   (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define FN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define MN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
+#define MN_new                    1  /* @see */
+#define T_mn(X)                   SYM_PRE(X), SYM_t(X)
 
 #define new_kObject(C, A)         (KPI)->Knew_Object(_ctx, C, (void*)(A))
 #define new_(C, A)                (k##C*)(KPI)->Knew_Object(_ctx, CT_##C, (void*)(A))
@@ -1304,7 +1302,7 @@ typedef enum {
 		void *func = ct->T;\
 		((struct _kclass*)ct)->T = PREFIX##_##T;\
 		if(func != NULL) {\
-			kreportf(DEBUG_, UL, "override of %s->" #T ", file=%s, line=%d", T_CT(ct), __FILE__, __LINE__);\
+			kreportf(DEBUG_, UL, "override of %s->" #T ", file=%s, line=%d", CT_t(ct), __FILE__, __LINE__);\
 		}\
 	}while(0)\
 
@@ -1327,7 +1325,7 @@ typedef enum {
 #define RESET_GCSTACK()        kArray_clear(_ctx->stack->gcstack, gcstack_)
 
 #define KINITv(VAR, VAL)   OBJECT_SET(VAR, VAL)
-#define KSETv(VAR, VAL)    OBJECT_SET(VAR, VAL)
+#define KSETv(VAR, VAL)    /*OBJECT_SET(VAR, VAL)*/ VAR = VAL
 #define KINITp(parent, v, o) KINITv(v, o)
 #define KSETp(parent,  v, o) KSETv(v, o)
 #define KUNUSEv(V)  (V)->h.ct->free(_ctx, (V))
@@ -1353,7 +1351,7 @@ typedef enum {
 #define KNH_SAFEPOINT(_ctx, sfp)
 
 #define RETURN_(vv) do {\
-	KSETv(sfp[K_RIX].o, vv);\
+	KSETv(sfp[K_RIX].o, ((kObject*)vv));\
 	KNH_SAFEPOINT(_ctx, sfp);\
 	return; \
 } while (0)

@@ -99,13 +99,13 @@ static void CT_addMethod2(CTX, kclass_t *ct, kMethod *mtd)
 	kArray_add(ct->methods, mtd);
 }
 
-static kMethod *Object_newProtoSetterNULL(CTX, kObject *o, kKonohaSpace *ks, ktype_t ty, ksymbol_t fn, kline_t pline)
+static kMethod *Object_newProtoSetterNULL(CTX, kObject *o, kStmt *stmt, kKonohaSpace *ks, ktype_t ty, ksymbol_t fn)
 {
 	USING_SUGAR;
 	ktype_t cid = O_cid(o);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toSETTER(fn));
 	if(mtd != NULL) {
-		SUGAR p(_ctx, ERR_, pline, -1, "already defined name: %s.%s", T_CT(O_ct(o)), T_fn(fn));
+		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "already defined name: %s.%s", CT_t(O_ct(o)), SYM_t(fn));
 		return NULL;
 	}
 	mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toGETTER(fn));
@@ -113,7 +113,7 @@ static kMethod *Object_newProtoSetterNULL(CTX, kObject *o, kKonohaSpace *ks, kty
 		mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toISBOOL(fn));
 	}
 	if(mtd != NULL && kMethod_rtype(mtd) != ty) {
-		SUGAR p(_ctx, ERR_, pline, -1, "differently defined getter: %s.%s", T_CT(O_ct(o)), T_fn(fn));
+		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "differently defined getter: %s.%s", CT_t(O_ct(o)), SYM_t(fn));
 		return NULL;
 	}
 	if(mtd == NULL) { // no getter
@@ -129,42 +129,39 @@ static ksymbol_t tosymbol(CTX, kExpr *expr)
 	if(Expr_isTerm(expr)) {
 		kToken *tk = expr->tk;
 		if(tk->tt == TK_SYMBOL) {
-
-			return ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
+			return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 		}
 	}
-	return FN_NONAME;
+	return SYM_NONAME;
 }
 
 static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("global assignment .. ");
 	kObject *scr = gma->genv->ks->scrobj;
 	if(O_cid(scr) == TY_System) {
-		SUGAR p(_ctx, ERR_, stmt->uline, -1, " global variables are not available");
+		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, " global variables are not available");
 		RETURNb_(false);
 	}
 	kExpr *vexpr = kStmt_expr(stmt, KW_("var"), K_NULLEXPR);
 	ksymbol_t fn = tosymbol(_ctx, vexpr);
-	if(fn == FN_NONAME) {
-		SUGAR p(_ctx, ERR_, stmt->uline, -1, "not variable name");
+	if(fn == SYM_NONAME) {
+		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "variable name is expected");
 		RETURNb_(false);
 	}
 	kExpr *expr = kStmt_expr(stmt, KW_Expr, K_NULLEXPR);
-	DBG_P("expr kw='%s'", T_kw(expr->syn->kw));
 	if(!SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, 0)) {
-		SUGAR p(_ctx, ERR_, stmt->uline, -1, "type error");
 		RETURNb_(false);
 	}
 	/*kExpr **/expr = kStmt_expr(stmt, KW_Expr, K_NULLEXPR);
-	kMethod *mtd = Object_newProtoSetterNULL(_ctx, scr, gma->genv->ks, expr->ty, fn, stmt->uline);
+	kMethod *mtd = Object_newProtoSetterNULL(_ctx, scr, stmt, gma->genv->ks, expr->ty, fn);
 	if(mtd == NULL) {
 		RETURNb_(false);
 	}
-	SUGAR p(_ctx, INFO_, stmt->uline, -1, "%s has type %s", T_fn(fn), T_ty(expr->ty));
-	expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
+	SUGAR Stmt_p(_ctx, stmt, NULL, INFO_, "%s has type %s", SYM_t(fn), TY_t(expr->ty));
+	expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
 	kObject_setObject(stmt, KW_Expr, expr);
 	kStmt_typed(stmt, EXPR);
 	RETURNb_(true);
@@ -172,19 +169,19 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 
 // ---------------------------------------------------------------------------
 
-static kMethod* ExprTerm_getSetterNULL(CTX, kExpr *expr, kObject *scr, kGamma *gma, ktype_t ty, kline_t pline)
+static kMethod* ExprTerm_getSetterNULL(CTX, kStmt *stmt, kExpr *expr, kObject *scr, kGamma *gma, ktype_t ty)
 {
 	USING_SUGAR;
 	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
 		kToken *tk = expr->tk;
 		if(tk->kw != KW_Symbol) {
-			SUGAR p(_ctx, ERR_, pline, -1, "%s is keyword", S_text(tk->text));
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is keyword", S_text(tk->text));
 			return NULL;
 		}
-		ksymbol_t fn = ksymbol(S_text(tk->text), S_size(tk->text), FN_NEWID, SYMPOL_NAME);
-		return Object_newProtoSetterNULL(_ctx, scr, gma->genv->ks, ty, fn, pline);
+		ksymbol_t fn = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
+		return Object_newProtoSetterNULL(_ctx, scr, stmt, gma->genv->ks, ty, fn);
 	}
-	SUGAR p(_ctx, ERR_, pline, -1, "expected variable name");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "variable name is expected");
 	return NULL;
 }
 
@@ -200,19 +197,19 @@ static kbool_t appendSetterStmt(CTX, kExpr *expr, kStmt **lastStmtRef)
 	return true;
 }
 
-static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **lastStmtRef)
+static kbool_t Expr_declType(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **lastStmtRef)
 {
 	USING_SUGAR;
 	kObject *scr = gma->genv->ks->scrobj;
 	if(O_cid(scr) == TY_System) {
-		SUGAR p(_ctx, ERR_, lastStmtRef[0]->uline, -1, " global variables are not available");
+		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, " global variables are not available");
 		return false;
 	}
 	if(Expr_isTerm(expr)) {
-		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, expr, scr, gma, ty, lastStmtRef[0]->uline);
+		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, stmt, expr, scr, gma, ty);
 		if(mtd != NULL) {
 			kExpr *vexpr = new_Variable(NULL, ty, 0, gma);
-			expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), vexpr);
+			expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), vexpr);
 			PUSH_GCSTACK(expr);
 			return appendSetterStmt(_ctx, expr, lastStmtRef);
 		}
@@ -220,13 +217,13 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 	}
 	else if(expr->syn->kw == KW_LET) {
 		kExpr *lexpr = kExpr_at(expr, 1);
-		if(SUGAR Expr_tyCheckAt(_ctx, expr, 2, gma, ty, 0) == K_NULLEXPR) {
+		if(SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 2, gma, ty, 0) == K_NULLEXPR) {
 			// this is neccesarry to avoid 'int a = a + 1;';
 			return false;
 		}
-		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, lexpr, scr, gma, ty, lastStmtRef[0]->uline);
+		kMethod *mtd = ExprTerm_getSetterNULL(_ctx, stmt, lexpr, scr, gma, ty);
 		if(mtd != NULL) {
-			expr = SUGAR new_TypedMethodCall(_ctx, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), kExpr_at(expr, 2));
+			expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), kExpr_at(expr, 2));
 			PUSH_GCSTACK(expr);
 			return appendSetterStmt(_ctx, expr, lastStmtRef);
 		}
@@ -234,27 +231,25 @@ static kbool_t Expr_declType(CTX, kExpr *expr, kGamma *gma, ktype_t ty, kStmt **
 	} else if(expr->syn->kw == KW_COMMA) {
 		size_t i;
 		for(i = 1; i < kArray_size(expr->cons); i++) {
-			if(!Expr_declType(_ctx, kExpr_at(expr, i), gma, ty, lastStmtRef)) return false;
+			if(!Expr_declType(_ctx, stmt, kExpr_at(expr, i), gma, ty, lastStmtRef)) return false;
 		}
 		return true;
 	}
-	SUGAR p(_ctx, ERR_, lastStmtRef[0]->uline, -1, "expected variable name");
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "variable name is expected");
 	return false;
 }
 
 static KMETHOD StmtTyCheck_GlobalTypeDecl(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_StmtTyCheck(stmt, syn, gma);
+	VAR_StmtTyCheck(stmt, gma);
 	kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
 	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
-
-//	if(tk == NULL || !TK_isType(tk) || expr == NULL) {
-//		ERR_SyntaxError(stmt->uline);
-//		RETURNb_(false);
-//	}
+	if(tk == NULL || !TK_isType(tk) || expr == NULL) {
+		RETURNb_(false);
+	}
 	kStmt_done(stmt);
-	RETURNb_(Expr_declType(_ctx, expr, gma, TK_type(tk), &stmt));
+	RETURNb_(Expr_declType(_ctx, stmt, expr, gma, TK_type(tk), &stmt));
 }
 
 typedef const struct _kScript kScript;
@@ -271,7 +266,7 @@ static kbool_t global_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .name = NULL, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
-	SYN_setTopStmtTyCheck(ks, KW_StmtTypeDecl, GlobalTypeDecl);
+	SUGAR SYN_setSugarFunc(_ctx, ks, KW_StmtTypeDecl, SYNIDX_TopStmtTyCheck, new_SugarFunc(StmtTyCheck_GlobalTypeDecl));
 	if(O_cid(ks->scrobj) == TY_System) {
 		KDEFINE_CLASS defScript = {
 			.structname = "Script",
