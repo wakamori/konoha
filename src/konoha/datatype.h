@@ -1000,7 +1000,7 @@ static void KCLASSTABLE_loadMethod(CTX)
 		_Public|_Immutable|_Const|_Coercion, _F(Int_toString), TY_String, TY_Int, MN_to(TY_String), 0,
 		_Public|_Immutable|_Const, _F(String_opEQ),  TY_Boolean, TY_String, MN_("opEQ"),  1, TY_String, FN_x ,
 		_Public|_Immutable|_Const, _F(String_opNEQ), TY_Boolean, TY_String, MN_("opNEQ"), 1, TY_String, FN_x ,
-		_Public|_Immutable|_Const, _F(String_toInt), TY_Int, TY_String, MN_to(TY_Int), 0,
+		_Public|_Immutable|_Const|_Coercion, _F(String_toInt), TY_Int, TY_String, MN_to(TY_Int), 0,
 		_Public|_Immutable|_Const, _F(String_opADD), TY_String, TY_String, MN_("opADD"), 1, TY_String, FN_x | FN_COERCION,
 		_Public|_Const|_Hidden, _F(Func_new), TY_Func, TY_Func, MN_new, 2, TY_Object, FN_x, TY_Method, FN_x,
 		kMethod_SmartReturn|_Hidden, _F(Func_invoke), TY_Object, TY_Func, MN_("invoke"), 0,
