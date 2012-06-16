@@ -121,7 +121,7 @@ static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline)
 /* ------------------------------------------------------------------------ */
 /* [kcontext] */
 
-static kcontext_t* new_context(const kcontext_t *_ctx, size_t stacksize)
+static kcontext_t* new_context(const kcontext_t *_ctx, const kplatform_t *plat)
 {
 	kcontext_t *newctx;
 	static volatile size_t ctxid_counter = 0;
@@ -131,6 +131,7 @@ static kcontext_t* new_context(const kcontext_t *_ctx, size_t stacksize)
 		klib2_init(klib2);
 		newctx = (kcontext_t*)(klib2 + 1);
 		newctx->lib2 = (klib2_t*)klib2;
+		newctx->plat = plat;
 		_ctx = (CTX_t)newctx;
 		newctx->modshare = (kmodshare_t**)calloc(sizeof(kmodshare_t*), MOD_MAX);
 		newctx->modlocal = (kmodlocal_t**)calloc(sizeof(kmodlocal_t*), MOD_MAX);
@@ -142,13 +143,14 @@ static kcontext_t* new_context(const kcontext_t *_ctx, size_t stacksize)
 	else {   // others take ctx as its parent
 		newctx = (kcontext_t*)KCALLOC(sizeof(kcontext_t), 1);
 		newctx->lib2 = _ctx->lib2;
+		newctx->plat = _ctx->plat;
 		newctx->share = _ctx->share;
 		newctx->modshare = _ctx->modshare;
 		newctx->modlocal = (kmodlocal_t**)KCALLOC(sizeof(kmodlocal_t*), MOD_MAX);
 		MODGC_init(_ctx, newctx);
 //		MODLOGGER_init(_ctx, newctx);
 	}
-	KRUNTIME_init(_ctx, newctx, stacksize/*K_PAGESIZE * 16*/);
+	KRUNTIME_init(_ctx, newctx, plat->stacksize);
 	if(IS_ROOTCTX(newctx)) {
 		MODCODE_init(_ctx, newctx);
 		MODSUGAR_init(_ctx, newctx);
@@ -249,10 +251,10 @@ struct _kObject** KONOHA_reftail(CTX, size_t size)
 #define BEGIN_(_ctx) knh_beginContext(_ctx, (void**)&_ctx)
 #define END_(_ctx)   knh_endContext(_ctx)
 
-konoha_t konoha_open(void)
+konoha_t konoha_open(const kplatform_t *platform)
 {
 	konoha_init();
-	return (konoha_t)new_context(NULL, K_PAGESIZE * 8);
+	return (konoha_t)new_context(NULL, platform);
 }
 
 void konoha_close(konoha_t konoha)

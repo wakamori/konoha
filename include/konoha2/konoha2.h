@@ -76,7 +76,23 @@
 #endif
 
 /* ------------------------------------------------------------------------ */
+/* platform */
+
+#define PLAT (_ctx->plat)->
+
+typedef struct {
+	// settings
+	const char *name;
+	size_t stacksize;
+	// low-level functions
+
+	// high-level functions
+	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
+} kplatform_t;
+
+/* ------------------------------------------------------------------------ */
 /* type */
+
 #ifndef __KERNEL__
 #include <limits.h>
 #include <float.h>
@@ -343,6 +359,7 @@ typedef struct kcontext_t {
 	int						          safepoint; // set to 1
 	struct ksfp_t                    *esp;
 	const struct _klib2              *lib2;
+	const kplatform_t                *plat;
 	/* TODO(imasahiro)
 	 * checking modgc performance and remove
 	 * memshare/memlocal from context
@@ -1404,7 +1421,7 @@ typedef enum {
 #endif /*unlikely*/
 
 ///* Konoha API */
-extern konoha_t konoha_open(void);
+extern konoha_t konoha_open(const kplatform_t *);
 extern void konoha_close(konoha_t konoha);
 extern kbool_t konoha_load(konoha_t konoha, const char *scriptfile);
 extern kbool_t konoha_eval(konoha_t konoha, const char *script, kline_t uline);
