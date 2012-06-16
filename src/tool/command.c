@@ -37,6 +37,7 @@ extern "C" {
 
 kstatus_t MODSUGAR_eval(CTX, const char *script, size_t len, kline_t uline);
 kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline);
+const kplatform_t* platform_shell(void);
 
 // -------------------------------------------------------------------------
 // getopt
@@ -417,7 +418,7 @@ static int konoha_test(const char *testname)
 	verbose_sugar = 0;
 	verbose_gc    = 0;
 	verbose_code  = 0;
-	konoha_t konoha = konoha_open();
+	konoha_t konoha = konoha_open(platform_shell());
 	if(preimport != NULL) {
 		konoha_preimport((CTX_t)konoha, preimport);
 	}
@@ -478,7 +479,7 @@ static int konoha_builtintest(const char* name)
 #ifdef USE_BUILTINTEST
 	Ftest f = lookupTestFunc(KonohaTestSet, name);
 	if(f != NULL) {
-		konoha_t konoha = konoha_open();
+		konoha_t konoha = konoha_open(platform_shell());
 		int ret = f((CTX_t)konoha);
 		konoha_close(konoha);
 		return ret;
@@ -488,6 +489,53 @@ static int konoha_builtintest(const char* name)
 	fprintf(stderr, "Built-in tests are not built; rebuild with -DUSE_BUILTINTEST\n");
 #endif
 	return 1;
+}
+
+// -------------------------------------------------------------------------
+// platform api
+
+#ifndef K_PREFIX
+#define K_PREFIX  "/usr/local"
+#endif
+
+static const char* packname(const char *str)
+{
+	char *p = strrchr(str, '.');
+	return (p == NULL) ? str : (const char*)p+1;
+}
+
+static const char* packagepath(char *buf, size_t bufsiz, const char *fname)
+{
+	char *path = getenv("KONOHA_PACKAGEPATH"), *local = "";
+	if(path == NULL) {
+		path = getenv("KONOHA_HOME");
+		local = "/package";
+	}
+	if(path == NULL) {
+		path = getenv("HOME");
+		local = "/.konoha2/package";
+	}
+	snprintf(buf, bufsiz, "%s%s/%s/%s_glue.k", path, local, fname, packname(fname));
+#ifdef K_PREFIX
+	FILE *fp = fopen(buf, "r");
+	if(fp != NULL) {
+		fclose(fp);
+	}
+	else {
+		snprintf(buf, bufsiz, K_PREFIX "/konoha2/package" "/%s/%s_glue.k", fname, packname(fname));
+	}
+#endif
+	return (const char*)buf;
+}
+
+const kplatform_t* platform_shell(void)
+{
+	static kplatform_t plat = {
+		.name          = "shell",
+		.stacksize     = K_PAGESIZE * 4,
+		.packagepath   = packagepath,
+	};
+	return (const kplatform_t*)(&plat);
 }
 
 // -------------------------------------------------------------------------
@@ -505,7 +553,7 @@ int main(int argc, char *argv[])
 	if(test_script != NULL) {
 		return konoha_test(test_script);
 	}
-	konoha_t konoha = konoha_open();
+	konoha_t konoha = konoha_open(platform_shell());
 	if(preimport != NULL) {
 		konoha_preimport((CTX_t)konoha, preimport);
 	}
