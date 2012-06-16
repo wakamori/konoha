@@ -270,28 +270,6 @@ static void Array_ensureMinimumSize(CTX, struct _kAbstractArray *a, size_t min)
 	}
 }
 
-static void Array_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
-{
-	kArray *a = (kArray*)sfp[pos].o;
-	size_t asize = kArray_size(a), i;
-	kwb_printf(wb, "%s", "[");
-	if (kArray_isUnboxData(a)) {
-		for (i = 0; i < asize; i++) {
-			kwb_printf(wb, KINT_FMT, a->ndata[i]);
-			kwb_printf(wb, "%s", ", ");
-		}
-	}
-	else {
-		// [TODO] How to tell p() function a->list[i]'s ptr?
-		//for (i = 0; i < asize; i++) {
-		//	O_ct(a->list[i])->p(_ctx, sfp, 0, wb, 0);
-		//	kwb_printf(wb, "%s", ", ");
-		//}
-	}
-	wb->m->bytesize -= 2; // delete last camma
-	kwb_printf(wb, "%s", "]");
-}
-
 //#define Array_setsize(A, N)  ((struct _kArray*)A)->size = N
 
 static void Array_add(CTX, kArray *o, kObject *value)
@@ -803,7 +781,6 @@ static void loadInitStructData(CTX)
 		.init = Array_init,
 		.reftrace = Array_reftrace,
 		.free = Array_free,
-		.p = Array_p,
 	};
 	KDEFINE_CLASS defParam = {
 		CLASSNAME(Param),
