@@ -359,7 +359,7 @@ static KMETHOD Json_dump(CTX, ksfp_t *sfp _RIX)
 
 static	kbool_t json_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
 {
-	//KREQUIRE_PACKAGE("konoha.float", pline);
+	KREQUIRE_PACKAGE("konoha.float", pline);
 	//KREQUIRE_PACKAGE("konoha.string", pline);
 	KDEFINE_CLASS defJson = {
 		STRUCTNAME(Json),
