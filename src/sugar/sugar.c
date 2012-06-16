@@ -505,35 +505,6 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 	return &PKGDEFNULL;
 }
 
-#ifndef K_PREFIX
-#define K_PREFIX  "/usr/local"
-#endif
-
-static const char* packagepath(CTX, char *buf, size_t bufsiz, kString *pkgname)
-{
-	char *path = getenv("KONOHA_PACKAGEPATH"), *local = "";
-	const char *fname = S_text(pkgname);
-	if(path == NULL) {
-		path = getenv("KONOHA_HOME");
-		local = "/package";
-	}
-	if(path == NULL) {
-		path = getenv("HOME");
-		local = "/.konoha2/package";
-	}
-	snprintf(buf, bufsiz, "%s%s/%s/%s_glue.k", path, local, fname, packname(fname));
-#ifdef K_PREFIX
-	FILE *fp = fopen(buf, "r");
-	if(fp != NULL) {
-		fclose(fp);
-	}
-	else {
-		snprintf(buf, bufsiz, K_PREFIX "/konoha2/package" "/%s/%s_glue.k", fname, packname(fname));
-	}
-#endif
-	return (const char*)buf;
-}
-
 static kline_t scriptfileid(CTX, char *pathbuf, size_t bufsiz, const char *pname)
 {
 	char *p = strrchr(pathbuf, '/');
@@ -557,7 +528,7 @@ static kKonohaSpace* new_KonohaSpace(CTX, kpack_t packdom, kpack_t packid)
 static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 {
 	char fbuf[256];
-	const char *path = packagepath(_ctx, fbuf, sizeof(fbuf), PN_s(packid));
+	const char *path = PLAT packagepath(fbuf, sizeof(fbuf), S_text(PN_s(packid)));
 	FILE *fp = fopen(path, "r");
 	kpackage_t *pack = NULL;
 	if(fp != NULL) {

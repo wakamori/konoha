@@ -78,9 +78,15 @@
 /* ------------------------------------------------------------------------ */
 /* platform */
 
+#define PLAT (_ctx->plat)->
+
 typedef struct {
+	// settings
 	const char *name;
 	size_t stacksize;
+	// low-level functions
+
+	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
 } kplatform_t;
 
