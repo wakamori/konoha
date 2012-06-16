@@ -125,8 +125,8 @@ set(PACKAGES
 ##	konoha.subproc
 ##	konoha.mpi
 	konoha.bytes
-	konoha.curl
-	konoha.json
+##	konoha.curl
+##	konoha.json
 	ijit
 	python
 )
