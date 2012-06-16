@@ -1,9 +1,8 @@
-K.import("konoha");
-//K.import("konoha.float");
-K.import("konoha.string");
+//K.import("konoha");
+//K.import("konoha.string");
 K.import("konoha.json");
-K.import("konoha.bytes");
-K.import("posix.file");
+//K.import("konoha.bytes");
+//K.import("posix.file");
 
 void main() {
 	FILE f = System.fopen("../../../../package/konoha.json/test/Debug/json_sample.txt", "r");
@@ -15,11 +14,7 @@ void main() {
 	Json j = new Json();
 	Json parsed = j.parse(str);
 	Json[] a = parsed.getArray("array");
-	//p(a);
 	p(a[0]);
-	//p(a[0].getString("foo"));
-	//p("hi");
-
 }
 
 main();

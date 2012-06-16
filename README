@@ -4,23 +4,24 @@ KONOHA SCRIPTING LANGUAGE
 WHAT IS KONOHA?
 ---------------
 
-Konoha is a new scripting language.
+Konoha is a scripting language, characterized by: 
 
  * simple
  * static
- * syntactic extensible
+ * syntax extensible
 
-But its language is not new. The language core, called mini-konoha, is very simple:
+The language is based on C-like grammar, not new for everybody.
+You will extend your needed grammar as you like.
 (To be announced)
 
 INSTALL AND TRY
 ---------------
 
-You'll have to make a few steps. Try:
+You'll have to make a few steps. Type in::
 
 	$ mkdir build
 	$ cd build
-	$ cmake ../
+	$ cmake ..
 	$ make
 	$ sudo make install
 
@@ -30,7 +31,7 @@ an interactive mode.
 	$ konoha
 	Konoha 2.0-alpha (Miyajima) (593, May 11 2012)
 	[gcc 4.2.1 (Apple Inc. build 5666) (dot 3)]
-	options: verbose bmgc minivm sugar
+	options: bmgc minivm sugar
 	>>> System.p("hello world");
 	 - ((shell):1) hello world
 
@@ -42,10 +43,10 @@ any kinds of useful information about Konoha, you'll at first visit
 the following sites:
 
 	http://konohascript.org
-	http://code.google.com/p/konoha
+	http://github.com/konoha-project/a
 
-We recommend you to join one of the following groups. Any comment 
-and questions are welcome!!
+We recommend you to join one of the following groups. 
+Any comment and questions are welcome!!
 
 	http://groups.google.com/group/konoha-users
 

@@ -39,7 +39,7 @@ extern kMethod* NameSpace_getMethodNULL(CTX, kNameSpace *ns, kcid_t cid, kmethod
 #define DF_(X)   ((const char*)(X))
 #define FF_(X)   (kMethod_##X)
 #endif
-static const char *T_kw_(CTX, keyword_t kw) { return NULL; }
+static const char *KW_t_(CTX, keyword_t kw) { return NULL; }
 static kString *Skw_(CTX, keyword_t kw) { return NULL; }
 
 static KMETHOD DummyBase_f(CTX, ksfp_t *sfp _RIX) {}
@@ -88,9 +88,9 @@ void test_getMethod(CTX)
 {
     kMethod *mtd;
     kmethodn_t mn_f, mn_g, mn_h;
-    mn_f = ksymbol("f", 127, FN_NEWID, SYMPOL_METHOD);
-    mn_g = ksymbol("g", 127, FN_NEWID, SYMPOL_METHOD);
-    mn_h = ksymbol("h", 127, FN_NEWID, SYMPOL_METHOD);
+    mn_f = ksymbol("f", 127, SYM_NEWID, SYMPOL_METHOD);
+    mn_g = ksymbol("g", 127, SYM_NEWID, SYMPOL_METHOD);
+    mn_h = ksymbol("h", 127, SYM_NEWID, SYMPOL_METHOD);
 
     mtd = NameSpace_getMethodNULL(_ctx, kmodsugar->rootns,
             ct_dummy->cid, mn_f);
@@ -112,7 +112,10 @@ void test_getMethod(CTX)
 
 int main(int argc, const char *argv[])
 {
-    konoha_t konoha = konoha_open();
+	static kplatform_t plat = {
+    	"test", 4096,
+    };
+    konoha_t konoha = konoha_open((const kplatform_t*)&plat);
     init_test(konoha);
     test_getMethod(konoha);
     konoha_close(konoha);

@@ -51,7 +51,7 @@ static const char* T_emsg(CTX, int pe)
 	return "(unknown)";
 }
 
-static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va_list ap)
+static kString* vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va_list ap)
 {
 	const char *msg = T_emsg(_ctx, pe);
 	size_t errref = ((size_t)-1);
@@ -61,12 +61,7 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 		kwb_init(&base->cwb, &wb);
 		if(uline > 0) {
 			const char *file = SS_t(uline);
-//			if(lpos != -1) {
-//				kwb_printf(&wb, "%s (%s:%d+%d) " , msg, shortfilename(file), (kushort_t)uline, (int)lpos+1);
-//			}
-//			else {
-				kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
-//			}
+			kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
 		}
 		else {
 			kwb_printf(&wb, "%s " , msg);
@@ -80,59 +75,125 @@ static size_t vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va
 			base->err_count ++;
 		}
 		kreport(pe, S_text(emsg));
+		return emsg;
 	}
-	return errref;
+	return NULL;
 }
 
-#define SUGAR_P(PE, UL, POS, FMT, ...)  sugar_p(_ctx, PE, UL, POS, FMT,  ## __VA_ARGS__)
+#define SUGAR_P(PE, UL, POS, FMT, ...)  S/*sugar_p(_ctx, PE, UL, POS, FMT,  ## __VA_ARGS__)*/
+#define pWARN(UL, FMT, ...) sugar_p(_ctx, WARN_, UL, -1, FMT, ## __VA_ARGS__)
 #define ERR_SyntaxError(UL)  SUGAR_P(ERR_, UL, -1, "syntax sugar error at %s:%d", __FUNCTION__, __LINE__)
 
-static size_t sugar_p(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...)
+static kString* sugar_p(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	size_t errref = vperrorf(_ctx, pe, uline, lpos, fmt, ap);
+	kString *errmsg = vperrorf(_ctx, pe, uline, lpos, fmt, ap);
 	va_end(ap);
-	return errref;
+	return errmsg;
 }
 
-#define kToken_p(TK, PE, FMT, ...)   Token_p(_ctx, TK, PE, FMT, ## __VA_ARGS__)
-#define kExpr_p(E, PE, FMT, ...)     Expr_p(_ctx, E, PE, FMT, ## __VA_ARGS__)
-static kExpr* Token_p(CTX, kToken *tk, int pe, const char *fmt, ...)
+static void Token_pERR(CTX, struct _kToken *tk, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	vperrorf(_ctx, pe, tk->uline, tk->lpos, fmt, ap);
+	kString *errmsg = vperrorf(_ctx, ERR_, tk->uline, -1, fmt, ap);
+	va_end(ap);
+	KSETv(tk->text, errmsg);
+	tk->tt = TK_ERR;
+}
+
+#define kStmt_toERR(STMT, ENO)  Stmt_toERR(_ctx, STMT, ENO)
+#define kStmt_isERR(STMT)       ((STMT)->build == TSTMT_ERR)
+static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, keyword_t kw, int isnew);
+
+static void Stmt_toERR(CTX, kStmt *stmt, kString *errmsg)
+{
+	((struct _kStmt*)stmt)->syn   = SYN_(kStmt_ks(stmt), KW_Err);
+	((struct _kStmt*)stmt)->build = TSTMT_ERR;
+	kObject_setObject(stmt, KW_Err, errmsg);
+}
+
+static inline void kStmt_errline(kStmt *stmt, kline_t uline)
+{
+	((struct _kStmt*)stmt)->uline = uline;
+}
+
+static kline_t Expr_uline(CTX, kExpr *expr, kline_t uline)
+{
+	kToken *tk = expr->tk;
+	DBG_ASSERT(IS_Expr(expr));
+	if(IS_Token(tk) && tk->uline >= uline) {
+		return tk->uline;
+	}
+	kArray *a = expr->cons;
+	if(a != NULL && IS_Array(a)) {
+		size_t i;
+		for(i=0; i < kArray_size(a); i++) {
+			tk = a->toks[i];
+			if(IS_Token(tk) && tk->uline >= uline) {
+				return tk->uline;
+			}
+			if(IS_Expr(tk)) {
+				return Expr_uline(_ctx, a->exprs[i], uline);
+			}
+		}
+	}
+	return uline;
+}
+
+#define kStmt_p(STMT, PE, FMT, ...)        Stmt_p(_ctx, STMT, NULL, PE, FMT, ## __VA_ARGS__)
+#define kToken_p(STMT, TK, PE, FMT, ...)   Stmt_p(_ctx, STMT, TK, PE, FMT, ## __VA_ARGS__)
+#define kExpr_p(STMT, EXPR, PE, FMT, ...)  Stmt_p(_ctx, STMT, (kToken*)EXPR, PE, FMT, ## __VA_ARGS__)
+
+static kExpr* Stmt_p(CTX, kStmt *stmt, kToken *tk, int pe, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	kline_t uline = stmt->uline;
+	if(tk != NULL && pe <= ERR_ ) {
+		if(IS_Token(tk)) {
+			uline = tk->uline;
+		}
+		else if(IS_Expr(tk)) {
+			uline = Expr_uline(_ctx, (kExpr*)tk, uline);
+		}
+	}
+	kString *errmsg = vperrorf(_ctx, pe, uline, -1, fmt, ap);
+	if(pe <= ERR_ && !kStmt_isERR(stmt)) {
+		kStmt_toERR(stmt, errmsg);
+	}
 	va_end(ap);
 	return K_NULLEXPR;
 }
 
-#define kerrno   Kerrno(_ctx)
-#define kstrerror(ENO)  Kstrerror(_ctx, ENO)
-
-static int Kerrno(CTX)
+#define kToken_s(tk) kToken_s_(_ctx, tk)
+static const char *kToken_s_(CTX, kToken *tk)
 {
-	return kArray_size(ctxsugar->errors);
-}
-
-static kString* Kstrerror(CTX, int eno)
-{
-	ctxsugar_t *base = ctxsugar;
-	size_t i;
-	for(i = eno; i < kArray_size(base->errors); i++) {
-		kString *emsg = base->errors->strings[i];
-		if(strstr(S_text(emsg), "(error)") != NULL) {
-			return emsg;
-		}
+	switch((int)tk->tt) {
+	case TK_INDENT: return "end of line";
+	case TK_CODE: ;
+	case AST_BRACE: return "{... }";
+	case AST_PARENTHESIS: return "(... )";
+	case AST_BRACKET: return "[... ]";
+	default:  return S_text(tk->text);
 	}
-	DBG_ABORT("kerrno=%d, |errmsgs|=%d", kerrno, kArray_size(base->errors));
-	return TS_EMPTY;
 }
 
-//static void WARN_MustCloseWith(CTX, kline_t uline, int ch)
-//{
-//	SUGAR_P(WARN_, uline, 0, "must close with %c", ch);
-//}
+static void WARN_Ignored(CTX, kArray *tls, int s, int e)
+{
+	if(s < e) {
+		int i = s;
+		kwb_t wb;
+		kwb_init(&(_ctx->stack->cwb), &wb);
+		kwb_printf(&wb, "%s", kToken_s(tls->toks[i])); i++;
+		while(i < e) {
+			kwb_printf(&wb, " %s", kToken_s(tls->toks[i])); i++;
+		}
+		pWARN(tls->toks[s]->uline, "ignored tokens: %s", kwb_top(&wb, 1));
+		kwb_free(&wb);
+	}
+}
 
 #ifdef __cplusplus
 }

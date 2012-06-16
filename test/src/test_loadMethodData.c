@@ -42,7 +42,7 @@
 #define FF_(X)   (kMethod_##X)
 #endif
 
-static const char *T_kw_(CTX, keyword_t kw) { return NULL; }
+static const char *KW_t_(CTX, keyword_t kw) { return NULL; }
 static kString *Skw_(CTX, keyword_t kw) { return NULL; }
 
 static const char *MethodData[] = {
@@ -68,7 +68,10 @@ void test_KloadMethodData(CTX)
 
 int main(int argc, const char *argv[])
 {
-    konoha_t konoha = konoha_open();
+    static kplatform_t plat = {
+    	"test", 4096,
+    };
+    konoha_t konoha = konoha_open((const kplatform_t*)&plat);
     test_KloadMethodData(konoha);
     konoha_close(konoha);
     MODGC_check_malloced_size();

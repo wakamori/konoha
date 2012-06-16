@@ -90,10 +90,14 @@ struct _kSubproc {
 #define IS_Subproc(O)      ((O)->h.ct == CT_Subproc)
 
 /* ------------------------------------------------------------------------ */
-/* [global variables] */
+/* [global varibals]
+ */
 
 static jmp_buf env;
-static void alarmHandler(int sig) { siglongjmp(env, 1); }
+
+static void alarmHandler(int sig) {
+		siglongjmp(env, 1);
+}
 static int fgPid;
 static void keyIntHandler(int sig) { kill(fgPid, SIGINT); }
 
@@ -116,7 +120,8 @@ static void keyIntHandler(int sig) { kill(fgPid, SIGINT); }
 #define MAXARGS            128				// the number maximum of parameters for spSplit
 #define BUFSIZE            64 * 1024		// the reading buffer size maximum for pipe
 #define DELAY              1000				// the adjustment value at the time of signal transmission
-#define DEF_TIMEOUT        10 * 1000		// default timeout value
+#define DEF_TIMEOUT        10 * 1000		// default timeout valx
+//#define DEF_TIMEOUT -1
 #define ONEXEC(p)          ( (p != NULL) && (p->cpid > 0) ) ? 1 : 0
 #define PREEXEC(p)         ( (p != NULL) && (p->cpid == -1) ) ? 1 : 0
 #define WORD2INT(val)      (sizeof(val)==8) ? (val&0x7FFFFFFF)|((val>>32)&0x80000000) : val
@@ -416,7 +421,7 @@ static int knh_popen(CTX, kString* command, subprocData_t *spd, int defaultMode)
 		// parent process normal route
 #if defined(SUBPROC_ENABLE_RESOURCEMONITOR)
 		ATTACH_RESOURCE_MONITOR_FOR_CHILD(spd, pid);
-		size_t mem = FETCH_MEM_FROM_RESOURCE_MONITOR(spd);
+//		size_t mem = FETCH_MEM_FROM_RESOURCE_MONITOR(spd);
 //		fprintf(stderr, "menusage:%.1fM\n", (double)mem / (1024.0 * 1024.0));
 		CLEANUP_RESOURCE_MONITOR(spd);
 #endif
@@ -489,10 +494,14 @@ static int knh_wait(CTX, int pid, int bg, int timeout, int *status ) {
 	}
 	int stat;
 	waitpid(pid, &stat, WUNTRACED);
-
 	if(timeout > 0) {
 		// SIGALRM release
-		setitimer(ITIMER_REAL, NULL, NULL);
+		struct itimerval its;
+		its.it_value.tv_sec = 0;
+		its.it_value.tv_usec = 0;
+		its.it_interval.tv_sec = 0;
+		its.it_interval.tv_usec = 0;
+		setitimer(ITIMER_REAL, &its, NULL);
 		if(alarm_oldset != SIG_ERR) {
 			signal(SIGALRM, alarm_oldset);
 		}
@@ -718,8 +727,12 @@ KMETHOD Subproc_exec(CTX, ksfp_t *sfp _RIX)
 					KEYVALUE_s("errstr", strerror(errno))
 			);
 		}
-//		KNH_NTRACE2(_ctx, "package.subproc.exec ", K_PERROR, KNH_LDATA0);
+		struct itimerval val;
+		getitimer(ITIMER_REAL, &val);
+		val.it_value.tv_sec = 0;
+		setitimer(ITIMER_REAL, &val, NULL);
 	}
+	// remove alarm
 	RETURN_( ret_s );
 }
 

@@ -48,19 +48,19 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ TOKEN("$ERR"), .flag = SYNFLAG_StmtBreakExec, },
-		{ TOKEN("$expr"), .rule ="$expr", ParseStmt_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
-		{ TOKEN("$SYMBOL"),  _TERM, ParseStmt_(Symbol),  ExprTyCheck_(Symbol),},
-		{ TOKEN("$USYMBOL"), _TERM, ParseStmt_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
+		{ TOKEN("$expr"), .rule ="$expr", PatternMatch_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
+		{ TOKEN("$SYMBOL"),  _TERM, PatternMatch_(Symbol),  ExprTyCheck_(Symbol),},
+		{ TOKEN("$USYMBOL"), _TERM, PatternMatch_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
 		{ TOKEN("$TEXT"), _TERM, ExprTyCheck_(Text),},
 		{ TOKEN("$INT"), _TERM, ExprTyCheck_(Int),},
 		{ TOKEN("$FLOAT"), _TERM, /* ExprTyCheck_(FLOAT), */},
-		{ TOKEN("$type"), _TERM, ParseStmt_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
+		{ TOKEN("$type"), _TERM, PatternMatch_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
 		{ TOKEN("()"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(Parenthesis), .priority_op2 = 16, ExprTyCheck_(FuncStyleCall),}, //AST_PARENTHESIS
 		{ TOKEN("[]"),  },  //AST_BRACKET
 		{ TOKEN("{}"),  }, // AST_BRACE
-		{ TOKEN("$block"), ParseStmt_(Block), ExprTyCheck_(Block), },
-		{ TOKEN("$params"), ParseStmt_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
-		{ TOKEN("$toks"), ParseStmt_(Toks), },
+		{ TOKEN("$block"), PatternMatch_(Block), ExprTyCheck_(Block), },
+		{ TOKEN("$params"), PatternMatch_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
+		{ TOKEN("$toks"), PatternMatch_(Toks), },
 		{ TOKEN("."), ParseExpr_(DOT), .priority_op2 = 16, },
 		{ TOKEN("/"), _OP, .op2 = "opDIV", .priority_op2 = 32, },
 		{ TOKEN("%"), _OP, .op2 = "opMOD", .priority_op2 = 32, },
@@ -272,11 +272,11 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	knull(base->cBlock);
 	kmodsugar_setup(_ctx, &base->h, 0);
 
-	KINITv(base->UndefinedParseExpr,   new_SugarMethod(UndefinedParseExpr));
-	KINITv(base->UndefinedStmtTyCheck, new_SugarMethod(UndefinedStmtTyCheck));
-	KINITv(base->UndefinedExprTyCheck, new_SugarMethod(UndefinedExprTyCheck));
-	KINITv(base->ParseExpr_Op,   new_SugarMethod(ParseExpr_Op));
-	KINITv(base->ParseExpr_Term, new_SugarMethod(ParseExpr_Term));
+	KINITv(base->UndefinedParseExpr,   new_SugarFunc(UndefinedParseExpr));
+	KINITv(base->UndefinedStmtTyCheck, new_SugarFunc(UndefinedStmtTyCheck));
+	KINITv(base->UndefinedExprTyCheck, new_SugarFunc(UndefinedExprTyCheck));
+	KINITv(base->ParseExpr_Op,   new_SugarFunc(ParseExpr_Op));
+	KINITv(base->ParseExpr_Term, new_SugarFunc(ParseExpr_Term));
 
 	defineDefaultSyntax(_ctx, base->rootks);
 	DBG_ASSERT(KW_("$params") == KW_Params);
@@ -284,7 +284,7 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	DBG_ASSERT(KW_(",") == KW_COMMA);
 	DBG_ASSERT(KW_("void") == KW_void);
 	DBG_ASSERT(KW_("return") == KW_return);
-	keyword(_ctx, "new", sizeof("new")-1, FN_NEWID);
+	keyword(_ctx, "new", sizeof("new")-1, SYM_NEWID);
 	DBG_ASSERT(KW_("new") == KW_new);
 	EXPORT_SUGAR(base);
 }
@@ -505,35 +505,6 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 	return &PKGDEFNULL;
 }
 
-#ifndef K_PREFIX
-#define K_PREFIX  "/usr/local"
-#endif
-
-static const char* packagepath(CTX, char *buf, size_t bufsiz, kString *pkgname)
-{
-	char *path = getenv("KONOHA_PACKAGEPATH"), *local = "";
-	const char *fname = S_text(pkgname);
-	if(path == NULL) {
-		path = getenv("KONOHA_HOME");
-		local = "/package";
-	}
-	if(path == NULL) {
-		path = getenv("HOME");
-		local = "/.konoha2/package";
-	}
-	snprintf(buf, bufsiz, "%s%s/%s/%s_glue.k", path, local, fname, packname(fname));
-#ifdef K_PREFIX
-	FILE *fp = fopen(buf, "r");
-	if(fp != NULL) {
-		fclose(fp);
-	}
-	else {
-		snprintf(buf, bufsiz, K_PREFIX "/konoha2/package" "/%s/%s_glue.k", fname, packname(fname));
-	}
-#endif
-	return (const char*)buf;
-}
-
 static kline_t scriptfileid(CTX, char *pathbuf, size_t bufsiz, const char *pname)
 {
 	char *p = strrchr(pathbuf, '/');
@@ -557,7 +528,7 @@ static kKonohaSpace* new_KonohaSpace(CTX, kpack_t packdom, kpack_t packid)
 static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 {
 	char fbuf[256];
-	const char *path = packagepath(_ctx, fbuf, sizeof(fbuf), PN_s(packid));
+	const char *path = PLAT packagepath(fbuf, sizeof(fbuf), S_text(PN_s(packid)));
 	FILE *fp = fopen(path, "r");
 	kpackage_t *pack = NULL;
 	if(fp != NULL) {

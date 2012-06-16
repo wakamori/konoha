@@ -96,8 +96,7 @@ static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 
 static kinline const char* SYM_PRE(ksymbol_t sym)
 {
-	int mask = SYM_HEAD(sym) >> ((sizeof(ksymbol_t) * 2)-3);
-//	fprintf(stderr, "mask=%d\n", mask);
+	size_t mask = ((size_t)(SYM_HEAD(sym)) >> ((sizeof(ksymbol_t) * 8)-3));
 	DBG_ASSERT(mask < 8);
 	static const char* prefixes[] = {
 		/*000*/ "",   /*001*/ "get", /*010*/ "set", /*011*/ "@",

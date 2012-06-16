@@ -71,9 +71,9 @@ void test_mtd_load(CTX)
     knh_Fmethod fmtd;
     kmethodn_t mn;
     kparam_t p[] = {{TY_Int, 0}, {TY_Int, 0}};
-    p[0].fn = _ctx->lib2->Ksymbol(_ctx, "arg0", 4, FN_NEWID, 0);
-    p[1].fn = _ctx->lib2->Ksymbol(_ctx, "arg1", 4, FN_NEWID, 0);
-    mn = _ctx->lib2->Ksymbol(_ctx, "f", 1, MN_NEWID, 0);
+    p[0].fn = _ctx->lib2->Ksymbol(_ctx, "arg0", 4, SYM_NEWID, 0);
+    p[1].fn = _ctx->lib2->Ksymbol(_ctx, "arg1", 4, SYM_NEWID, 0);
+    mn = _ctx->lib2->Ksymbol(_ctx, "f", 1, SYM_NEWID, 0);
 
     pa   = _ctx->lib2->Knew_Param(_ctx, TY_Int, 2, p);
     mtd  = _ctx->lib2->Knew_Method(_ctx, 0, sample_cid, mn, pa, 0);
@@ -83,7 +83,10 @@ void test_mtd_load(CTX)
 
 int main(int argc, const char *argv[])
 {
-    konoha_t konoha = konoha_open();
+    static kplatform_t plat = {
+    	"test", 4096,
+    };
+    konoha_t konoha = konoha_open((const kplatform_t*)&plat);
     test_module_load(konoha);
     test_classdef_load(konoha);
     test_mtd_load(konoha);

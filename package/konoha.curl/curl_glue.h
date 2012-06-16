@@ -40,6 +40,7 @@ extern struct kcontext_t *ctx;
 typedef const struct _kCurl kCurl;
 struct _kCurl {
 	kObjectHeader h;
+	struct curl_slist *headers;
 	CURL *curl;
 };
 
@@ -56,17 +57,12 @@ typedef struct curl_context_t {
 
 #define toCurlContext(context) ((curl_context_t *)context)
 
-static kString *kwb_newString(CTX, kwb_t *wb, int flg)
-{
-	return new_kString(kwb_top(wb, flg), kwb_bytesize(wb), SPOL_POOL);
-}
-
 /*String call back*/
 static size_t write_String(char *buffer, size_t size, size_t nitems, void *string)
 {
 	CTX_t _ctx = (CTX_t)ctx;
 	kwb_t wb;
-	kwb_init(&_ctx->stack->cwb, &wb);
+	kwb_init(&(_ctx->stack->cwb), &wb);
 	struct _kString *res = (struct _kString *)string;
 	kString *str;
 	char *buf = S_tobytes(res);
@@ -75,9 +71,11 @@ static size_t write_String(char *buffer, size_t size, size_t nitems, void *strin
 	}
 	size *= nitems;
 	kwb_write(&wb, buffer, size);
-	str = kwb_newString(_ctx, &wb, 0);
-	res->ubuf = str->ubuf;
-	res->bytesize = str->bytesize;
+	str = new_kString(kwb_top(&wb, 0), kwb_bytesize(&wb), SPOL_POOL);
+	res->ubuf = str->ubuf + res->bytesize;// - str->ubuf;
+	res->bytesize = str->bytesize - res->bytesize;// - str->bytesize;
+	KSETv(res, str);
+	kwb_free(&wb);
 	return size;
 }
 
@@ -93,6 +91,7 @@ static size_t write_Bytes(char *buffer, size_t size, size_t nitems, void *bytes)
 //	memcpy(res->buf + res->bytesize, (void *)buffer, size);
 //	res->bytesize += size;
 //	return size;
+	return 0;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -104,6 +103,7 @@ static size_t write_Bytes(char *buffer, size_t size, size_t nitems, void *bytes)
 static void Curl_init(CTX, kObject *o, void *conf)
 {
 	struct _kCurl *c = (struct _kCurl *)o;
+	c->headers = NULL;
 	c->curl = curl_easy_init();
 }
 
@@ -242,7 +242,6 @@ static KMETHOD Curl_setOpt(CTX, ksfp_t *sfp _RIX)
 		break;
 	}
 	case CURLOPT_FILE:
-	case CURLOPT_INFILE:
 	case CURLOPT_STDERR:
 	case CURLOPT_WRITEHEADER:
 ////		if(IS_OutputStream(sfp[2].o)) {
@@ -279,6 +278,23 @@ static KMETHOD Curl_setOpt(CTX, ksfp_t *sfp _RIX)
 //					}
 //					break;
 //				}
+	case CURLOPT_READDATA:
+		if (IS_String(sfp[2].o)) {
+			FILE* wdata = fopen("tmp", "wb");
+			char* raw = String_to(char*, sfp[2]);
+			char* str = (char*)malloc(sizeof(raw) + 3);
+			memset(str, '\0', sizeof(str));
+			str[0] = '\"';
+			strncpy(str+1, raw, sizeof(raw));
+			strcat(str, "\"");
+			fputs(str, wdata);
+			fclose(wdata);
+			FILE* rdata = fopen("tmp", "rb");
+			curl_easy_setopt(curl, CURLOPT_READDATA, rdata);
+			//fclose(rdata);
+			free(str);
+			break;
+		}
 	default: {
 		ktrace(_DataFault,   // FIXME
 				KEYVALUE_s("Curl.setOpt", "UnsupportedOption"),
@@ -291,10 +307,23 @@ static KMETHOD Curl_setOpt(CTX, ksfp_t *sfp _RIX)
 	RETURNvoid_();
 }
 
+//## void Curl.appendHeader();
+static KMETHOD Curl_appendHeader(CTX, ksfp_t *sfp _RIX)
+{
+	struct _kCurl* kcurl = (struct _kCurl*)sfp[0].o;
+	char *h = String_to(char*,sfp[1]);
+	kcurl->headers = curl_slist_append(kcurl->headers, h);
+	RETURNvoid_();
+}
+
 //## boolean Curl.perform();
 static KMETHOD Curl_perform(CTX, ksfp_t *sfp _RIX)
 {
+	kCurl* kcurl = (kCurl*)sfp[0].o;
 	CURL* curl = toCURL(sfp[0].o);
+	if (kcurl->headers) {
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, kcurl->headers);
+	}
 	CURLcode res = curl_easy_perform(curl);
 	if(res != CURLE_OK){
 		// TODO ktrace
@@ -378,6 +407,7 @@ static	kbool_t curl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 	intptr_t MethodData[] = {
 		_Public|_Const|_Im, _F(Curl_new), TY_Curl, TY_Curl, MN_("new"), 0,
 		_Public|_Const|_Im, _F(Curl_setOpt), TY_void, TY_Curl, MN_("setOpt"), 2, TY_Int, FN_("type"), TY_Object/*FIXME TY_Dynamic*/, FN_("data"),
+		_Public|_Const|_Im, _F(Curl_appendHeader), TY_void, TY_Curl, MN_("appendHeader"), 1, TY_String, FN_("header"),
 		_Public|_Const|_Im, _F(Curl_perform), TY_Boolean, TY_Curl, MN_("perform"), 0,
 		_Public|_Const|_Im, _F(Curl_getInfo), TY_Object/*FIXME TY_Dynamic*/, TY_Curl, MN_("getInfo"), 1, TY_Int, FN_("type"),
 		DEND,
@@ -464,7 +494,7 @@ static	kbool_t curl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		{_KVi(CURLOPT_USERPWD)},
 		{_KVi(CURLOPT_FILE)},
 		{_KVi(CURLOPT_WRITEDATA)},
-		{_KVi(CURLOPT_INFILE)},
+		{_KVi(CURLOPT_READDATA)},
 		{_KVi(CURLOPT_STDERR)},
 		{_KVi(CURLOPT_WRITEHEADER)},
 		{_KVi(CURLINFO_HEADER_SIZE)},

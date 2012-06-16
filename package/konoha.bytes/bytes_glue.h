@@ -379,7 +379,7 @@ static kbool_t bytes_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 }
 
 
-static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMethod *thunk)
+static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	USING_SUGAR;
 	int ch, prev = '\'', pos = tok_start + 1;
@@ -407,16 +407,14 @@ static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kMe
 static KMETHOD ExprTyCheck_Squote(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ExprTyCheck(expr, syn, gma, reqty);
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	kToken *tk = expr->tk;
 	kString *s = tk->text;
 	if (S_size(s) == 1) {
 		int ch = S_text(s)[0];
 		RETURN_(kExpr_setNConstValue(expr, TY_Int, ch));
 	} else {
-		kline_t uline = SUGAR Expr_uline(_ctx, expr, 1);
-		int lpos = -1;/*why?*/
-		SUGAR p(_ctx, ERR_, uline, lpos, "single quote doesn't accept multi characters, '%s'", S_text(s));
+		SUGAR Stmt_p(_ctx, stmt, (kToken*)expr, ERR_, "single quote doesn't accept multi characters, '%s'", S_text(s));
 	}
 	RETURN_(K_NULLEXPR);
 }

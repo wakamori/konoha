@@ -138,7 +138,6 @@ static KMETHOD Json_getInt(CTX, ksfp_t *sfp _RIX)
 	RETURNi_((kint_t)val);
 }
 
-//## Array Json.getArray(String key);
 static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
 {
 	json_t* obj = ((struct _kJson*)sfp[0].o)->obj;

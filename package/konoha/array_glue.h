@@ -53,6 +53,14 @@ static KMETHOD Array_set(CTX, ksfp_t *sfp _RIX)
 	}
 }
 
+//## method int Array.getSize();
+static KMETHOD Array_getSize(CTX, ksfp_t *sfp _RIX)
+{
+	kArray *a = sfp[0].a;
+	RETURNi_(kArray_size(a));
+}
+
+
 static KMETHOD Array_newArray(CTX, ksfp_t *sfp _RIX)
 {
 	struct _kArray *a = (struct _kArray *)sfp[0].o;
@@ -119,6 +127,7 @@ static	kbool_t array_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	intptr_t MethodData[] = {
 		_Public|_Im, _F(Array_get), TY_T0,   TY_Array, MN_("get"), 1, TY_Int, FN_("index"),
 		_Public,     _F(Array_set), TY_void, TY_Array, MN_("set"), 2, TY_Int, FN_("index"),  TY_T0, FN_("value"),
+		_Public,     _F(Array_getSize), TY_Int, TY_Array, MN_("getSize"), 0,
 		_Public,     _F(Array_newArray), TY_Array, TY_Array, MN_("newArray"), 1, TY_Int, FN_("size"),
 		_Public,     _F(Array_add1), TY_void, TY_Array, MN_("add"), 1, TY_T0, FN_("value"),
 		DEND,
@@ -135,7 +144,7 @@ static kbool_t array_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	VAR_ParseExpr(stmt, syn, tls, s, c, e);
+	VAR_ParseExpr(stmt, tls, s, c, e);
 	DBG_P("parse bracket!!");
 	kToken *tk = tls->toks[c];
 	if(s == c) { // TODO
@@ -155,7 +164,7 @@ static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 			struct _kToken *tkN = new_W(Token, 0);
 			tkN->tt = TK_MN; tkN->mn = MN_toGETTER(0);
 			tkN->uline = tk->uline;
-			syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
+			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			lexpr  = SUGAR new_ConsExpr(_ctx, syn, 2, tkN, lexpr);
 			lexpr = SUGAR Stmt_addExprParams(_ctx, stmt, lexpr, tk->sub, 0, kArray_size(tk->sub), 1/*allowEmpty*/);
 		}

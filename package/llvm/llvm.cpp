@@ -165,6 +165,12 @@ inline void SetRawPtr(kObject *po, void *rawptr)
 
 using namespace llvm;
 
+#if LLVM_VERSION <= 209
+typedef const Type LLVMTYPE;
+#else
+typedef Type LLVMTYPE;
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2105,7 +2111,7 @@ static KMETHOD Function_create(CTX, ksfp_t *sfp _RIX)
 static KMETHOD Function_getReturnType(CTX, ksfp_t *sfp _RIX)
 {
 	Function *F = konoha::object_cast<Function *>(sfp[0].o);
-	Type *ptr = F->getReturnType();
+	LLVMTYPE *ptr = F->getReturnType();
 	kObject *p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2603,7 +2609,7 @@ static KMETHOD DynamicLibrary_searchForAddressOfSymbol(CTX _UNUSED_, ksfp_t *sfp
 	kint_t ret = 0;
 	void *symAddr = NULL;
 #if LLVM_VERSION <= 208
-	(void)_ctx;(void)sfp;(void)K_RIX;
+	(void)_ctx;(void)sfp;(void)K_RIX;(void)fname;
 	LLVM_TODO("NO SUPPORT");
 	//symAddr = GetAddressOfSymbol(fname);
 #else
@@ -2859,9 +2865,14 @@ static KMETHOD ConstantExpr_getOffsetOf(CTX, ksfp_t *sfp _RIX)
 static KMETHOD ConstantExpr_getNeg(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c = konoha::object_cast<Constant*>(sfp[1].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getNeg(c);
+#else
 	bool hasNUW = sfp[2].bvalue;
 	bool hasNSW = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getNeg(c, hasNUW, hasNSW);
+	ptr = ConstantExpr::getNeg(c, hasNUW, hasNSW);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2889,9 +2900,14 @@ static KMETHOD ConstantExpr_getAdd(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getAdd(c1, c2);
+#else
 	bool hasNUW = sfp[3].bvalue;
 	bool hasNSW = sfp[4].bvalue;
-	Constant* ptr = ConstantExpr::getAdd(c1, c2, hasNUW, hasNSW);
+	ptr = ConstantExpr::getAdd(c1, c2, hasNUW, hasNSW);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2911,9 +2927,14 @@ static KMETHOD ConstantExpr_getSub(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getSub(c1, c2);
+#else
 	bool hasNUW = sfp[3].bvalue;
 	bool hasNSW = sfp[4].bvalue;
-	Constant* ptr = ConstantExpr::getSub(c1, c2, hasNUW, hasNSW);
+	ptr = ConstantExpr::getSub(c1, c2, hasNUW, hasNSW);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2933,9 +2954,14 @@ static KMETHOD ConstantExpr_getMul(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getMul(c1, c2);
+#else
 	bool hasNUW = sfp[3].bvalue;
 	bool hasNSW = sfp[4].bvalue;
-	Constant* ptr = ConstantExpr::getMul(c1, c2, hasNUW, hasNSW);
+	ptr = ConstantExpr::getMul(c1, c2, hasNUW, hasNSW);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2955,8 +2981,13 @@ static KMETHOD ConstantExpr_getUDiv(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getUDiv(c1, c2);
+#else
 	bool isExact = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getUDiv(c1, c2, isExact);
+	ptr = ConstantExpr::getUDiv(c1, c2, isExact);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -2966,8 +2997,13 @@ static KMETHOD ConstantExpr_getSDiv(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getSDiv(c1, c2);
+#else
 	bool isExact = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getSDiv(c1, c2, isExact);
+	ptr = ConstantExpr::getSDiv(c1, c2, isExact);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3047,9 +3083,14 @@ static KMETHOD ConstantExpr_getShl(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getShl(c1, c2);
+#else
 	bool hasNUW = sfp[3].bvalue;
 	bool hasNSW = sfp[4].bvalue;
-	Constant* ptr = ConstantExpr::getShl(c1, c2, hasNUW, hasNSW);
+	ptr = ConstantExpr::getShl(c1, c2, hasNUW, hasNSW);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3059,8 +3100,13 @@ static KMETHOD ConstantExpr_getLShr(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getLShr(c1, c2);
+#else
 	bool isExact = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getLShr(c1, c2, isExact);
+	ptr = ConstantExpr::getLShr(c1, c2, isExact);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3070,8 +3116,13 @@ static KMETHOD ConstantExpr_getAShr(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getAShr(c1, c2);
+#else
 	bool isExact = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getAShr(c1, c2, isExact);
+	ptr = ConstantExpr::getAShr(c1, c2, isExact);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3277,21 +3328,31 @@ static KMETHOD ConstantExpr_getNUWMul(CTX, ksfp_t *sfp _RIX)
 //## Constant* ConstantExpr::getNSWShl(Constant* c1, Constant* c2);
 static KMETHOD ConstantExpr_getNSWShl(CTX, ksfp_t *sfp _RIX)
 {
+#if LLVM_VERSION <= 208
+	(void)_ctx;(void)sfp;(void)K_RIX;
+	LLVM_TODO("NO SUPPORT");
+#else
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
 	Constant* ptr = ConstantExpr::getNSWShl(c1, c2);
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
+#endif
 }
 
 //## Constant* ConstantExpr::getNUWShl(Constant* c1, Constant* c2);
 static KMETHOD ConstantExpr_getNUWShl(CTX, ksfp_t *sfp _RIX)
 {
+#if LLVM_VERSION <= 208
+	(void)_ctx;(void)sfp;(void)K_RIX;
+	LLVM_TODO("NO SUPPORT");
+#else
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
 	Constant* ptr = ConstantExpr::getNUWShl(c1, c2);
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
+#endif
 }
 
 //## Constant* ConstantExpr::getExactSDiv(Constant* c1, Constant* c2);
@@ -3307,31 +3368,46 @@ static KMETHOD ConstantExpr_getExactSDiv(CTX, ksfp_t *sfp _RIX)
 //## Constant* ConstantExpr::getExactUDiv(Constant* c1, Constant* c2);
 static KMETHOD ConstantExpr_getExactUDiv(CTX, ksfp_t *sfp _RIX)
 {
+#if LLVM_VERSION <= 208
+	(void)_ctx;(void)sfp;(void)K_RIX;
+	LLVM_TODO("NO SUPPORT");
+#else
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
 	Constant* ptr = ConstantExpr::getExactUDiv(c1, c2);
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
+#endif
 }
 
 //## Constant* ConstantExpr::getExactAShr(Constant* c1, Constant* c2);
 static KMETHOD ConstantExpr_getExactAShr(CTX, ksfp_t *sfp _RIX)
 {
+#if LLVM_VERSION <= 208
+	(void)_ctx;(void)sfp;(void)K_RIX;
+	LLVM_TODO("NO SUPPORT");
+#else
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
 	Constant* ptr = ConstantExpr::getExactAShr(c1, c2);
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
+#endif
 }
 
 //## Constant* ConstantExpr::getExactLShr(Constant* c1, Constant* c2);
 static KMETHOD ConstantExpr_getExactLShr(CTX, ksfp_t *sfp _RIX)
 {
+#if LLVM_VERSION <= 208
+	(void)_ctx;(void)sfp;(void)K_RIX;
+	LLVM_TODO("NO SUPPORT");
+#else
 	Constant* c1 = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* c2 = konoha::object_cast<Constant*>(sfp[2].o);
 	Constant* ptr = ConstantExpr::getExactLShr(c1, c2);
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
+#endif
 }
 
 //## Constant* ConstantExpr::getZExtOrBitCast(Constant* c, Type* ty);
@@ -3424,8 +3500,14 @@ static KMETHOD ConstantExpr_getElementPtr0(CTX, ksfp_t *sfp _RIX)
 {
 	Constant* c = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* idx = konoha::object_cast<Constant*>(sfp[2].o);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	Constant *IdxList[] = {idx};
+	ptr = ConstantExpr::getGetElementPtr(c, IdxList, 0);
+#else
 	bool InBounds = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getGetElementPtr(c, idx, InBounds);
+	ptr = ConstantExpr::getGetElementPtr(c, idx, InBounds);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3437,8 +3519,15 @@ static KMETHOD ConstantExpr_getElementPtr(CTX, ksfp_t *sfp _RIX)
 	kArray* _list = sfp[2].a;
 	std::vector<Value*> IdxList;
 	konoha::convert_array(IdxList, _list);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	Value *const *List = &IdxList[0];
+	ptr = ConstantExpr::getGetElementPtr(c, List, 0);
+	fprintf(stderr, "WARN: TEST ME\n");
+#else
 	bool InBounds = sfp[3].bvalue;
-	Constant* ptr = ConstantExpr::getGetElementPtr(c, IdxList, InBounds);
+	ptr = ConstantExpr::getGetElementPtr(c, IdxList, InBounds);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3458,9 +3547,15 @@ static KMETHOD ConstantExpr_getElementPtr(CTX, ksfp_t *sfp _RIX)
 //## Constant* ConstantExpr::getInBoundsGetElementPtr(Constant* c, Constant* idx);
 static KMETHOD ConstantExpr_getInBoundsGetElementPtr0(CTX, ksfp_t *sfp _RIX)
 {
+	Constant* ptr;
 	Constant* c = konoha::object_cast<Constant*>(sfp[1].o);
 	Constant* idx = konoha::object_cast<Constant*>(sfp[2].o);
-	Constant* ptr = ConstantExpr::getInBoundsGetElementPtr(c, idx);
+#if LLVM_VERSION <= 209
+	Constant *IdxList[] = {idx};
+	ptr = ConstantExpr::getInBoundsGetElementPtr(c, IdxList, 0);
+#else
+	ptr = ConstantExpr::getInBoundsGetElementPtr(c, idx);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3472,7 +3567,14 @@ static KMETHOD ConstantExpr_getInBoundsGetElementPtr(CTX, ksfp_t *sfp _RIX)
 	kArray* _list = sfp[2].a;
 	std::vector<Value*> idxList;
 	konoha::convert_array(idxList, _list);
-	Constant* ptr = ConstantExpr::getInBoundsGetElementPtr(c, idxList);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	Value *const *List = &idxList[0];
+	ptr = ConstantExpr::getGetElementPtr(c, List, 0);
+	fprintf(stderr, "WARN: TEST ME\n");
+#else
+	ptr = ConstantExpr::getInBoundsGetElementPtr(c, idxList);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3515,7 +3617,13 @@ static KMETHOD ConstantExpr_getExtractValue(CTX, ksfp_t *sfp _RIX)
 	Constant* Agg = konoha::object_cast<Constant*>(sfp[1].o);
 	kArray* _list = sfp[2].a;
 	std::vector<unsigned> idxs(_list->ilist, _list->ilist+kArray_size(_list));
-	Constant* ptr = ConstantExpr::getExtractValue(Agg, idxs);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getExtractValue(Agg, (const unsigned *) &idxs[0], 0);
+	fprintf(stderr, "WARN: TEST ME\n");
+#else
+	ptr = ConstantExpr::getExtractValue(Agg, idxs);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
@@ -3527,7 +3635,13 @@ static KMETHOD ConstantExpr_getInsertValue(CTX, ksfp_t *sfp _RIX)
 	Constant* val = konoha::object_cast<Constant*>(sfp[2].o);
 	kArray* _list = sfp[3].a;
 	std::vector<unsigned> idxs(_list->ilist, _list->ilist+kArray_size(_list));
-	Constant* ptr = ConstantExpr::getInsertValue(Agg, val, idxs);
+	Constant* ptr;
+#if LLVM_VERSION <= 209
+	ptr = ConstantExpr::getInsertValue(Agg, val, (const unsigned *) &idxs[0], 0);
+	fprintf(stderr, "WARN: TEST ME\n");
+#else
+	ptr = ConstantExpr::getInsertValue(Agg, val, idxs);
+#endif
 	kObject* p = new_ReturnCppObject(_ctx, sfp, WRAP(ptr) K_RIXPARAM);
 	RETURN_(p);
 }
