@@ -49,13 +49,13 @@ static KMETHOD StmtTyCheck_assert(CTX, ksfp_t *sfp _RIX)
 //	USING_SUGAR;
 //	kbool_t r = 1;
 //	VAR_StmtTyCheck(stmt, syn, gma);
-//	if((r = SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0))) {
-//		kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
+//	if((r = SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0))) {
+//		kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 //		kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, TY_KonohaSpace, MN_("assert"));
 //		assert(expr != NULL);
 //		assert(mtd != NULL);
 //		kStmt_toExprCall(stmt, mtd, 2, gma->genv->ks, expr);
-//		expr = kStmt_expr(stmt, KW_Expr, NULL);
+//		expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 //		expr->build = TEXPR_CALL;
 //	}
 //	RETURNb_(r);
@@ -85,14 +85,12 @@ static kbool_t assert_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 	return true;
 }
 
-#define TOKEN(T)  .name = T/*, .namelen = (sizeof(T)-1)*/
-
 static kbool_t assert_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("assert"), .rule = "'assert' '(' $expr ')'", .TopStmtTyCheck = StmtTyCheck_assert, .StmtTyCheck = StmtTyCheck_assert},
-		{ .name = NULL, },
+		{ .kw = SYM_("assert"), .rule = "'assert' '(' $expr ')'", .TopStmtTyCheck = StmtTyCheck_assert, .StmtTyCheck = StmtTyCheck_assert},
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 

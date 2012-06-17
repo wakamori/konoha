@@ -554,6 +554,7 @@ static void NMOV_asm(CTX, int a, ktype_t ty, int b)
 
 static void EXPR_asm(CTX, int a, kExpr *expr, int shift, int espidx)
 {
+	DBG_ASSERT(expr != NULL);
 	//DBG_P("a=%d, shift=%d, espidx=%d", a, shift, espidx);
 	switch(expr->build) {
 	case TEXPR_CONST : {
@@ -771,14 +772,14 @@ static void ASM_SAFEPOINT(CTX, int espidx)
 
 static void ErrStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kString *msg = (kString*)kObject_getObjectNULL(stmt, 0);
+	kString *msg = (kString*)kObject_getObjectNULL(stmt, KW_ERR);
 	DBG_ASSERT(IS_String(msg));
 	ASM(ERROR, SFP_(espidx), msg);
 }
 
 static void ExprStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 	if(IS_Expr(expr)) {
 		EXPR_asm(_ctx, espidx, expr, shift, espidx);
 	}
@@ -787,7 +788,7 @@ static void ExprStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 static void BlockStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
 	USING_SUGAR;
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 }
 
 static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
@@ -796,9 +797,9 @@ static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 	kBasicBlock*  lbELSE = new_BasicBlockLABEL(_ctx);
 	kBasicBlock*  lbEND  = new_BasicBlockLABEL(_ctx);
 	/* if */
-	lbELSE = EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, 1, NULL), 0/*FALSE*/, lbELSE, shift, espidx);
+	lbELSE = EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, KW_ExprPattern, NULL), 0/*FALSE*/, lbELSE, shift, espidx);
 	/* then */
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 	ASM_JMP(_ctx, lbEND);
 	/* else */
 	ASM_LABEL(_ctx, lbELSE);
@@ -809,7 +810,7 @@ static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void ReturnStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 	if(expr != NULL && IS_Expr(expr) && expr->ty != TY_void) {
 		EXPR_asm(_ctx, K_RTNIDX, expr, shift, espidx);
 	}
@@ -822,13 +823,13 @@ static void LoopStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 	kBasicBlock* lbCONTINUE = new_BasicBlockLABEL(_ctx);
 	kBasicBlock* lbBREAK = new_BasicBlockLABEL(_ctx);
 //	BUILD_pushLABEL(_ctx, stmt, lbCONTINUE, lbBREAK);
-	kObject_setObject(stmt, KW_("continue"), lbCONTINUE);
-	kObject_setObject(stmt, KW_("break"), lbBREAK);
+	kObject_setObject(stmt, SYM_("continue"), lbCONTINUE);
+	kObject_setObject(stmt, SYM_("break"), lbBREAK);
 	ASM_LABEL(_ctx, lbCONTINUE);
 	ASM_SAFEPOINT(_ctx, espidx);
-	EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, 1, NULL), 0/*FALSE*/, lbBREAK, shift, espidx);
+	EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, KW_ExprPattern, NULL), 0/*FALSE*/, lbBREAK, shift, espidx);
 	//BLOCK_asm(_ctx, kStmt_block(stmt, KW_("iteration"), K_NULLBLOCK));
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 	ASM_JMP(_ctx, lbCONTINUE);
 	ASM_LABEL(_ctx, lbBREAK);
 //	BUILD_popLABEL(_ctx);
@@ -848,13 +849,13 @@ static void JumpStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void UndefinedStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	DBG_ABORT("undefined asm syntax kw='%s'", KW_t(stmt->syn->kw));
+	DBG_ABORT("undefined asm syntax kw='%s'", SYM_t(stmt->syn->kw));
 }
 
 static void BLOCK_asm(CTX, kBlock *bk, int shift)
 {
 	int i, espidx = (bk->esp->build == TEXPR_STACKTOP) ? shift + bk->esp->index : bk->esp->index;
-	DBG_P("shift=%d, espidx=%d build=%d", shift, espidx, bk->esp->build);
+	//DBG_P("shift=%d, espidx=%d build=%d", shift, espidx, bk->esp->build);
 	for(i = 0; i < kArray_size(bk->blocks); i++) {
 		kStmt *stmt = bk->blocks->stmts[i];
 		if(stmt->syn == NULL) continue;

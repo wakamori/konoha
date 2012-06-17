@@ -45,8 +45,8 @@ static KMETHOD StmtTyCheck_while(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("while statement .. ");
 	int ret = false;
-	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
-		kBlock *bk = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0)) {
+		kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		ret = SUGAR Block_tyCheckAll(_ctx, bk, gma);
 		kStmt_typed(stmt, LOOP);
 	}
@@ -59,8 +59,8 @@ static KMETHOD StmtTyCheck_for(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("for statement .. ");
 	int ret = false;
-	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
-		kBlock *bk = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0)) {
+		kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		ret = SUGAR Block_tyCheckAll(_ctx, bk, gma);
 		kStmt_typed(stmt, LOOP);
 	}
@@ -111,11 +111,11 @@ static kbool_t while_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("while"), _LOOP, StmtTyCheck_(while), .rule = "\"while\" \"(\" $expr \")\" $block", },
-		{ TOKEN("break"), StmtTyCheck_(break), .rule = "\"break\" [ $USYMBOL ]", },
-		{ TOKEN("continue"), StmtTyCheck_(continue), .rule = "\"continue\" [ $USYMBOL ]", },
-		{ TOKEN("for"), _LOOP, StmtTyCheck_(for), .rule = "\"for\" \"(\" var: $block \";\" $expr \";\" each: $block \")\" $block", },
-		{ .name = NULL, },
+		{ .kw = SYM_("while"), _LOOP, StmtTyCheck_(while), .rule = "\"while\" \"(\" $expr \")\" $block", },
+		{ .kw = SYM_("break"), StmtTyCheck_(break), .rule = "\"break\" [ $USYMBOL ]", },
+		{ .kw = SYM_("continue"), StmtTyCheck_(continue), .rule = "\"continue\" [ $USYMBOL ]", },
+		{ .kw = SYM_("for"), _LOOP, StmtTyCheck_(for), .rule = "\"for\" \"(\" var: $block \";\" $expr \";\" each: $block \")\" $block", },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

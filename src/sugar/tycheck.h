@@ -64,7 +64,7 @@ static KMETHOD UndefinedExprTyCheck(CTX, ksfp_t *sfp _RIX)
 		expr = kToken_p(stmt, expr->tk, ERR_, "undefined token type checker: '%s'", kToken_s(expr->tk));
 	}
 	else {
-		expr = kStmt_p(stmt, ERR_, "undefined operator type checker: %s",  KW_t(expr->syn->kw));
+		expr = kStmt_p(stmt, ERR_, "undefined operator type checker: %s%s",  KW_t(expr->syn->kw));
 	}
 	RETURN_(expr);
 }
@@ -218,7 +218,7 @@ static kExpr* Expr_tyCheckAt(CTX, kStmt *stmt, kExpr *exprP, size_t pos, kGamma 
 	return K_NULLEXPR;
 }
 
-static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, keyword_t nameid, kGamma *gma, ktype_t reqty, int pol)
+static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, synid_t nameid, kGamma *gma, ktype_t reqty, int pol)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, nameid);
 	if(expr != NULL && IS_Expr(expr)) {
@@ -380,16 +380,16 @@ static KMETHOD StmtTyCheck_ConstDecl(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	kbool_t r = false;
 	kKonohaSpace *ks = gma->genv->ks;
-	kToken *tk = kStmt_token(stmt, KW_Usymbol, NULL);
+	kToken *tk = kStmt_token(stmt, KW_UsymbolPattern, NULL);
 	ksymbol_t ukey = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 	kvs_t *kv = KonohaSpace_getConstNULL(_ctx, ks, ukey);
 	if(kv != NULL) {
 		kStmt_p(stmt, ERR_, "already defined name: %s", kToken_s(tk));
 	}
 	else {
-		r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, TPOL_CONST);
+		r = Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_var, TPOL_CONST);
 		if(r) {
-			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
+			kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 			kvs_t kv = { ukey, expr->ty};
 			if(expr->build == TEXPR_NULL) {
 				kv.ty = TY_TYPE;
@@ -776,7 +776,7 @@ static KMETHOD ExprTyCheck_OR(CTX, ksfp_t *sfp _RIX)
 static KMETHOD StmtTyCheck_Expr(CTX, ksfp_t *sfp _RIX)  // $expr
 {
 	VAR_StmtTyCheck(stmt, gma);
-	kbool_t r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, TPOL_ALLOWVOID);
+	kbool_t r = Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_var, TPOL_ALLOWVOID);
 	kStmt_typed(stmt, EXPR);
 	RETURNb_(r);
 }
@@ -878,7 +878,7 @@ static KMETHOD ExprTyCheck_Block(CTX, ksfp_t *sfp _RIX)
 	DBG_ASSERT(IS_Block(bk));
 	if(kArray_size(bk->blocks) > 0) {
 		kStmt *stmt = bk->blocks->stmts[kArray_size(bk->blocks)-1];
-		if(stmt->syn->kw == KW_Expr) {
+		if(stmt->syn->kw == KW_ExprPattern) {
 			lastExpr = stmt;
 		}
 		uline = stmt->uline;
@@ -890,12 +890,12 @@ static KMETHOD ExprTyCheck_Block(CTX, ksfp_t *sfp _RIX)
 		if(!Block_tyCheckAll(_ctx, bk, gma)) {
 			RETURN_(texpr);
 		}
-		kExpr *rexpr = kStmt_expr(lastExpr, KW_Expr, NULL);
+		kExpr *rexpr = kStmt_expr(lastExpr, KW_ExprPattern, NULL);
 		DBG_ASSERT(rexpr != NULL);
 		ktype_t ty = rexpr->ty;
 		if(ty != TY_void) {
 			kExpr *letexpr = new_TypedConsExpr(_ctx, TEXPR_LET, TY_void, 3, K_NULL, lvar, rexpr);
-			kObject_setObject(lastExpr, KW_Expr, letexpr);
+			kObject_setObject(lastExpr, KW_ExprPattern, letexpr);
 			texpr = kExpr_setVariable(expr, BLOCK_, ty, lvarsize, gma);
 		}
 		for(i = atop; i < kArray_size(gma->genv->lvarlst); i++) {
@@ -920,8 +920,8 @@ static KMETHOD StmtTyCheck_if(CTX, ksfp_t *sfp _RIX)
 {
 	kbool_t r = 1;
 	VAR_StmtTyCheck(stmt, gma);
-	if((r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0))) {
-		kBlock *bkThen = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	if((r = Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0))) {
+		kBlock *bkThen = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		kBlock *bkElse = kStmt_block(stmt, KW_else, K_NULLBLOCK);
 		r = Block_tyCheckAll(_ctx, bkThen, gma);
 		r = r & Block_tyCheckAll(_ctx, bkElse, gma);
@@ -970,7 +970,7 @@ static KMETHOD StmtTyCheck_else(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	kStmt *stmtIf = Stmt_lookupIfStmtNULL(_ctx, stmt);
 	if(stmtIf != NULL) {
-		kBlock *bkElse = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+		kBlock *bkElse = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		kObject_setObject(stmtIf, KW_else, bkElse);
 		kStmt_done(stmt);
 		r = Block_tyCheckAll(_ctx, bkElse, gma);
@@ -989,12 +989,12 @@ static KMETHOD StmtTyCheck_return(CTX, ksfp_t *sfp _RIX)
 	ktype_t rtype = kMethod_rtype(gma->genv->mtd);
 	kStmt_typed(stmt, RETURN);
 	if(rtype != TY_void) {
-		r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, rtype, 0);
+		r = Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, rtype, 0);
 	} else {
-		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 		if (expr != NULL) {
 			kStmt_p(stmt, WARN_, "ignored return value");
-			r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, 0);
+			r = Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_var, 0);
 			kObject_removeKey(stmt, 1);
 		}
 	}
@@ -1007,7 +1007,7 @@ static kbool_t ExprTerm_toVariable(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, k
 {
 	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
 		kToken *tk = expr->tk;
-		if(tk->kw != KW_Symbol) {
+		if(tk->kw != KW_SymbolPattern) {
 			kToken_p(stmt, tk, ERR_, "%s is keyword", S_text(tk->text));
 			return false;
 		}
@@ -1024,9 +1024,9 @@ static kbool_t appendAssignmentStmt(CTX, kExpr *expr, kStmt **lastStmtRef)
 	kStmt *lastStmt = lastStmtRef[0];
 	kStmt *newstmt = new_(Stmt, lastStmt->uline);
 	Block_insertAfter(_ctx, lastStmt->parentNULL, lastStmt, newstmt);
-	kStmt_setsyn(newstmt, SYN_(kStmt_ks(newstmt), KW_Expr));
+	kStmt_setsyn(newstmt, SYN_(kStmt_ks(newstmt), KW_ExprPattern));
 	kExpr_typed(expr, LET, TY_void);
-	kObject_setObject(newstmt, KW_Expr, expr);
+	kObject_setObject(newstmt, KW_ExprPattern, expr);
 	lastStmtRef[0] = newstmt;
 	return true;
 }
@@ -1067,8 +1067,8 @@ static kbool_t Expr_declType(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t
 static KMETHOD StmtTyCheck_TypeDecl(CTX, ksfp_t *sfp _RIX)
 {
 	VAR_StmtTyCheck(stmt, gma);
-	kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
-	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
+	kToken *tk  = kStmt_token(stmt, KW_TypePattern, NULL);
+	kExpr  *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 	if(tk == NULL || !TK_isType(tk) || expr == NULL) {
 		RETURNb_(false);
 	}
@@ -1088,7 +1088,7 @@ static flagop_t MethodDeclFlag[] = {
 	{NULL},
 };
 
-static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, keyword_t kw, kcid_t defcid)
+static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, synid_t kw, kcid_t defcid)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk == NULL || !IS_Token(tk)) {
@@ -1100,7 +1100,7 @@ static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, keyword_t kw, kcid
 	}
 }
 
-static kcid_t Stmt_getmn(CTX, kStmt *stmt, kKonohaSpace *ns, keyword_t kw, kmethodn_t defmn)
+static kcid_t Stmt_getmn(CTX, kStmt *stmt, kKonohaSpace *ns, synid_t kw, kmethodn_t defmn)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk == NULL || !IS_Token(tk) || !IS_String(tk->text)) {
@@ -1114,14 +1114,14 @@ static kcid_t Stmt_getmn(CTX, kStmt *stmt, kKonohaSpace *ns, keyword_t kw, kmeth
 
 static kParam *Stmt_newMethodParamNULL(CTX, kStmt *stmt, kGamma* gma)
 {
-	kParam *pa = (kParam*)kObject_getObjectNULL(stmt, KW_Params);
+	kParam *pa = (kParam*)kObject_getObjectNULL(stmt, KW_ParamsPattern);
 	if(pa == NULL || !IS_Param(pa)) {
-		ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_Params);
+		ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ParamsPattern);
 		if(!Stmt_TyCheck(_ctx, syn, stmt, gma)) {
 			return NULL;
 		}
 	}
-	pa = (kParam*)kObject_getObjectNULL(stmt, KW_Params);
+	pa = (kParam*)kObject_getObjectNULL(stmt, KW_ParamsPattern);
 	DBG_ASSERT(IS_Param(pa));
 	return pa;
 }
@@ -1158,7 +1158,7 @@ static void KonohaSpace_syncMethods(CTX)
 
 static void Stmt_setMethodFunc(CTX, kStmt *stmt, kKonohaSpace *ks, kMethod *mtd)
 {
-	kToken *tcode = kStmt_token(stmt, KW_Block, NULL);
+	kToken *tcode = kStmt_token(stmt, KW_BlockPattern, NULL);
 	if(tcode != NULL && tcode->tt == TK_CODE) {
 		KSETv(((struct _kMethod*)mtd)->tcode, tcode);  //FIXME
 		KSETv(((struct _kMethod*)mtd)->lazyns, ks);
@@ -1173,8 +1173,8 @@ static KMETHOD StmtTyCheck_MethodDecl(CTX, ksfp_t *sfp _RIX)
 	kbool_t r = false;
 	kKonohaSpace *ks = gma->genv->ks;
 	uintptr_t flag   =  Stmt_flag(_ctx, stmt, MethodDeclFlag, 0);
-	kcid_t cid       =  Stmt_getcid(_ctx, stmt, ks, KW_Usymbol, O_cid(ks->scrobj));
-	kmethodn_t mn    = Stmt_getmn(_ctx, stmt, ks, KW_Symbol, MN_new);
+	kcid_t cid       =  Stmt_getcid(_ctx, stmt, ks, KW_UsymbolPattern, O_cid(ks->scrobj));
+	kmethodn_t mn    = Stmt_getmn(_ctx, stmt, ks, KW_SymbolPattern, MN_new);
 	kParam *pa       = Stmt_newMethodParamNULL(_ctx, stmt, gma);
 	if(TY_isSingleton(cid)) flag |= kMethod_Static;
 	if(pa != NULL) {
@@ -1194,8 +1194,8 @@ static KMETHOD StmtTyCheck_MethodDecl(CTX, ksfp_t *sfp _RIX)
 
 static kbool_t StmtTypeDecl_setParam(CTX, kStmt *stmt, int n, kparam_t *p)
 {
-	kToken *tkT  = kStmt_token(stmt, KW_Type, NULL);
-	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
+	kToken *tkT  = kStmt_token(stmt, KW_TypePattern, NULL);
+	kExpr  *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 	DBG_ASSERT(tkT != NULL);
 	DBG_ASSERT(expr != NULL);
 	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
@@ -1211,10 +1211,10 @@ static kbool_t StmtTypeDecl_setParam(CTX, kStmt *stmt, int n, kparam_t *p)
 static KMETHOD StmtTyCheck_ParamsDecl(CTX, ksfp_t *sfp _RIX)
 {
 	VAR_StmtTyCheck(stmt, gma);
-	kToken *tkT = kStmt_token(stmt, KW_Type, NULL); // type
+	kToken *tkT = kStmt_token(stmt, KW_TypePattern, NULL); // type
 	ktype_t rtype =  tkT == NULL ? TY_void : TK_type(tkT);
 	kParam *pa = NULL;
-	kBlock *params = (kBlock*)kObject_getObjectNULL(stmt, KW_Params);
+	kBlock *params = (kBlock*)kObject_getObjectNULL(stmt, KW_ParamsPattern);
 	if(params == NULL) {
 		pa = new_kParam2(rtype, 0, NULL);
 	}
@@ -1231,7 +1231,7 @@ static KMETHOD StmtTyCheck_ParamsDecl(CTX, ksfp_t *sfp _RIX)
 		pa = new_kParam2(rtype, psize, p);
 	}
 	if(IS_Param(pa)) {
-		kObject_setObject(stmt, KW_Params, pa);
+		kObject_setObject(stmt, KW_ParamsPattern, pa);
 		RETURNb_(true);
 	}
 	RETURNb_(false);
@@ -1337,8 +1337,8 @@ static kstatus_t Method_runEval(CTX, kMethod *mtd, ktype_t rtype)
 
 static ktype_t Stmt_checkReturnType(CTX, kStmt *stmt)
 {
-	if(stmt->syn->kw == KW_Expr) {
-		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+	if(stmt->syn->kw == KW_ExprPattern) {
+		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 		DBG_ASSERT(expr != NULL);
 		if(expr->ty != TY_void) {
 			kStmt_setsyn(stmt, SYN_(kStmt_ks(stmt), KW_return));
@@ -1356,7 +1356,7 @@ static ktype_t Gamma_evalMethod(CTX, kGamma *gma, kBlock *bk, kMethod *mtd)
 		_ctx->stack->evalty = TY_void;
 		return K_CONTINUE;
 	}
-	if(stmt->syn->kw == KW_Err) return K_FAILED;
+	if(stmt->syn->kw == KW_ERR) return K_FAILED;
 	ktype_t rtype = Stmt_checkReturnType(_ctx, stmt);
 	kMethod_genCode(mtd, bk);
 	return Method_runEval(_ctx, mtd, rtype);

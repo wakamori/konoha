@@ -831,6 +831,25 @@ static void loadInitStructData(CTX)
 	ct->p0 = TY_Object;
 }
 
+static void defineDefaultKeywordSymbol(CTX)
+{
+	size_t i;
+	static const char *keywords[] = {
+		"", "$expr", "$SYMBOL", "$USYMBOL", "$TEXT", "$INT", "$FLOAT",
+		"$type", "$()", "$[]", "${}", "$block", "$params", "$toks",
+		".", "/", "%", "*", "+", "-", "<", "<=", ">", ">=", "==", "!=",
+		"&&", "||", "!", "=", ",", "$",
+		"void", "boolean", "int", "true", "false", "if", "else", "return", // syn
+
+		"new",
+	};
+	for(i = 0; i < sizeof(keywords) / sizeof(const char*); i++) {
+		ksymbolSPOL(keywords[i], strlen(keywords[i]), SPOL_TEXT|SPOL_ASCII, SYM_NEWID);
+		//ksymbol_t sym = ksymbolSPOL(keywords[i], strlen(keywords[i]), SPOL_TEXT|SPOL_ASCII, SYM_NEWID);
+		//fprintf(stdout, "#define KW_%s (((ksymbol_t)%d)|0) /*%s*/\n", SYM_t(sym), SYM_UNMASK(sym), keywords[i]);
+	}
+}
+
 static void initStructData(CTX)
 {
 	kclass_t **ctt = (kclass_t**)_ctx->share->ca.cts;
@@ -894,9 +913,10 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	FILEID_("(konoha.c)");
 	PN_("konoha");    // PN_konoha
 	PN_("sugar");     // PKG_sugar
-	SYM_("");          // MN_
-	SYM_("new");       // MN_new
-	SYM_("T");         // UN_T
+	defineDefaultKeywordSymbol(_ctx);
+//	SYM_("");          // MN_
+//	SYM_("new");       // MN_new
+//	SYM_("T");         // UN_T
 	initStructData(_ctx);
 }
 

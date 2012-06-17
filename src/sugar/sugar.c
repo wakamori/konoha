@@ -44,57 +44,60 @@ int verbose_sugar = 0;
 #include "ast.h"
 #include "tycheck.h"
 
+#define PATTERN(T)  .kw = KW_##T##Pattern
+#define TOKEN(T)  .kw = KW_##T
+
 static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 {
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("$ERR"), .flag = SYNFLAG_StmtBreakExec, },
-		{ TOKEN("$expr"), .rule ="$expr", PatternMatch_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
-		{ TOKEN("$SYMBOL"),  _TERM, PatternMatch_(Symbol),  ExprTyCheck_(Symbol),},
-		{ TOKEN("$USYMBOL"), _TERM, PatternMatch_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
-		{ TOKEN("$TEXT"), _TERM, ExprTyCheck_(Text),},
-		{ TOKEN("$INT"), _TERM, ExprTyCheck_(Int),},
-		{ TOKEN("$FLOAT"), _TERM, /* ExprTyCheck_(FLOAT), */},
-		{ TOKEN("$type"), _TERM, PatternMatch_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
-		{ TOKEN("()"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(Parenthesis), .priority_op2 = 16, ExprTyCheck_(FuncStyleCall),}, //AST_PARENTHESIS
-		{ TOKEN("[]"),  },  //AST_BRACKET
-		{ TOKEN("{}"),  }, // AST_BRACE
-		{ TOKEN("$block"), PatternMatch_(Block), ExprTyCheck_(Block), },
-		{ TOKEN("$params"), PatternMatch_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
-		{ TOKEN("$toks"), PatternMatch_(Toks), },
-		{ TOKEN("."), ParseExpr_(DOT), .priority_op2 = 16, },
-		{ TOKEN("/"), _OP, .op2 = "opDIV", .priority_op2 = 32, },
-		{ TOKEN("%"), _OP, .op2 = "opMOD", .priority_op2 = 32, },
-		{ TOKEN("*"), _OP, .op2 = "opMUL", .priority_op2 = 32, },
-		{ TOKEN("+"), _OP, .op1 = "opPLUS", .op2 = "opADD", .priority_op2 = 64, },
-		{ TOKEN("-"), _OP, .op1 = "opMINUS", .op2 = "opSUB", .priority_op2 = 64, },
-		{ TOKEN("<"), _OP, .op2 = "opLT", .priority_op2 = 256, },
-		{ TOKEN("<="), _OP, .op2 = "opLTE", .priority_op2 = 256, },
-		{ TOKEN(">"), _OP, .op2 = "opGT", .priority_op2 = 256, },
-		{ TOKEN(">="), _OP, .op2 = "opGTE", .priority_op2 = 256, },
-		{ TOKEN("=="), _OP, .op2 = "opEQ", .priority_op2 = 512, },
-		{ TOKEN("!="), _OP, .op2 = "opNEQ", .priority_op2 = 512, },
-		{ TOKEN("&&"), _OP, /*.op2 = ""unused*/ .priority_op2 = 1024, ExprTyCheck_(AND)},
-		{ TOKEN("||"), _OP, /*.op2 = ""unused*/ .priority_op2 = 2048, ExprTyCheck_(OR)},
-		{ TOKEN("!"), _OP, .op1 = "opNOT", },
+		{ TOKEN(ERR), .flag = SYNFLAG_StmtBreakExec, },
+		{ PATTERN(Expr), .rule ="$expr", PatternMatch_(Expr), TopStmtTyCheck_(Expr), StmtTyCheck_(Expr),  },
+		{ PATTERN(Symbol),  _TERM, PatternMatch_(Symbol),  ExprTyCheck_(Symbol),},
+		{ PATTERN(Usymbol), _TERM, PatternMatch_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
+		{ PATTERN(Text), _TERM, ExprTyCheck_(Text),},
+		{ PATTERN(Int), _TERM, ExprTyCheck_(Int),},
+		{ PATTERN(Float), _TERM, /* ExprTyCheck_(FLOAT), */},
+		{ PATTERN(Type), _TERM, PatternMatch_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
+		{ PATTERN(Parenthesis), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(Parenthesis), .priority_op2 = 16, ExprTyCheck_(FuncStyleCall),}, //AST_PARENTHESIS
+		{ PATTERN(Bracket),  },  //AST_BRACKET
+		{ PATTERN(Brace),  }, // AST_BRACE
+		{ PATTERN(Block), PatternMatch_(Block), ExprTyCheck_(Block), },
+		{ PATTERN(Params), PatternMatch_(Params), TopStmtTyCheck_(ParamsDecl), ExprTyCheck_(MethodCall),},
+		{ PATTERN(Toks), PatternMatch_(Toks), },
+		{ TOKEN(DOT), ParseExpr_(DOT), .priority_op2 = 16, },
+		{ TOKEN(DIV), _OP, .op2 = "opDIV", .priority_op2 = 32, },
+		{ TOKEN(MOD), _OP, .op2 = "opMOD", .priority_op2 = 32, },
+		{ TOKEN(MUL), _OP, .op2 = "opMUL", .priority_op2 = 32, },
+		{ TOKEN(ADD), _OP, .op1 = "opPLUS", .op2 = "opADD", .priority_op2 = 64, },
+		{ TOKEN(SUB), _OP, .op1 = "opMINUS", .op2 = "opSUB", .priority_op2 = 64, },
+		{ TOKEN(LT), _OP, .op2 = "opLT", .priority_op2 = 256, },
+		{ TOKEN(LTE), _OP, .op2 = "opLTE", .priority_op2 = 256, },
+		{ TOKEN(GT), _OP, .op2 = "opGT", .priority_op2 = 256, },
+		{ TOKEN(GTE), _OP, .op2 = "opGTE", .priority_op2 = 256, },
+		{ TOKEN(EQ), _OP, .op2 = "opEQ", .priority_op2 = 512, },
+		{ TOKEN(NEQ), _OP, .op2 = "opNEQ", .priority_op2 = 512, },
+		{ TOKEN(AND), _OP, /*.op2 = ""unused*/ .priority_op2 = 1024, ExprTyCheck_(AND)},
+		{ TOKEN(OR), _OP, /*.op2 = ""unused*/ .priority_op2 = 2048, ExprTyCheck_(OR)},
+		{ TOKEN(NOT), _OP, .op1 = "opNOT", },
 //		{ TOKEN(":"),  _OP,  .priority_op2 = 3072,},
-		{ TOKEN("="),  _OPLeft, /*.op2 = "*"*/ .priority_op2 = 4096, },
-		{ TOKEN(","), ParseExpr_(COMMA), .op2 = "*", .priority_op2 = 8192, /*.flag = SYNFLAG_ExprLeftJoinOP2,*/ },
-		{ TOKEN("$"), ParseExpr_(DOLLAR), },
-		{ TOKEN("void"), .type = TY_void, .rule ="$type [$USYMBOL \".\"] $SYMBOL $params [$block]", TopStmtTyCheck_(MethodDecl)},
-		{ TOKEN("boolean"), .type = TY_Boolean, },
-		{ TOKEN("int"),     .type = TY_Int, },
+		{ TOKEN(LET),  _OPLeft, /*.op2 = "*"*/ .priority_op2 = 4096, },
+		{ TOKEN(COMMA), ParseExpr_(COMMA), .op2 = "*", .priority_op2 = 8192, /*.flag = SYNFLAG_ExprLeftJoinOP2,*/ },
+		{ TOKEN(DOLLAR), ParseExpr_(DOLLAR), },
+		{ TOKEN(void), .type = TY_void, .rule ="$type [$USYMBOL \".\"] $SYMBOL $params [$block]", TopStmtTyCheck_(MethodDecl)},
+		{ TOKEN(boolean), .type = TY_Boolean, },
+		{ TOKEN(int),     .type = TY_Int, },
 //		{ TOKEN("null"), _TERM, ExprTyCheck_(null),},
-		{ TOKEN("true"),  _TERM, ExprTyCheck_(true),},
-		{ TOKEN("false"),  _TERM, ExprTyCheck_(false),},
-		{ TOKEN("if"), .rule ="\"if\" \"(\" $expr \")\" $block [\"else\" else: $block]", TopStmtTyCheck_(if), StmtTyCheck_(if), },
-		{ TOKEN("else"), .rule = "\"else\" $block", TopStmtTyCheck_(else), StmtTyCheck_(else), },
-		{ TOKEN("return"), .rule ="\"return\" [$expr]", .flag = SYNFLAG_StmtBreakExec, StmtTyCheck_(return), },
-		{ .name = NULL, },
+		{ TOKEN(true),  _TERM, ExprTyCheck_(true),},
+		{ TOKEN(false),  _TERM, ExprTyCheck_(false),},
+		{ TOKEN(if), .rule ="\"if\" \"(\" $expr \")\" $block [\"else\" else: $block]", TopStmtTyCheck_(if), StmtTyCheck_(if), },
+		{ TOKEN(else), .rule = "\"else\" $block", TopStmtTyCheck_(else), StmtTyCheck_(else), },
+		{ TOKEN(return), .rule ="\"return\" [$expr]", .flag = SYNFLAG_StmtBreakExec, StmtTyCheck_(return), },
+		{ .kw = KW_END, },
 	};
 	KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	struct _ksyntax *syn = (struct _ksyntax*)SYN_(ks, KW_void);
 	syn->ty = TY_void; // it's not cool, but necessary
-	syn = (struct _ksyntax*)SYN_(ks, KW_Usymbol);
+	syn = (struct _ksyntax*)SYN_(ks, KW_UsymbolPattern);
 	KINITv(syn->syntaxRuleNULL, new_(TokenArray, 0));
 	parseSyntaxRule(_ctx, "$USYMBOL \"=\" $expr", 0, syn->syntaxRuleNULL);
 }
@@ -189,7 +192,6 @@ static void kmodsugar_reftrace(CTX, struct kmodshare_t *baseh)
 	kmap_reftrace(base->packageMapNO, pack_reftrace);
 	BEGIN_REFTRACE(8);
 	KREFTRACEv(base->rootks);
-	KREFTRACEv(base->keywordList);
 	KREFTRACEv(base->packageList);
 	KREFTRACEv(base->UndefinedParseExpr);
 	KREFTRACEv(base->UndefinedStmtTyCheck);
@@ -202,7 +204,6 @@ static void kmodsugar_reftrace(CTX, struct kmodshare_t *baseh)
 static void kmodsugar_free(CTX, struct kmodshare_t *baseh)
 {
 	kmodsugar_t *base = (kmodsugar_t*)baseh;
-	kmap_free(base->keywordMapNN, NULL);
 	kmap_free(base->packageMapNO, pack_free);
 	KFREE(baseh, sizeof(kmodsugar_t));
 }
@@ -223,8 +224,6 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	l->KS_getMethodNULL  = KonohaSpace_getMethodNULL;
 	l->KS_syncMethods    = KonohaSpace_syncMethods;
 
-	KINITv(base->keywordList, new_(Array, 32));
-	base->keywordMapNN = kmap_init(0);
 	KINITv(base->packageList, new_(Array, 8));
 	base->packageMapNO = kmap_init(0);
 
@@ -279,20 +278,13 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	KINITv(base->ParseExpr_Term, new_SugarFunc(ParseExpr_Term));
 
 	defineDefaultSyntax(_ctx, base->rootks);
-	DBG_ASSERT(KW_("$params") == KW_Params);
-	DBG_ASSERT(KW_(".") == KW_DOT);
-	DBG_ASSERT(KW_(",") == KW_COMMA);
-	DBG_ASSERT(KW_("void") == KW_void);
-	DBG_ASSERT(KW_("return") == KW_return);
-	keyword(_ctx, "new", sizeof("new")-1, SYM_NEWID);
-	DBG_ASSERT(KW_("new") == KW_new);
+	DBG_ASSERT(SYM_("$params") == KW_ParamsPattern);
+	DBG_ASSERT(SYM_(".") == KW_DOT);
+	DBG_ASSERT(SYM_(",") == KW_COMMA);
+	DBG_ASSERT(SYM_("void") == KW_void);
+	DBG_ASSERT(SYM_("return") == KW_return);
+	DBG_ASSERT(SYM_("new") == KW_new);
 	EXPORT_SUGAR(base);
-}
-
-static ksymbol_t keyword(CTX, const char *name, size_t len, ksymbol_t def)
-{
-	uintptr_t hcode = strhash(name, len);
-	return kmap_getcode(kmodsugar->keywordMapNN, kmodsugar->keywordList, name, len, hcode, SPOL_ASCII|SPOL_POOL, def);
 }
 
 // -------------------------------------------------------------------------

@@ -242,10 +242,10 @@ static kbool_t float_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("float"), .type = TY_Float, },
-		{ TOKEN("double"), .type = TY_Float, },
-		{ TOKEN("$FLOAT"), ExprTyCheck_(Float), },
-		{ .name = NULL, },
+		{ .kw = SYM_("float"), .type = TY_Float, },
+		{ .kw = SYM_("double"), .type = TY_Float, },
+		{ .kw = SYM_("$FLOAT"), ExprTyCheck_(Float), },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

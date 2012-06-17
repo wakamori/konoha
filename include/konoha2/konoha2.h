@@ -278,20 +278,21 @@ typedef kushort_t       kparamid_t;
 #define TY_isUnbox(t)       FLAG_is(CT_(t)->cflag, kClass_UnboxType)
 #define CT_isUnbox(C)       FLAG_is(C->cflag, kClass_UnboxType)
 
+#define SYM_MAX            KFLAG_H3
 #define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
 #define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
 
 #define SYM_NONAME          ((ksymbol_t)-1)
 #define SYM_NEWID           ((ksymbol_t)-2)
-#define _NEWID             SYM_NEWID
+#define _NEWID              SYM_NEWID
 
-#define SYMKEY_BOXED            KFLAG_H0
+#define SYMKEY_BOXED            KFLAG_H3
 #define SYMKEY_unbox(sym)       (sym & ~(SYMKEY_BOXED))
 #define SYMKEY_isBOXED(sym)     ((sym & SYMKEY_BOXED) == SYMKEY_BOXED)
 
-#define FN_COERCION        KFLAG_H0
-#define FN_Coersion        FN_COERCION
-#define FN_isCOERCION(fn)  ((fn & FN_COERCION) == FN_COERCION)
+#define FN_COERCION             KFLAG_H3
+#define FN_Coersion             FN_COERCION
+#define FN_isCOERCION(fn)       ((fn & FN_COERCION) == FN_COERCION)
 
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
@@ -300,6 +301,7 @@ typedef kushort_t       kparamid_t;
 
 #define MN_TOCID      (KFLAG_H0|KFLAG_H1)
 #define MN_ASCID      (KFLAG_H0|KFLAG_H1|KFLAG_H2)
+#define KW_PATTERN    (KFLAG_H0|KFLAG_H1|KFLAG_H2)
 
 #define MN_isISBOOL(mn)   (SYM_HEAD(mn) == MN_ISBOOL)
 #define MN_toISBOOL(mn)   ((SYM_UNMASK(mn)) | MN_ISBOOL)
@@ -1214,8 +1216,10 @@ struct _klib2 {
 #define SYM_(T)                   (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
 #define FN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
 #define MN_(T)                    (KPI)->Ksymbol2(_ctx, T, (sizeof(T)-1), SPOL_TEXT|SPOL_ASCII, _NEWID)
-#define MN_new                    1  /* @see */
 #define T_mn(X)                   SYM_PRE(X), SYM_t(X)
+
+// #define KW_new (((ksymbol_t)39)|0) /*new*/
+#define MN_new                    39  /* @see */
 
 #define new_kObject(C, A)         (KPI)->Knew_Object(_ctx, C, (void*)(A))
 #define new_(C, A)                (k##C*)(KPI)->Knew_Object(_ctx, CT_##C, (void*)(A))
