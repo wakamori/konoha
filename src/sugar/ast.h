@@ -165,7 +165,7 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 			kArray_clear(abuf, atop);
 		}
 	}
-	else if(tk->kw > KW_ExprPattern) {
+	else if(tk->kw != 0) {
 		kArray_add(dst, tk);
 	}
 	return next;
