@@ -991,7 +991,7 @@ static KMETHOD StmtTyCheck_return(CTX, ksfp_t *sfp _RIX)
 	if(rtype != TY_void) {
 		r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, rtype, 0);
 	} else {
-		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
 		if (expr != NULL) {
 			kStmt_p(stmt, WARN_, "ignored return value");
 			r = Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, 0);
@@ -1338,7 +1338,7 @@ static kstatus_t Method_runEval(CTX, kMethod *mtd, ktype_t rtype)
 static ktype_t Stmt_checkReturnType(CTX, kStmt *stmt)
 {
 	if(stmt->syn->kw == KW_Expr) {
-		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+		kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
 		DBG_ASSERT(expr != NULL);
 		if(expr->ty != TY_void) {
 			kStmt_setsyn(stmt, SYN_(kStmt_ks(stmt), KW_return));
