@@ -239,7 +239,7 @@ static const char* T_statement_(CTX, ksymbol_t kw)
 {
 	static char buf[80];  // this is not good, but this is very rare case.
 	const char *statement = SYM_t(kw), *postfix = " statement";
-	if(kw == KW_Expr) { statement = "expression"; postfix = ""; }
+	if(kw == KW_ExprPattern) { statement = "expression"; postfix = ""; }
 	if(kw == KW_StmtTypeDecl) { statement = "variable"; postfix = " declaration"; }
 	if(kw == KW_StmtMethodDecl) { statement =  "function"; postfix = " declaration"; }
 	snprintf(buf, sizeof(buf), "%s%s", statement, postfix);

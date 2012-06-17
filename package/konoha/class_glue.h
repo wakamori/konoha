@@ -294,7 +294,7 @@ static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 {
 	USING_SUGAR;
-	kToken *tkP = (kToken*)kObject_getObject(stmt, KW_Block, NULL);
+	kToken *tkP = (kToken*)kObject_getObject(stmt, KW_BlockPattern, NULL);
 	if(tkP != NULL && tkP->tt == TK_CODE) {
 		kArray *a = ctxsugar->tokens;
 		size_t atop = kArray_size(a), s, i;
@@ -318,10 +318,10 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 		for (i = 0; i < kArray_size(bk->blocks); i++) {
 			kStmt *methodDecl = bk->blocks->stmts[i];
 			if(methodDecl->syn->kw == KW_StmtMethodDecl) {
-				kObject_setObject(methodDecl, KW_Usymbol, tkC);
+				kObject_setObject(methodDecl, KW_UsymbolPattern, tkC);
 			}
 		}
-		kObject_setObject(stmt, KW_Block, bk);
+		kObject_setObject(stmt, KW_BlockPattern, bk);
 		kArray_clear(a, atop);
 	}
 }
@@ -388,7 +388,7 @@ static size_t checkFieldSize(CTX, kBlock *bk)
 		kStmt *stmt = bk->blocks->stmts[i];
 		DBG_P("stmt->kw=%s", KW_t(stmt->syn->kw));
 		if(stmt->syn->kw == KW_StmtTypeDecl) {
-			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
+			kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 			if(expr->syn->kw == KW_COMMA) {
 				c += (kArray_size(expr->cons) - 1);
 			}
@@ -469,8 +469,8 @@ static kbool_t CT_addClassFields(CTX, struct _kclass *ct, kGamma *gma, kBlock *b
 		kStmt *stmt = bk->blocks->stmts[i];
 		if(stmt->syn->kw == KW_StmtTypeDecl) {
 			kflag_t flag = kField_Getter | kField_Setter;
-			kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
-			kExpr *expr = kStmt_expr(stmt, KW_Expr, NULL);
+			kToken *tk  = kStmt_token(stmt, KW_TypePattern, NULL);
+			kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 			if(!CT_declType(_ctx, ct, gma, stmt, expr, flag, TK_type(tk), pline)) {
 				return false;
 			}
@@ -504,13 +504,13 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	VAR_StmtTyCheck(stmt, gma);
-	kToken *tkC = kStmt_token(stmt, KW_Usymbol, NULL);
+	kToken *tkC = kStmt_token(stmt, KW_UsymbolPattern, NULL);
 	kToken *tkE= kStmt_token(stmt, SYM_("extends"), NULL);
 	kflag_t cflag = 0;
 	kcid_t supcid = TY_Object;
 	kclass_t *supct = CT_Object;
 	if (tkE) {
-		assert(tkE->tt == KW_Usymbol);
+		assert(tkE->tt == KW_UsymbolPattern);
 		supcid = TK_type(tkE);
 		supct = CT_(supcid);
 		if(CT_isFinal(supct)) {
@@ -523,10 +523,10 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 		}
 	}
 	struct _kclass *ct = defineClassName(_ctx, gma->genv->ks, cflag, tkC->text, supcid, stmt->uline);
-	((struct _kToken*)tkC)->kw = KW_Type;
+	((struct _kToken*)tkC)->kw = KW_TypePattern;
 	((struct _kToken*)tkC)->ty = ct->cid;
 	Stmt_parseClassBlock(_ctx, stmt, tkC);
-	kBlock *bk = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 	CT_setField(_ctx, ct, supct, checkFieldSize(_ctx, bk));
 	if(!CT_addClassFields(_ctx, ct, gma, bk, stmt->uline)) {
 		RETURNb_(false);

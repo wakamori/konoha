@@ -771,14 +771,14 @@ static void ASM_SAFEPOINT(CTX, int espidx)
 
 static void ErrStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kString *msg = (kString*)kObject_getObjectNULL(stmt, KW_Err);
+	kString *msg = (kString*)kObject_getObjectNULL(stmt, KW_ERR);
 	DBG_ASSERT(IS_String(msg));
 	ASM(ERROR, SFP_(espidx), msg);
 }
 
 static void ExprStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 	if(IS_Expr(expr)) {
 		EXPR_asm(_ctx, espidx, expr, shift, espidx);
 	}
@@ -787,7 +787,7 @@ static void ExprStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 static void BlockStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
 	USING_SUGAR;
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 }
 
 static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
@@ -798,7 +798,7 @@ static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 	/* if */
 	lbELSE = EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, 1, NULL), 0/*FALSE*/, lbELSE, shift, espidx);
 	/* then */
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 	ASM_JMP(_ctx, lbEND);
 	/* else */
 	ASM_LABEL(_ctx, lbELSE);
@@ -809,7 +809,7 @@ static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void ReturnStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_ExprPattern);
 	if(expr != NULL && IS_Expr(expr) && expr->ty != TY_void) {
 		EXPR_asm(_ctx, K_RTNIDX, expr, shift, espidx);
 	}
@@ -828,7 +828,7 @@ static void LoopStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 	ASM_SAFEPOINT(_ctx, espidx);
 	EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, 1, NULL), 0/*FALSE*/, lbBREAK, shift, espidx);
 	//BLOCK_asm(_ctx, kStmt_block(stmt, KW_("iteration"), K_NULLBLOCK));
-	BLOCK_asm(_ctx, kStmt_block(stmt, KW_Block, K_NULLBLOCK), shift);
+	BLOCK_asm(_ctx, kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK), shift);
 	ASM_JMP(_ctx, lbCONTINUE);
 	ASM_LABEL(_ctx, lbBREAK);
 //	BUILD_popLABEL(_ctx);

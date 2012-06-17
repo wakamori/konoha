@@ -109,9 +109,9 @@ static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, synid_t kw, int isnew)
 
 static void Stmt_toERR(CTX, kStmt *stmt, kString *errmsg)
 {
-	((struct _kStmt*)stmt)->syn   = SYN_(kStmt_ks(stmt), KW_Err);
+	((struct _kStmt*)stmt)->syn   = SYN_(kStmt_ks(stmt), KW_ERR);
 	((struct _kStmt*)stmt)->build = TSTMT_ERR;
-	kObject_setObject(stmt, KW_Err, errmsg);
+	kObject_setObject(stmt, KW_ERR, errmsg);
 }
 
 static inline void kStmt_errline(kStmt *stmt, kline_t uline)

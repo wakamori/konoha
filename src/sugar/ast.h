@@ -65,7 +65,7 @@ static kbool_t Token_resolved(CTX, kKonohaSpace *ks, struct _kToken *tk)
 		ksyntax_t *syn = SYN_(ks, kw);
 		if(syn != NULL) {
 			if(syn->ty != TY_unknown) {
-				tk->kw = KW_Type;
+				tk->kw = KW_TypePattern;
 				tk->ty = syn->ty;
 			}
 			else {
@@ -129,7 +129,7 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 		if(!Token_resolved(_ctx, ks, tk)) {
 			kclass_t *ct = kKonohaSpace_getCT(ks, NULL/*FIXME*/, S_text(tk->text), S_size(tk->text), TY_unknown);
 			if(ct != NULL) {
-				tk->kw = KW_Type;
+				tk->kw = KW_TypePattern;
 				tk->ty = ct->cid;
 			}
 		}
@@ -142,7 +142,7 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 		}
 	}
 	else if(tk->tt == TK_CODE) {
-		tk->kw = KW_Brace;
+		tk->kw = KW_BracePattern;
 	}
 	if(TK_isType(tk)) {   // trying to resolve Type[Type, Type]
 		kArray_add(dst, tk);
@@ -165,7 +165,7 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 			kArray_clear(abuf, atop);
 		}
 	}
-	else if(tk->kw > KW_Expr) {
+	else if(tk->kw > KW_ExprPattern) {
 		kArray_add(dst, tk);
 	}
 	return next;
@@ -454,14 +454,14 @@ static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, 
 			}
 			return SYN_(ks, KW_StmtTypeDecl);  //
 		}
-		return SYN_(ks, KW_Expr);  // expression
+		return SYN_(ks, KW_ExprPattern);  // expression
 	}
 	if(tk->tt == TK_USYMBOL) {
 		kToken *tk1 = TokenArray_lookAhead(_ctx, tls, s+1, e);
 		if(tk1->kw == KW_LET) {
 			return SYN_(ks, KW_StmtConstDecl);  // CONSTVAL = ...
 		}
-		return SYN_(ks, KW_Expr);
+		return SYN_(ks, KW_ExprPattern);
 	}
 	ksyntax_t *syn = SYN_(ks, tk->kw);
 	//DBG_P("tk->kw=%s%s, syn=%p", KW_t(tk->kw), syn);
@@ -476,7 +476,7 @@ static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, 
 				return syn;
 			}
 		}
-		return SYN_(ks, KW_Expr);
+		return SYN_(ks, KW_ExprPattern);
 	}
 	return syn;
 }
@@ -716,7 +716,7 @@ static KMETHOD ParseExpr_Parenthesis(CTX, ksfp_t *sfp _RIX)
 			((struct _kExpr*)lexpr)->syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall); // CALL
 		}
 		else if(lexpr->syn->kw != KW_ExprMethodCall) {
-			syn = SYN_(kStmt_ks(stmt), KW_Parenthesis);    // (f null ())
+			syn = SYN_(kStmt_ks(stmt), KW_ParenthesisPattern);    // (f null ())
 			lexpr  = new_ConsExpr(_ctx, syn, 2, lexpr, K_NULL);
 		}
 		lexpr = Stmt_addExprParams(_ctx, stmt, lexpr, tk->sub, 0, kArray_size(tk->sub), 1/*allowEmpty*/);
@@ -741,7 +741,7 @@ static KMETHOD ParseExpr_DOLLAR(CTX, ksfp_t *sfp _RIX)
 			Token_toBRACE(_ctx, (struct _kToken*)tk, kStmt_ks(stmt));
 		}
 		if(tk->tt == AST_BRACE) {
-			struct _kExpr *expr = new_W(Expr, SYN_(kStmt_ks(stmt), KW_Block));
+			struct _kExpr *expr = new_W(Expr, SYN_(kStmt_ks(stmt), KW_BlockPattern));
 			PUSH_GCSTACK(expr);
 			Expr_setTerm(expr, 1);
 			KSETv(expr->tk, tk);

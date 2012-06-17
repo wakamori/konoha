@@ -151,18 +151,18 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "variable name is expected");
 		RETURNb_(false);
 	}
-	kExpr *expr = kStmt_expr(stmt, KW_Expr, K_NULLEXPR);
-	if(!SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_var, 0)) {
+	kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, K_NULLEXPR);
+	if(!SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_var, 0)) {
 		RETURNb_(false);
 	}
-	/*kExpr **/expr = kStmt_expr(stmt, KW_Expr, K_NULLEXPR);
+	/*kExpr **/expr = kStmt_expr(stmt, KW_ExprPattern, K_NULLEXPR);
 	kMethod *mtd = Object_newProtoSetterNULL(_ctx, scr, stmt, gma->genv->ks, expr->ty, fn);
 	if(mtd == NULL) {
 		RETURNb_(false);
 	}
 	SUGAR Stmt_p(_ctx, stmt, NULL, INFO_, "%s has type %s", SYM_t(fn), TY_t(expr->ty));
 	expr = SUGAR new_TypedMethodCall(_ctx, stmt, TY_void, mtd, gma, 2, new_ConstValue(O_cid(scr), scr), expr);
-	kObject_setObject(stmt, KW_Expr, expr);
+	kObject_setObject(stmt, KW_ExprPattern, expr);
 	kStmt_typed(stmt, EXPR);
 	RETURNb_(true);
 }
@@ -174,7 +174,7 @@ static kMethod* ExprTerm_getSetterNULL(CTX, kStmt *stmt, kExpr *expr, kObject *s
 	USING_SUGAR;
 	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
 		kToken *tk = expr->tk;
-		if(tk->kw != KW_Symbol) {
+		if(tk->kw != KW_SymbolPattern) {
 			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is keyword", S_text(tk->text));
 			return NULL;
 		}
@@ -191,8 +191,8 @@ static kbool_t appendSetterStmt(CTX, kExpr *expr, kStmt **lastStmtRef)
 	kStmt *lastStmt = lastStmtRef[0];
 	kStmt *newstmt = new_(Stmt, lastStmt->uline);
 	SUGAR Block_insertAfter(_ctx, lastStmt->parentNULL, lastStmt, newstmt);
-	kStmt_setsyn(newstmt, SYN_(kStmt_ks(newstmt), KW_Expr));
-	kObject_setObject(newstmt, KW_Expr, expr);
+	kStmt_setsyn(newstmt, SYN_(kStmt_ks(newstmt), KW_ExprPattern));
+	kObject_setObject(newstmt, KW_ExprPattern, expr);
 	lastStmtRef[0] = newstmt;
 	return true;
 }
@@ -243,8 +243,8 @@ static KMETHOD StmtTyCheck_GlobalTypeDecl(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	VAR_StmtTyCheck(stmt, gma);
-	kToken *tk  = kStmt_token(stmt, KW_Type, NULL);
-	kExpr  *expr = kStmt_expr(stmt, KW_Expr, NULL);
+	kToken *tk  = kStmt_token(stmt, KW_TypePattern, NULL);
+	kExpr  *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 	if(tk == NULL || !TK_isType(tk) || expr == NULL) {
 		RETURNb_(false);
 	}

@@ -45,8 +45,8 @@ static KMETHOD StmtTyCheck_while(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("while statement .. ");
 	int ret = false;
-	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
-		kBlock *bk = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0)) {
+		kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		ret = SUGAR Block_tyCheckAll(_ctx, bk, gma);
 		kStmt_typed(stmt, LOOP);
 	}
@@ -59,8 +59,8 @@ static KMETHOD StmtTyCheck_for(CTX, ksfp_t *sfp _RIX)
 	VAR_StmtTyCheck(stmt, gma);
 	DBG_P("for statement .. ");
 	int ret = false;
-	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_Expr, gma, TY_Boolean, 0)) {
-		kBlock *bk = kStmt_block(stmt, KW_Block, K_NULLBLOCK);
+	if(SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0)) {
+		kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
 		ret = SUGAR Block_tyCheckAll(_ctx, bk, gma);
 		kStmt_typed(stmt, LOOP);
 	}

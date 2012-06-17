@@ -153,7 +153,6 @@ struct _ksyntax {
 #define SYNIDX_StmtTyCheck    3
 #define SYNIDX_ExprTyCheck    4
 
-#define TOKEN(T)  .kw = KW_##T
 #define PatternMatch_(NAME)    .PatternMatch   = PatternMatch_##NAME
 #define ParseExpr_(NAME)       .ParseExpr      = ParseExpr_##NAME
 #define TopStmtTyCheck_(NAME)  .TopStmtTyCheck = StmtTyCheck_##NAME
@@ -205,17 +204,17 @@ struct _kKonohaSpace {
 typedef kshort_t    kexpr_t;
 
 typedef enum {
-	TK_NONE,          // KW_Err
-	TK_INDENT,        // KW_Expr
-	TK_SYMBOL,        // KW_Symbol
-	TK_USYMBOL,       // KW_Usymbol
-	TK_TEXT,          // KW_Text
-	TK_INT,           // KW_Int
-	TK_FLOAT,         // KW_Float
-	TK_TYPE,          // KW_Type
-	AST_PARENTHESIS,  // KW_Parenthesis
+	TK_NONE,          // KW_ERR
+	TK_INDENT,        // KW_ExprPattern
+	TK_SYMBOL,        // KW_SymbolPattern
+	TK_USYMBOL,       // KW_UsymbolPattern
+	TK_TEXT,          // KW_TextPattern
+	TK_INT,           // KW_IntPattern
+	TK_FLOAT,         // KW_FloatPattern
+	TK_TYPE,          // KW_TypePattern
+	AST_PARENTHESIS,  // KW_ParenthesisPattern
 	AST_BRACKET,      // KW_Brancet
-	AST_BRACE,        // KW_Brace
+	AST_BRACE,        // KW_BracePattern
 
 	TK_OPERATOR,
 	TK_MSYMBOL,       //
@@ -244,7 +243,7 @@ struct _kToken {
 	};
 	union {
 		kshort_t   topch;
-		ktype_t    ty;       // if kw == KW_Type
+		ktype_t    ty;       // if kw == KW_TypePattern
 		kmethodn_t mn;	     // if tt == TK_MN
 	};
 };
@@ -399,24 +398,24 @@ struct _kGamma {
 #define K_NULLBLOCK  (kBlock*)((CT_Block)->nulvalNUL)
 
 #define KW_END  ((ksymbol_t)-1)
-#define KW_Err  (((ksymbol_t)0)|0) /**/
-#define KW_Expr (((ksymbol_t)1)|KW_PATTERN) /*$expr*/
-#define KW_Symbol (((ksymbol_t)2)|KW_PATTERN) /*$SYMBOL*/
-#define KW_Usymbol (((ksymbol_t)3)|KW_PATTERN) /*$USYMBOL*/
-#define KW_Text (((ksymbol_t)4)|KW_PATTERN) /*$TEXT*/
-#define KW_Int (((ksymbol_t)5)|KW_PATTERN) /*$INT*/
-#define KW_Float (((ksymbol_t)6)|KW_PATTERN) /*$FLOAT*/
-#define KW_Type (((ksymbol_t)7)|KW_PATTERN) /*$type*/
-#define KW_Parenthesis (((ksymbol_t)8)|KW_PATTERN) /*$()*/
-#define KW_Bracet  (((ksymbol_t)9)|KW_PATTERN) /*$[]*/
-#define KW_Brace (((ksymbol_t)10)|KW_PATTERN) /*${}*/
-#define KW_Block (((ksymbol_t)11)|KW_PATTERN) /*$block*/
-#define KW_Params (((ksymbol_t)12)|KW_PATTERN) /*$params*/
-#define KW_Toks (((ksymbol_t)13)|KW_PATTERN) /*$toks*/
+#define KW_ERR  (((ksymbol_t)0)|0) /**/
+#define KW_ExprPattern (((ksymbol_t)1)|KW_PATTERN) /*$expr*/
+#define KW_SymbolPattern (((ksymbol_t)2)|KW_PATTERN) /*$SYMBOL*/
+#define KW_UsymbolPattern (((ksymbol_t)3)|KW_PATTERN) /*$USYMBOL*/
+#define KW_TextPattern (((ksymbol_t)4)|KW_PATTERN) /*$TEXT*/
+#define KW_IntPattern (((ksymbol_t)5)|KW_PATTERN) /*$INT*/
+#define KW_FloatPattern (((ksymbol_t)6)|KW_PATTERN) /*$FLOAT*/
+#define KW_TypePattern (((ksymbol_t)7)|KW_PATTERN) /*$type*/
+#define KW_ParenthesisPattern (((ksymbol_t)8)|KW_PATTERN) /*$()*/
+#define KW_BracketPattern  (((ksymbol_t)9)|KW_PATTERN) /*$[]*/
+#define KW_BracePattern (((ksymbol_t)10)|KW_PATTERN) /*${}*/
+#define KW_BlockPattern (((ksymbol_t)11)|KW_PATTERN) /*$block*/
+#define KW_ParamsPattern (((ksymbol_t)12)|KW_PATTERN) /*$params*/
+#define KW_ToksPattern (((ksymbol_t)13)|KW_PATTERN) /*$toks*/
 
-#define KW_StmtConstDecl   KW_Usymbol
-#define KW_StmtTypeDecl    KW_Type
-#define KW_ExprMethodCall  KW_Params
+#define KW_StmtConstDecl   KW_UsymbolPattern
+#define KW_StmtTypeDecl    KW_TypePattern
+#define KW_ExprMethodCall  KW_ParamsPattern
 #define KW_StmtMethodDecl  KW_void
 
 #define KW_DOT     14
@@ -627,7 +626,7 @@ typedef struct {
 ///* ------------------------------------------------------------------------ */
 
 // In future, typeof operator is introduced
-#define TK_isType(TK)    ((TK)->kw == KW_Type)
+#define TK_isType(TK)    ((TK)->kw == KW_TypePattern)
 #define TK_type(TK)       (TK)->ty
 
 #define kStmt_ks(STMT)   Stmt_ks(_ctx, STMT)
