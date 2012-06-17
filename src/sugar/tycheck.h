@@ -674,10 +674,12 @@ static kMethod* Expr_lookUpFuncOrMethod(CTX, kExpr *exprN, kGamma *gma, ktype_t 
 			return mtd;
 		}
 		kclass_t *ct = CT_(genv->this_cid);
-		for(i = ct->fsize; i >= 0; i--) {
-			if(ct->fields[i].fn == fn && TY_isFunc(ct->fields[i].ty)) {
-				kExpr_setVariable(expr, FIELD, ct->fields[i].ty, longid((kshort_t)i, 0), gma);
-				return NULL;
+		if (ct->fsize) {
+			for(i = ct->fsize; i >= 0; i--) {
+				if(ct->fields[i].fn == fn && TY_isFunc(ct->fields[i].ty)) {
+					kExpr_setVariable(expr, FIELD, ct->fields[i].ty, longid((kshort_t)i, 0), gma);
+					return NULL;
+				}
 			}
 		}
 		mtd = KS_getGetterMethodNULL(_ctx, genv->ks, genv->this_cid, fn);
