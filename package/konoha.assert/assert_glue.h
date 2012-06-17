@@ -90,7 +90,7 @@
 //	USING_SUGAR;
 //	KDEFINE_SYNTAX SYNTAX[] = {
 //		{ TOKEN("assert"), .rule = "'assert' '(' $expr ')'", .TopStmtTyCheck = StmtTyCheck_assert, .StmtTyCheck = StmtTyCheck_assert},
-//		{ .name = NULL, },
+//		{ .kw = KW_END, },
 //	};
 //	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 //

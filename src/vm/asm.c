@@ -822,8 +822,8 @@ static void LoopStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 	kBasicBlock* lbCONTINUE = new_BasicBlockLABEL(_ctx);
 	kBasicBlock* lbBREAK = new_BasicBlockLABEL(_ctx);
 //	BUILD_pushLABEL(_ctx, stmt, lbCONTINUE, lbBREAK);
-	kObject_setObject(stmt, KW_("continue"), lbCONTINUE);
-	kObject_setObject(stmt, KW_("break"), lbBREAK);
+	kObject_setObject(stmt, SYM_("continue"), lbCONTINUE);
+	kObject_setObject(stmt, SYM_("break"), lbBREAK);
 	ASM_LABEL(_ctx, lbCONTINUE);
 	ASM_SAFEPOINT(_ctx, espidx);
 	EXPR_asmJMPIF(_ctx, espidx, kStmt_expr(stmt, 1, NULL), 0/*FALSE*/, lbBREAK, shift, espidx);
@@ -848,7 +848,7 @@ static void JumpStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void UndefinedStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	DBG_ABORT("undefined asm syntax kw='%s'", KW_t(stmt->syn->kw));
+	DBG_ABORT("undefined asm syntax kw='%s'", SYM_t(stmt->syn->kw));
 }
 
 static void BLOCK_asm(CTX, kBlock *bk, int shift)

@@ -145,7 +145,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, " global variables are not available");
 		RETURNb_(false);
 	}
-	kExpr *vexpr = kStmt_expr(stmt, KW_("var"), K_NULLEXPR);
+	kExpr *vexpr = kStmt_expr(stmt, SYM_("var"), K_NULLEXPR);
 	ksymbol_t fn = tosymbol(_ctx, vexpr);
 	if(fn == SYM_NONAME) {
 		SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "variable name is expected");
@@ -262,8 +262,8 @@ static kbool_t global_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("var"), TopStmtTyCheck_(var), .rule = "\"var\" var: $expr \"=\" $expr", },
-		{ .name = NULL, },
+		{ .kw = SYM_("var"), TopStmtTyCheck_(var), .rule = "\"var\" var: $expr \"=\" $expr", },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	SUGAR SYN_setSugarFunc(_ctx, ks, KW_StmtTypeDecl, SYNIDX_TopStmtTyCheck, new_SugarFunc(StmtTyCheck_GlobalTypeDecl));

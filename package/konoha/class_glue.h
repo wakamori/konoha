@@ -505,7 +505,7 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 	USING_SUGAR;
 	VAR_StmtTyCheck(stmt, gma);
 	kToken *tkC = kStmt_token(stmt, KW_Usymbol, NULL);
-	kToken *tkE= kStmt_token(stmt, KW_("extends"), NULL);
+	kToken *tkE= kStmt_token(stmt, SYM_("extends"), NULL);
 	kflag_t cflag = 0;
 	kcid_t supcid = TY_Object;
 	kclass_t *supct = CT_Object;
@@ -540,11 +540,11 @@ static kbool_t class_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("new"), ParseExpr_(new), },
-		{ TOKEN("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $USYMBOL] $block", TopStmtTyCheck_(class), },
-		{ TOKEN("extends"), .rule = "\"extends\" $USYMBOL", }, 
-		{ TOKEN("."), ExprTyCheck_(Getter) },
-		{ .name = NULL, },
+		{ .kw = SYM_("new"), ParseExpr_(new), },
+		{ .kw = SYM_("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $USYMBOL] $block", TopStmtTyCheck_(class), },
+		{ .kw = SYM_("extends"), .rule = "\"extends\" $USYMBOL", },
+		{ .kw = SYM_("."), ExprTyCheck_(Getter) },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

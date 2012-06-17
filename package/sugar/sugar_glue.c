@@ -199,7 +199,7 @@ static KMETHOD Block_tyCheckAll(CTX, ksfp_t *sfp _RIX)
 //static ksyntax_t* get_syntax(CTX, kKonohaSpace *ks, kString *key)
 //{
 //	USING_SUGAR;
-//	keyword_t kw = KW_s(key);
+//	synid_t kw = KW_s(key);
 //	if(kw == SYM_NONAME) {
 //		kreportf(CRIT_, "undefined keyword: %s", S_text(key));
 //	}
@@ -350,7 +350,7 @@ static struct _ksyntax *toks_syntax(CTX, kKonohaSpace *ks, kArray *tls)
 	int s = 0, e = kArray_size(tls);
 	if(s < e) {
 		if(tls->toks[s]->tt == TK_TEXT) {
-			keyword_t kw;
+			synid_t kw;
 			if(isSubKeyword(_ctx, tls, s, e)) {
 				char buf[256];
 				snprintf(buf, sizeof(buf), "%s %s", S_text(tls->toks[s]->text), S_text(tls->toks[s+1]->text));
@@ -397,8 +397,8 @@ static kbool_t sugar_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("sugar"), .rule ="\"sugar\" $toks", TopStmtTyCheck_(sugar), },
-		{ .name = NULL, },
+		{ .kw = SYM_("sugar"), .rule ="\"sugar\" $toks", TopStmtTyCheck_(sugar), },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

@@ -100,7 +100,7 @@ static kinline const char* SYM_PRE(ksymbol_t sym)
 	DBG_ASSERT(mask < 8);
 	static const char* prefixes[] = {
 		/*000*/ "",   /*001*/ "get", /*010*/ "set", /*011*/ "@",
-		/*100*/ "is", /*101*/ "",    /*110*/ "to",  /*111*/ "as",
+		/*100*/ "is", /*101*/ "",    /*110*/ "to",  /*111*/ "$",
 	};
 	return prefixes[mask];
 }
