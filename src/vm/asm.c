@@ -771,14 +771,14 @@ static void ASM_SAFEPOINT(CTX, int espidx)
 
 static void ErrStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kString *msg = (kString*)kObject_getObjectNULL(stmt, 0);
+	kString *msg = (kString*)kObject_getObjectNULL(stmt, KW_Err);
 	DBG_ASSERT(IS_String(msg));
 	ASM(ERROR, SFP_(espidx), msg);
 }
 
 static void ExprStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
 	if(IS_Expr(expr)) {
 		EXPR_asm(_ctx, espidx, expr, shift, espidx);
 	}
@@ -809,7 +809,7 @@ static void IfStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 
 static void ReturnStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 {
-	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, 1);
+	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, KW_Expr);
 	if(expr != NULL && IS_Expr(expr) && expr->ty != TY_void) {
 		EXPR_asm(_ctx, K_RTNIDX, expr, shift, espidx);
 	}
@@ -854,7 +854,7 @@ static void UndefinedStmt_asm(CTX, kStmt *stmt, int shift, int espidx)
 static void BLOCK_asm(CTX, kBlock *bk, int shift)
 {
 	int i, espidx = (bk->esp->build == TEXPR_STACKTOP) ? shift + bk->esp->index : bk->esp->index;
-	DBG_P("shift=%d, espidx=%d build=%d", shift, espidx, bk->esp->build);
+	//DBG_P("shift=%d, espidx=%d build=%d", shift, espidx, bk->esp->build);
 	for(i = 0; i < kArray_size(bk->blocks); i++) {
 		kStmt *stmt = bk->blocks->stmts[i];
 		if(stmt->syn == NULL) continue;
