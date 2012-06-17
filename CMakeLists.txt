@@ -129,6 +129,7 @@ set(PACKAGES
 ##	konoha.json
 	ijit
 	python
+	konoha.null
 )
 
 find_library(HAVE_LIBDL NAMES dl)

@@ -584,12 +584,12 @@ static KMETHOD Method_getReturnType(CTX, ksfp_t *sfp _RIX)
 //## String mtd.getFname();
 static KMETHOD Method_getFname(CTX, ksfp_t *sfp _RIX)
 {
-	abort();  // MN_T is modified more compact interface by kimio
-//	kMethod *mtd = sfp[0].mtd;
-//	int mn = mtd->mn;
-//	char mbuf[128];
-//	T_mn(mbuf, mn);
-//	RETURN_(new_kString(mbuf, strlen(mbuf), 0));
+	kMethod *mtd = sfp[0].mtd;
+	kwb_t wb;
+	kwb_init(&(_ctx->stack->cwb), &wb);
+	kwb_printf(&wb, "%s%s", T_mn(mtd->mn));
+	kString *fname = new_kString(kwb_top(&wb, 0), kwb_bytesize(&wb), SPOL_POOL);
+	RETURN_(fname);
 }
 
 //## String mtd.getCname();
