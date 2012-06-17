@@ -313,6 +313,13 @@ add_builtin_test(Release/Logger  --builtin-test=test_logger)
 add_builtin_test(Release/Kwb     --builtin-test=test_kwb)
 add_builtin_test(Release/Kvproto --builtin-test=test_kvproto)
 
+add_test(Shell/Release/Oneline
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test-oneline.sh ${TEST_BIN}
+	"System.p(\"hi\");")
+add_test(Shell/Release/Multiline
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test-multiline.sh ${TEST_BIN}
+	${CMAKE_CURRENT_SOURCE_DIR}/test/Release/Fibonacci.k)
+
 install(TARGETS konoha2 konoha2_bin
 		RUNTIME DESTINATION bin
 		LIBRARY DESTINATION lib${LIB_SUFFIX}
