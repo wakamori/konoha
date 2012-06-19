@@ -30,7 +30,7 @@
 #include <evhttp.h>
 #include <event2/buffer.h>
 #include <sys/queue.h>
-#include <actor/actor.h>
+//#include <actor/actor.h>
 #include <jansson.h>
 #include <konoha2/konoha2.h>
 #include "dse_util.h"
@@ -137,10 +137,21 @@ static struct dReq *dse_parseJson(const char *input)
 	const char *str_context = json_string_value(context);
 	size_t context_len = strlen(str_context);
 	strncpy(filename, str_context, context_len);
-	strncat(filename, ".k", context_len + 2);
+	snprintf(filename, context_len+3, "%s.k", str_context);
 	FILE *fp = fopen(filename, "w");
-	const char *str_script= json_string_value(script);
+	char *str_script= json_string_value(script);
+	// replace "'" --> "\"";
 	size_t script_len = strlen(str_script);
+	char ch;
+	int idx = 0;
+	for (idx = 0; idx < script_len; idx++) {
+		if (str_script[idx] == '\'') {
+			str_script[idx] ='"';
+		} else if (str_script[idx] == '@') {
+			str_script[idx] = '\n';
+		}
+
+	}
 	fwrite(str_script, script_len, 1, fp);
 	fflush(fp);
 	fclose(fp);
@@ -148,50 +159,85 @@ static struct dReq *dse_parseJson(const char *input)
 	return ret;
 }
 
-static void eval_actor_init(Actor *a) { /* do nothing */ }
-static void eval_actor_exit(Actor *a) { /* do nothing */ }
+//static void eval_actor_init(Actor *a) { /* do nothing */ }
+//static void eval_actor_exit(Actor *a) { /* do nothing */ }
+//
+//static int eval_actor_act(Actor *a, Message *message)
+//{
+//	if (JSON_type(message) == JSON_String) {
+//		char *filepath = JSONString_get(a->self, 6);
+//		filepath[5] = '\0';
+//		konoha_t konoha = konoha_open();
+//		int ret = konoha_load(konoha, filepath);
+//		konoha_close(konoha);
+//	}
+//	return 0;
+//}
+//
+//static const struct actor_api eval_actor_api = {
+//	eval_actor_act,
+//	eval_actor_init,
+//	eval_actor_exit
+//};
+//
+//static void eval_actor(struct dReq *req)
+//{
+//	if (ActorStage_init(1, 1)) {
+//		D_("ActorStageinit, failed");
+//	}
+//
+//	JSON message = JSONInt_new(1);
+//	Actor *a = Actor_new(message, &eval_actor_api);
+//	Actor_act(a);
+//	Actor_send(a, JSONString_new(req->scriptfilepath, strlen(req->scriptfilepath)));
+//}
 
-static int eval_actor_act(Actor *a, Message *message)
+static const char* _packname(const char *str)
 {
-    if (JSON_type(message) == JSON_String) {
-		char *filepath = JSONString_get(a->self, 6);
-		filepath[5] = '\0';
-		konoha_t konoha = konoha_open();
-		int ret = konoha_load(konoha, filepath);
-		konoha_close(konoha);
+	char *p = strrchr(str, '.');
+	return (p == NULL) ? str : (const char*)p+1;
+}
+
+static const char* _packagepath(char *buf, size_t bufsiz, const char *fname)
+{
+	char *path = getenv("KONOHA_PACKAGEPATH"), *local = "";
+	if(path == NULL) {
+		path = getenv("KONOHA_HOME");
+		local = "/package";
 	}
-    return 0;
+	if(path == NULL) {
+		path = getenv("HOME");
+		local = "/.konoha2/package";
+	}
+	snprintf(buf, bufsiz, "%s%s/%s/%s_glue.k", path, local, fname, _packname(fname));
+#ifdef K_PREFIX
+	FILE *fp = fopen(buf, "r");
+	if(fp != NULL) {
+		fclose(fp);
+	}
+	else {
+		snprintf(buf, bufsiz, K_PREFIX "/konoha2/package" "/%s/%s_glue.k", fname, _packname(fname));
+	}
+#endif
+	return (const char*)buf;
 }
 
-static const struct actor_api eval_actor_api = {
-    eval_actor_act,
-    eval_actor_init,
-    eval_actor_exit
-};
-
-static void eval_actor(struct dReq *req)
-{
-    if (ActorStage_init(4, 4)) {
-        fprintf(stderr, "ActorStage initialization failed.\n");
-        return 1;
-    }
-
-	JSON message = JSONInt_new(1);
-	Actor *a = Actor_new(message, &eval_actor_api);
-	Actor_act(a);
-	Actor_send(a, JSONString_new(req->scriptfilepath, strlen(req->scriptfilepath)));
-}
 
 static struct dRes *dse_dispatch(struct dReq *req)
 {
-//	konoha_t konoha = konoha_open();
+	kplatform_t dse = {
+		.name = "dse",
+		.stacksize = 4096, 
+		.packagepath = _packagepath,
+	};
+	konoha_t konoha = konoha_open(&dse);
 	int ret;
 	D_("scriptpath:%s", req->scriptfilepath);
 	struct dRes *dres = newDRes();
 	switch (req->method){
 	case E_METHOD_EVAL: case E_METHOD_TYCHECK:
-//		ret = konoha_load(konoha, req->scriptfilepath);
-		eval_actor(req);
+		ret = konoha_load(konoha, req->scriptfilepath);
+//		eval_actor(req);
 		if(ret == 1) {
 			// ok;
 			dres->status = E_STATUS_OK;
@@ -203,6 +249,7 @@ static struct dRes *dse_dispatch(struct dReq *req)
 		D_("there's no such method");
 		break;
 	}
+	konoha_close(konoha);
 	return dres;
 }
 
@@ -278,10 +325,10 @@ static int dserv_start(struct dDserv *dserv, const char *addr, int ip)
 		exit(EXIT_FAILURE);
 	}
 	evhttp_set_gencb(dserv->httpd, dse_req_handler, NULL);
+
 	event_base_dispatch(dserv->base);
 	return 0;
 }
-
 
 static void dserv_close(struct dDserv *dserv)
 {
