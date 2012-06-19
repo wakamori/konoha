@@ -233,6 +233,7 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 			case 'n': ch = '\n'; pos++; break;
 			case 't': ch = '\t'; pos++; break;
 			case 'r': ch = '\r'; pos++; break;
+			case '"': ch = '\"'; pos++; break;
 			}
 		}
 		prev = ch;
