@@ -85,9 +85,16 @@ typedef struct {
 	const char *name;
 	size_t stacksize;
 	// low-level functions
-
+	void* (*malloc)(size_t);
+	void  (*free)(void *);
+	char* (*realpath)(const char*, char*);
+	FILE* (*fopen)(const char*, const char*);
+	int   (*fgetc)(FILE *);
+	int   (*feof)(FILE *);
+	int   (*fclose)(FILE *);
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
+	const char* (*exportpath)(char *buf, size_t bufsiz, const char *pkgname);
 } kplatform_t;
 
 /* ------------------------------------------------------------------------ */
