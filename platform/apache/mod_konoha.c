@@ -50,98 +50,64 @@
 
 #define PATHSIZE 1024
 #define AP_LOG_DEBUG(fmt, ...) \
-    do { \
-        if (debug) { \
-            ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r, fmt, ## __VA_ARGS__); \
-        } \
-    } while (0)
+	do { \
+		if(debug) { \
+			ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r, fmt, ## __VA_ARGS__); \
+		} \
+	} while(0)
 #define AP_LOG_CRIT(fmt, ...) \
-    ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r, fmt, ## __VA_ARGS__)
+	ap_log_rerror(APLOG_MARK, APLOG_CRIT, 0, r, fmt, ## __VA_ARGS__)
 //#define GET_PROP(name)								\
 //    (kString*)knh_getPropertyNULL(_ctx, STEXT(name))
 #define CLEAR_PROP(name) \
-    knh_setProperty(_ctx, new_String(_ctx, name), K_NULL)
+	knh_setProperty(_ctx, new_String(_ctx, name), K_NULL)
 #define IS_KNULL(val) \
-    ((val) == NULL || (kObject *)(val) == K_NULL)
+	((val) == NULL || (kObject *)(val) == K_NULL)
 #define AP_DBG_P(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__)
 
 typedef struct _konoha_config {
-    int debug;
-    const char *handler;
-    const char *package_dir;
+	int debug;
+	const char *handler;
+	const char *package_dir;
 } konoha_config_t;
 
 typedef struct _wsgi_config {
-    const char *status;
-    const char *content_type;
+	const char *status;
+	const char *content_type;
 } wsgi_config_t;
 
 static bool get_wsgi_config(request_rec *r, CTX, wsgi_config_t *conf, int debug);
 static int get_rcode(wsgi_config_t *wconf);
-
 static konoha_t konoha;
 
 module AP_MODULE_DECLARE_DATA konoha_module;
 
-/* utility of read from POST body */
-static int util_read(request_rec *r, const char **rbuf)
-{
-	AP_DBG_P("util_read\n");
-    int rc;
-
-    if (r->method_number != M_POST) {
-        return DECLINED;
-    }
-
-    if ((rc = ap_setup_client_block(r, REQUEST_CHUNKED_ERROR)) != OK) {
-        return rc;
-    }
-
-    if (ap_should_client_block(r)) {
-        char argsbuffer[HUGE_STRING_LEN];
-        int rsize, len_read, rpos=0;
-        long length = r->remaining;
-        *rbuf = apr_pcalloc(r->pool, length + 1);
-
-        while ((len_read = ap_get_client_block(r, argsbuffer,
-                        sizeof(argsbuffer))) > 0 ) {
-            if ((rpos + len_read) > length) {
-                rsize = length - rpos;
-            }
-            else {
-                rsize = len_read;
-            }
-            memcpy((char *)*rbuf + rpos, argsbuffer, rsize);
-            rpos += rsize;
-        }
-    }
-
-    return rc;
-}
-
 /* call Script.application() */
 static bool start_application(request_rec *r, CTX, int debug, const char **content)
 {
-	AP_DBG_P("start_application\n");
+	AP_LOG_DEBUG("start_application\n");
 	kclass_t *ct = kKonohaSpace_getCT(NULL/*fixme*/, NULL/*fixme*/, "Wsgi", 4, TY_Method);
 	kMethod *mtd = kKonohaSpace_getMethodNULL(kmodsugar->rootks, ct->cid, MN_("application"));
 	if (mtd == NULL) {
-        AP_LOG_CRIT("function 'application' is not defined.");
-        return -1;
+		AP_LOG_CRIT("function 'application' is not defined.");
+		return -1;
 	}
 	INIT_GCSTACK();
-	BEGIN_LOCAL(lsfp, 8);
+	BEGIN_LOCAL(lsfp, K_CALLDELTA);
 	KCALL(lsfp, 0, mtd, 0, knull(CT_Int));
+	//KSETv(lsfp[K_CALLDELTA + 0].o, );
+	//KSETv(lsfp[K_CALLDELTA + 1].o, );
+	//KCALL(lsfp, 0, mtd, 2, knull(CT_Int));
 	END_LOCAL();
 	AP_LOG_DEBUG("ret=%s\n", S_text(lsfp[0].s));
 	RESET_GCSTACK();
 
-    return true;
+	return true;
 }
 
 static int get_rcode(wsgi_config_t *wconf)
 {
-	AP_DBG_P("get_rcode\n");
+	//AP_DBG_P("get_rcode\n");
 	int rcode;
 	if (wconf->status == NULL) {
 		rcode = -1;
@@ -170,31 +136,31 @@ static int get_rcode(wsgi_config_t *wconf)
 static bool set_headers(request_rec *r, CTX, int debug, int rcode)
 {
 	AP_DBG_P("set_handlers\n");
-    return true;
+	return true;
 }
 
 static int check_konoha_config(request_rec *r, konoha_config_t *kconf)
 {
-    /* check file existence */
+	/* check file existence */
 	AP_DBG_P("check_konoha_config\n");
 	int ret = 0;
 	char *handler = kconf->handler;
 	char *package_dir = kconf->package_dir;
-    if (handler == NULL) {
-        AP_LOG_CRIT("handler is null");
+	if (handler == NULL) {
+		AP_LOG_CRIT("handler is null");
 		ret = -1;
 		goto L_RET;
-    }
-    struct stat st;
-    ret = stat(handler, &st);
-    if (ret != 0) {
-        AP_LOG_CRIT("KonohaHandler does not exists at %s", handler);
+	}
+	struct stat st;
+	ret = stat(handler, &st);
+	if (ret != 0) {
+		AP_LOG_CRIT("KonohaHandler does not exists at %s", handler);
 		ret = -1;
 		goto L_RET;
-    }
-    if (kconf->package_dir != NULL) {
-        setenv("KONOHA_PACKAGE", kconf->package_dir, 0);
-    }
+	}
+	if (kconf->package_dir != NULL) {
+		setenv("KONOHA_PACKAGE", kconf->package_dir, 0);
+	}
 L_RET:
 	return ret;
 }
@@ -204,7 +170,7 @@ L_RET:
 		"/usr/local/bin/konoha",	\
 		kconf->handler				\
 	};								\
-	argc = 2;
+argc = 2;
 
 #define RET_CHECK(cond)				\
 	do {							\
@@ -217,24 +183,24 @@ L_RET:
 static int konoha_handler(request_rec *r)
 {
 	AP_DBG_P("konoha_handler\n");
-    if (strcmp(r->handler, "konoha")) {
-        return DECLINED;
-    }
-    r->content_encoding = "utf-8";
+	if (strcmp(r->handler, "konoha")) {
+		return DECLINED;
+	}
+	r->content_encoding = "utf-8";
 
-    /* get config */
-    konoha_config_t *kconf = (konoha_config_t *)ap_get_module_config(r->per_dir_config, &konoha_module);
+	/* get config */
+	konoha_config_t *kconf = (konoha_config_t *)ap_get_module_config(r->per_dir_config, &konoha_module);
 	if (check_konoha_config(r, kconf) != 0) return OK;
-    int debug = kconf->debug;
+	int debug = kconf->debug;
 
-    /* call konoha main */
-    int ret;
+	/* call konoha main */
+	int ret;
 	static konoha_t konoha = NULL;
 	static int konoha_initialized = 0;
 	if (!konoha_initialized) {
 		konoha_initialized = 1;
 		KONOHA_ARG_INIT(int argc, char *argv[]);
-//		int scriptidx = konoha_ginit(argc, argv);
+		//		int scriptidx = konoha_ginit(argc, argv);
 		int scriptidx = 1;
 		konoha = konoha_open();
 		if(scriptidx < argc) {
@@ -243,108 +209,108 @@ static int konoha_handler(request_rec *r)
 	}
 
 	/* call Script.application */
-    const char *content = NULL;
-    wsgi_config_t wconf;
-    RET_CHECK(start_application(r, konoha, debug, &content));
-    RET_CHECK(get_wsgi_config(r, konoha, &wconf, debug));
-    int rcode = get_rcode(&wconf);
-//    r->content_type = apr_pstrdup(r->pool, wconf.content_type);
-    RET_CHECK(set_headers(r, konoha, debug, rcode));
-//	ap_rputs(content, r);
-    return rcode;
+	const char *content = NULL;
+	wsgi_config_t wconf;
+	RET_CHECK(start_application(r, konoha, debug, &content));
+	RET_CHECK(get_wsgi_config(r, konoha, &wconf, debug));
+	int rcode = get_rcode(&wconf);
+	//    r->content_type = apr_pstrdup(r->pool, wconf.content_type);
+	RET_CHECK(set_headers(r, konoha, debug, rcode));
+	//	ap_rputs(content, r);
+	return rcode;
 TAIL:
-    AP_LOG_CRIT("Konoha closed with error: %d", ret);
-    return OK;
+	AP_LOG_CRIT("Konoha closed with error: %d", ret);
+	return OK;
 }
 
 /* get config */
 static bool get_wsgi_config(request_rec *r, CTX, wsgi_config_t *conf, int debug)
 {
 	AP_DBG_P("get_wsgi_config\n");
-    return true;
+	return true;
 }
 
 /* copy .conf arguments */
 static const char *set_handler(cmd_parms *cmd, void *vp, const char *arg)
 {
-    (void)cmd;
+	(void)cmd;
 	AP_DBG_P("set_handler\n");
-    konoha_config_t *conf = (konoha_config_t *)vp;
-    strncpy((char *)conf->handler, arg, PATHSIZE - 1);
-    return NULL;
+	konoha_config_t *conf = (konoha_config_t *)vp;
+	strncpy((char *)conf->handler, arg, PATHSIZE - 1);
+	return NULL;
 }
 
 /* copy KonohaHandler to set KONOHA_PACKAGE environment variable */
 static const char *set_package_dir(cmd_parms *cmd, void *vp, const char *arg)
 {
-    (void)cmd;
+	(void)cmd;
 	AP_DBG_P("set_package_dir\n");
-    konoha_config_t *conf = (konoha_config_t *)vp;
-    strncpy((char *)conf->package_dir, arg, PATHSIZE - 1);
-    return NULL;
+	konoha_config_t *conf = (konoha_config_t *)vp;
+	strncpy((char *)conf->package_dir, arg, PATHSIZE - 1);
+	return NULL;
 }
 
 /* copy .conf arguments */
 static const char *set_debug(cmd_parms *cmd, void *vp, const char *arg)
 {
-    (void)cmd;
+	(void)cmd;
 	AP_DBG_P("set_debug\n");
-    konoha_config_t *conf = (konoha_config_t *)vp;
-    if (!strcmp(arg, "on")) {
-        conf->debug = 1;
-    }
-    return NULL;
+	konoha_config_t *conf = (konoha_config_t *)vp;
+	if (!strcmp(arg, "on")) {
+		conf->debug = 1;
+	}
+	return NULL;
 }
 
 /* configure konoha create dir */
 static void *konoha_cdir_cfg(apr_pool_t *pool, char *arg)
 {
-    (void)arg;
+	(void)arg;
 	AP_DBG_P("konoha_cdir_cfg\n");
-    konoha_config_t *conf;
-    conf = (konoha_config_t *)apr_palloc(pool, sizeof(konoha_config_t));
-    conf->debug = 0;
-    conf->handler = (const char *)apr_palloc(pool, sizeof(char) * PATHSIZE);
-    conf->package_dir = (const char *)apr_palloc(pool, sizeof(char) * PATHSIZE);
-    return (void *)conf;
+	konoha_config_t *conf;
+	conf = (konoha_config_t *)apr_palloc(pool, sizeof(konoha_config_t));
+	conf->debug = 0;
+	conf->handler = (const char *)apr_palloc(pool, sizeof(char) * PATHSIZE);
+	conf->package_dir = (const char *)apr_palloc(pool, sizeof(char) * PATHSIZE);
+	return (void *)conf;
 }
 
 /* konoha commands */
 static const command_rec konoha_cmds[] = {
-    AP_INIT_TAKE1("KonohaHandler",
-        set_handler,
-        NULL,
-        OR_ALL,
-        "set konoha handler"),
-    AP_INIT_TAKE1("PackageDir",
-        set_package_dir,
-        NULL,
-        OR_ALL,
-        "set konoha package path"),
-    AP_INIT_TAKE1("Debug",
-        set_debug,
-        NULL,
-        OR_ALL,
-        "set debug mode"),
-    { NULL, {NULL}, NULL, 0, RAW_ARGS, NULL }
+	AP_INIT_TAKE1("KonohaHandler",
+			set_handler,
+			NULL,
+			OR_ALL,
+			"set konoha handler"),
+	AP_INIT_TAKE1("PackageDir",
+			set_package_dir,
+			NULL,
+			OR_ALL,
+			"set konoha package path"),
+	AP_INIT_TAKE1("Debug",
+			set_debug,
+			NULL,
+			OR_ALL,
+			"set debug mode"),
+	{ NULL, {NULL}, NULL, 0, RAW_ARGS, NULL }
 };
 
 /* konoha register hooks */
 static void konoha_register_hooks(apr_pool_t *p)
 {
-    (void)p;
+	(void)p;
 	AP_DBG_P("konoha_register_hooks\n");
-    ap_hook_handler(konoha_handler, NULL, NULL, APR_HOOK_MIDDLE);
+	ap_hook_handler(konoha_handler, NULL, NULL, APR_HOOK_MIDDLE);
 }
 
 /* Dispatch list for API hooks */
 module AP_MODULE_DECLARE_DATA konoha_module = {
-    STANDARD20_MODULE_STUFF,
-    konoha_cdir_cfg,       /* create per-dir    config structures */
-    NULL,                  /* merge  per-dir    config structures */
-    NULL,                  /* create per-server config structures */
-    NULL,                  /* merge  per-server config structures */
-    konoha_cmds,           /* table of config file commands       */
-    konoha_register_hooks  /* register hooks                      */
+	STANDARD20_MODULE_STUFF,
+	konoha_cdir_cfg,       /* create per-dir    config structures */
+	NULL,                  /* merge  per-dir    config structures */
+	NULL,                  /* create per-server config structures */
+	NULL,                  /* merge  per-server config structures */
+	konoha_cmds,           /* table of config file commands       */
+	konoha_register_hooks  /* register hooks                      */
 };
 

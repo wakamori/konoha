@@ -46,6 +46,8 @@
 // method and operator
 #include"array_glue.h"
 
+// method and operator
+#include"property_glue.h"
 
 // --------------------------------------------------------------------------
 
@@ -66,6 +68,7 @@ static	kbool_t konoha_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 	}
 
 	array_initPackage(_ctx, ks, argc, args, pline);
+	property_initPackage(_ctx, ks, argc, args, pline);
 	return true;
 }
 
@@ -82,6 +85,7 @@ static kbool_t konoha_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 		float_setupPackage(_ctx, ks, pline);
 	}
 	array_setupPackage(_ctx, ks, pline);
+	property_setupPackage(_ctx, ks, pline);
 	return true;
 }
 
@@ -98,6 +102,7 @@ static kbool_t konoha_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 		float_initKonohaSpace(_ctx, ks, pline);
 	}
 	array_initKonohaSpace(_ctx, ks, pline);
+	property_initKonohaSpace(_ctx, ks, pline);
 	return true;
 }
 
@@ -114,6 +119,7 @@ static kbool_t konoha_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 		float_setupKonohaSpace(_ctx, ks, pline);
 	}
 	array_setupKonohaSpace(_ctx, ks, pline);
+	property_setupKonohaSpace(_ctx, ks, pline);
 	return true;
 }
 
