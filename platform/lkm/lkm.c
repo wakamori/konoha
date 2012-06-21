@@ -98,6 +98,24 @@ static ssize_t knh_dev_read (struct file* filp, char __user *user_buf,
 	return len;
 }
 
+const kplatform_t* platform_kernel(void)
+{
+	static kplatform_t plat = {
+		.name = "lkm",
+		.stacksize = K_PAGESIZE * 4,
+		.malloc    = malloc,
+		.free      = free,
+		.realpath  = NULL,
+		.fopen     = fopen,
+		.fgetc     = fgetc,
+		.feof      = NULL,
+		.fclose    = fclose,
+		.packagepath = NULL,
+		.exportpath  = NULL
+	};
+	return (const kplatform_t*)(&plat);
+}
+
 static void CTX_evalScript(CTX, char *data, size_t len)
 {
 	kwb_t wb;
@@ -178,7 +196,7 @@ static void knh_dev_setup(struct konohadev_t *dev)
 	}
 	cdev_init(&dev->cdev,&knh_fops);
 	dev->cdev.owner = THIS_MODULE;
-	dev->konoha = konoha_open();
+	dev->konoha = konoha_open(platform_kernel());
 	dev->buffer = kmalloc(sizeof(char)*MAXCOPYBUF,GFP_KERNEL);
 	memset(dev->buffer,0,sizeof(char)*MAXCOPYBUF);
 	sema_init(&dev->sem,1);

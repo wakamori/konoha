@@ -38,9 +38,15 @@ typedef intptr_t FILE;
 #define stdout KERN_INFO
 #define stderr KERN_ALERT
 
-#define malloc(x) kmalloc(x,GFP_KERNEL)
+//#define malloc(x) kmalloc(x,GFP_KERNEL)
+
 #define calloc(x,y) kcalloc(x,y,GFP_KERNEL)
 #define realloc(x,y) krealloc(x,y,GFP_KERNEL)
+
+static inline void *malloc(size_t size)
+{
+	return kmalloc(size,GFP_KERNEL);
+}
 
 static inline void free(void *p)
 {
@@ -49,16 +55,34 @@ static inline void free(void *p)
 
 #define strtoll(x,y,z) kstrtoll(x,z,y)
 #define bzero(x,y) memset(x,0x00,y)
-#define fopen(a,b) NULL
-#define fclose(fp)
+//#define fopen(a,b) NULL
+static inline FILE *fopen(const char *a,const char *b)
+{
+	(void)a;(void)b;
+	return NULL;
+}
+
+//#define fclose(fp)
+static inline int fclose(FILE *fp)
+{
+	return 0;
+}
 #define dlopen(a,b) NULL
 #define dlsym(a,b) NULL
-#define realpath(path,buf) NULL
-
+//#define realpath(path,buf) NULL
+static inline char *realpath(const char *a,char *b)
+{
+	(void)a;(void)b;
+	return NULL;
+}
 #define fprintf(out,fmt, arg...) printk(KERN_ALERT fmt , ##arg )
 #define vfprintf(out,fmt, arg...) vprintk(fmt , arg )
 #define fputs(prompt, fp) 
-#define fgetc(fp) (-1)
+//#define fgetc(fp) (-1)
+static inline int fgetc(FILE *fp)
+{
+	return -1;
+}
 #define EOF -1
 #define fflush(x)
 #define exit(i)  printk(KERN_EMERG "KONOHA_exit!!!")
