@@ -118,7 +118,9 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 
 	struct _kToken *newtk = new_W(Token, 0);
 	tkHead = tls->toks[e+1];
-	newtk->tt = AST_PARENTHESIS; newtk->kw = AST_PARENTHESIS; newtk->uline = tkHead->uline;
+	newtk->tt = AST_PARENTHESIS;
+	newtk->kw = (AST_PARENTHESIS | KW_PATTERN);
+	newtk->uline = tkHead->uline;
 	//newtk->topch = tkHead->topch; newtk->lpos = tkHead->closech;
 	KSETv(newtk->sub, new_(TokenArray, 0));
 	i = news;
