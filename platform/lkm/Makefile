@@ -32,7 +32,7 @@ uninstall:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f ../../src/.*.o.cmd  ../../src/*.o
 	rm -f ../../src/*/.*.o.cmd ../../src/*/*.o
+	rm -f ../../module/*/.*.o.cmd ../../module/*/*.o
 
 
