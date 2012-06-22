@@ -104,7 +104,7 @@ const kplatform_t* platform_kernel(void)
 		.name = "lkm",
 		.stacksize = K_PAGESIZE * 4,
 		.malloc    = malloc,
-		.free      = free,
+		.free      = kfree,
 		.realpath  = NULL,
 		.fopen     = fopen,
 		.fgetc     = fgetc,

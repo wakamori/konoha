@@ -47,13 +47,53 @@ static inline void *malloc(size_t size)
 {
 	return kmalloc(size,GFP_KERNEL);
 }
-
 static inline void free(void *p)
 {
 	kfree(p);
 }
 
-#define strtoll(x,y,z) kstrtoll(x,z,y)
+#define isrange(c,a,z) (c >= a && z >= c)
+
+static inline long long int _strtoll(const char *nptr, char **endptr, int base)
+{
+	if(*nptr == '0') {
+		nptr++;
+		if(*nptr == 'x' || *nptr == 'X') {
+			base = 16;
+			nptr++;
+		}else {
+			base = 8;
+		}
+	}else if(*nptr == '+'){
+		nptr++;
+	}
+	if(base == 0)
+		base = 10;
+
+	long long int tmp = 0;
+	char c = 0;
+	for(tmp = 0;(c =  *nptr) != '\0';nptr++) {
+		c = isrange(c,'0','9') ? c - '0':
+			(isrange(c,'A','Z') ? c - 'A' + 10 :
+			 (isrange(c,'a','z') ? c - 'a' + 10:-1));
+		if(c == -1)
+			break;
+		tmp = tmp * base + c;
+	}
+	if(endptr != NULL) {
+		*endptr = (char *)nptr;
+	}
+	return tmp;
+}
+
+static inline long long int strtoll(const char *nptr, char **endptr, int base)
+{
+	if(nptr[0] == '-'){
+		return -1 * _strtoll(nptr+1,endptr,base);
+	}
+	return _strtoll(nptr,endptr,base);
+}
+
 #define bzero(x,y) memset(x,0x00,y)
 //#define fopen(a,b) NULL
 static inline FILE *fopen(const char *a,const char *b)
