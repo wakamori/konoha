@@ -41,6 +41,7 @@ typedef const struct _kCurl kCurl;
 struct _kCurl {
 	kObjectHeader h;
 	struct curl_slist *headers;
+	FILE* fp;
 	CURL *curl;
 };
 
@@ -74,7 +75,7 @@ static size_t write_String(char *buffer, size_t size, size_t nitems, void *strin
 	str = new_kString(kwb_top(&wb, 0), kwb_bytesize(&wb), SPOL_POOL);
 	res->ubuf = str->ubuf + res->bytesize;// - str->ubuf;
 	res->bytesize = str->bytesize - res->bytesize;// - str->bytesize;
-	KSETv(res, str);
+	KSETv(res, (struct _kString*)str);
 	kwb_free(&wb);
 	return size;
 }
@@ -104,6 +105,7 @@ static void Curl_init(CTX, kObject *o, void *conf)
 {
 	struct _kCurl *c = (struct _kCurl *)o;
 	c->headers = NULL;
+	c->fp = NULL;
 	c->curl = curl_easy_init();
 }
 
@@ -113,6 +115,9 @@ static void Curl_free(CTX, kObject *o)
 	if(c->curl != NULL) {
 		curl_easy_cleanup(c->curl);
 		c->curl = NULL;
+	}
+	if (c->fp != NULL) {
+		fclose(c->fp);
 	}
 }
 
@@ -280,19 +285,17 @@ static KMETHOD Curl_setOpt(CTX, ksfp_t *sfp _RIX)
 //				}
 	case CURLOPT_READDATA:
 		if (IS_String(sfp[2].o)) {
-			FILE* wdata = fopen("tmp", "wb");
-			char* raw = String_to(char*, sfp[2]);
-			char* str = (char*)malloc(sizeof(raw) + 3);
-			memset(str, '\0', sizeof(str));
-			str[0] = '\"';
-			strncpy(str+1, raw, sizeof(raw));
-			strcat(str, "\"");
-			fputs(str, wdata);
-			fclose(wdata);
-			FILE* rdata = fopen("tmp", "rb");
-			curl_easy_setopt(curl, CURLOPT_READDATA, rdata);
-			//fclose(rdata);
-			free(str);
+			FILE* fp = ((kCurl*)sfp[0].o)->fp;
+			if ((fp = tmpfile()) == NULL) {
+				ktrace(_DataFault,   // FIXME
+						KEYVALUE_s("Curl.setOpt", "Could not set body CURLOPT.READDATA"),
+						KEYVALUE_u("curlopt", curlopt)
+					);
+				break;
+			}
+			fputs(String_to(char*, sfp[2]), fp);
+			rewind(fp);
+			curl_easy_setopt(curl, CURLOPT_READDATA, fp);
 			break;
 		}
 	default: {
@@ -328,6 +331,9 @@ static KMETHOD Curl_perform(CTX, ksfp_t *sfp _RIX)
 	if(res != CURLE_OK){
 		// TODO ktrace
 		// KNH_NTRACE2(ctx, "Curl.perform", K_FAILED, KNH_LDATA(LOG_i("CURLcode", res), LOG_s("error", curl_easy_strerror(res))));
+	}
+	if (kcurl->fp != NULL) {
+		fclose(kcurl->fp);
 	}
 	RETURNb_((res == CURLE_OK));
 }
