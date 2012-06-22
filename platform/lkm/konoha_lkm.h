@@ -88,7 +88,10 @@ static inline long long int _strtoll(const char *nptr, char **endptr, int base)
 
 static inline long long int strtoll(const char *nptr, char **endptr, int base)
 {
-	if(nptr[0] == '-'){
+	while(*nptr == ' ')
+		nptr++;
+
+	if(*nptr == '-'){
 		return -1 * _strtoll(nptr+1,endptr,base);
 	}
 	return _strtoll(nptr,endptr,base);
