@@ -596,7 +596,7 @@ static inline uint64_t knh_getTimeMilliSecond(void)
 static void THROW_OutOfMemory(CTX, size_t size)
 {
 	/* TODO */
-	abort();
+	PLAT exit_i(EXIT_FAILURE);
 }
 
 static void *call_malloc_aligned(CTX, size_t size, size_t align)
@@ -634,7 +634,6 @@ static void *call_malloc_aligned(CTX, size_t size, size_t align)
 	return block;
 	L_OutOfMemory:
 	THROW_OutOfMemory(_ctx, size);
-	abort();
 	return NULL;
 }
 static void call_free_aligned(CTX, void *block, size_t size)
@@ -1417,7 +1416,6 @@ static kObject *bm_malloc_internal(CTX, HeapManager *mng, size_t n)
 		temp = tryAlloc(mng, h);
 		if (unlikely(temp == NULL)) {
 			THROW_OutOfMemory(_ctx, n);
-			abort();
 		}
 	}
 
@@ -1698,7 +1696,7 @@ void bm_free(CTX, void *ptr, size_t n)
 		DBG_ASSERT(DBG_CHECK_BITMAP(seg, bm));
 		DBG_ASSERT(BM_TEST(*bm, bpmask));
 		seg->live_count -= 1;
-		KTODO("");
+		// TODO(); FIXME
 		bitmap_mark(*bm, seg, bpidx, bpmask);
 		CLEAR_GCINFO((kObject*)ptr);
 	} else {

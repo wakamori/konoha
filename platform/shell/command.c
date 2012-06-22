@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <setjmp.h>
 #include <syslog.h>
 #include <dlfcn.h>
 #include <konoha2/klib.h>
@@ -325,6 +326,9 @@ kplatform_t* platform_shell(void)
 		.stacksize       = K_PAGESIZE * 4,
 		.malloc_i        = malloc,
 		.free_i          = free,
+		.setjmp_i        = ksetjmp,
+		.longjmp_i       = klongjmp,
+
 		.realpath_i      = realpath,
 		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,
 		.fgetc_i         = (int     (*)(FILE_i *))fgetc,
@@ -334,8 +338,10 @@ kplatform_t* platform_shell(void)
 		.vsyslog_i       = vsyslog,
 		.printf_i        = printf,
 		.vprintf_i       = vprintf,
-		.snprintf_i      = snprintf,
+		.snprintf_i      = snprintf,  // avoid to use Xsnprintf
 		.vsnprintf_i     = vsnprintf, // retreating..
+		.qsort_i         = qsort,
+		.exit_i          = exit,
 		// high level
 		.packagepath     = packagepath,
 		.exportpath      = exportpath,
@@ -486,12 +492,12 @@ static void konoha_import(CTX, char *packagename)
 	char bufname[len];
 	memcpy(bufname, packagename, len);
 	if(!KREQUIRE_PACKAGE(bufname, 0)) {
-		exit(1);
+		PLAT exit_i(EXIT_FAILURE);
 	}
 	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
 }
 
-static void konoha_startup(konoha_t konoha, const char *startup_script)
+static void konoha_startup(CTX, const char *startup_script)
 {
 	char buf[256];
 	char *path = getenv("KONOHA_SCRIPTPATH"), *local = "";
@@ -504,8 +510,8 @@ static void konoha_startup(konoha_t konoha, const char *startup_script)
 		local = "/.konoha2/script";
 	}
 	snprintf(buf, sizeof(buf), "%s%s/%s.k", path, local, startup_script);
-	if(!konoha_load(konoha, (const char*)buf)) {
-		exit(1);
+	if(!konoha_load((konoha_t)_ctx, (const char*)buf)) {
+		PLAT exit_i(EXIT_FAILURE);
 	}
 }
 
@@ -560,13 +566,17 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 			printf ("\n");
 			break;
 
-		case 'c':
+		case 'c': {
 			compileonly_flag = 1;
-			break;
+			CTX_setCompileOnly(konoha);
+		}
+		break;
 
-		case 'i':
+		case 'i': {
 			interactive_flag = 1;
-			break;
+			CTX_setInteractive(konoha);
+		}
+		break;
 
 		case 'B':
 			return konoha_builtintest(konoha, optarg);
@@ -611,6 +621,7 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 	}
 	else {
 		interactive_flag = 1;
+		CTX_setInteractive(konoha);
 	}
 	if(ret && interactive_flag) {
 		konoha_import(konoha, "konoha.i");

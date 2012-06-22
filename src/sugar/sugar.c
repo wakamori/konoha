@@ -477,7 +477,7 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 	char *p = strrchr(pathbuf, '.');
 //	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
 	strncpy(p, K_OSDLLEXT, bufsiz - (p  - pathbuf));
-	void *gluehdr = dlopen(pathbuf, CTX_isCompileOnly() ? RTLD_NOW : RTLD_LAZY);  // FIXME
+	void *gluehdr = dlopen(pathbuf, CTX_isCompileOnly(_ctx) ? RTLD_NOW : RTLD_LAZY);  // FIXME
 	if(gluehdr != NULL) {
 		char funcbuf[80];
 		PLAT snprintf_i(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));

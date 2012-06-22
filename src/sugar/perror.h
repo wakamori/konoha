@@ -35,7 +35,7 @@ static int isPRINT(CTX, int pe)
 {
 	if(verbose_sugar) return true;
 	if(pe == INFO_) {
-		if(CTX_isInteractive() || CTX_isCompileOnly()) {
+		if(CTX_isInteractive(_ctx) || CTX_isCompileOnly(_ctx)) {
 			return true;
 		}
 		return false;

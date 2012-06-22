@@ -95,11 +95,9 @@ static void KRUNTIME_reftrace(CTX, kcontext_t *ctx)
 
 static void KRUNTIME_free(CTX, kcontext_t *ctx)
 {
-#ifndef __KERNEL__
 	if(_ctx->stack->evaljmpbuf != NULL) {
-		KFREE(_ctx->stack->evaljmpbuf, sizeof(kjmpbuf_t));
+		KFREE(_ctx->stack->evaljmpbuf, sizeof(jmpbuf_i));
 	}
-#endif
 	KARRAY_FREE(&_ctx->stack->cwb);
 	KARRAY_FREE(&_ctx->stack->ref);
 	KFREE(_ctx->stack->stack, sizeof(ksfp_t) * ctx->stack->stacksize);

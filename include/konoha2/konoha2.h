@@ -53,15 +53,17 @@
 
 #define USE_BUILTINTEST  1
 
-#ifndef __KERNEL__
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
+
+#ifndef jmpbuf_i
 #include <setjmp.h>
-#else
-#include "konoha_lkm.h"
-#endif /* __KERNEL__ */
+#define jmpbuf_i jmp_buf
+#define ksetjmp  setjmp
+#define klongjmp longjmp
+#endif /*jmpbuf_i*/
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -105,6 +107,8 @@ typedef struct {
 	// low-level functions
 	void* (*malloc_i)(size_t);
 	void  (*free_i)(void *);
+	int   (*setjmp_i)(jmpbuf_i);
+	void   (*longjmp_i)(jmpbuf_i, int);
 
 	char* (*realpath_i)(const char*, char*);
 	FILE_i* (*fopen_i)(const char*, const char*);
@@ -118,6 +122,9 @@ typedef struct {
 	int   (*vprintf_i)(const char *fmt, va_list args);
 	int   (*snprintf_i)(char *str, size_t size, const char *fmt, ...);
 	int   (*vsnprintf_i)(char *str, size_t size, const char *fmt, va_list args);
+    void  (*qsort_i)(void *base, size_t nel, size_t width, int (*compar)(const void *, const void *));
+    // abort
+	void  (*exit_i)(int p);
 
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
@@ -227,10 +234,6 @@ typedef uintptr_t                 kline_t;
 #define ULINE_setURI(line, fileid)    line |= (((kline_t)fileid) << (sizeof(kfileid_t) * 8))
 #define ULINE_fileid(line)            ((kfileid_t)(line >> (sizeof(kfileid_t) * 8)))
 #define ULINE_line(line)           (line & (kline_t)((kfileid_t)-1))
-
-#define kjmpbuf_t       sigjmp_buf
-#define ksetjmp(B)      sigsetjmp(B, 0)
-#define klongjmp(B, N)  siglongjmp(B, N)
 
 /* ------------------------------------------------------------------------ */
 
@@ -384,9 +387,14 @@ typedef struct kmodshare_t {
 	void (*free)(CTX, struct kmodshare_t *);
 } kmodshare_t;
 
-#define CTX_isInteractive()  1
-#define CTX_isCompileOnly()  0
-#define CTX_isDebug()        0
+#define kContext_Debug          ((kflag_t)(1<<0))
+#define kContext_Interactive    ((kflag_t)(1<<1))
+#define kContext_CompileOnly    ((kflag_t)(1<<1))
+
+#define CTX_isInteractive(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_Interactive))
+#define CTX_isCompileOnly(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_CompileOnly))
+#define CTX_setInteractive(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_Interactive)
+#define CTX_setCompileOnly(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_CompileOnly)
 
 typedef struct kcontext_t {
 	int						          safepoint; // set to 1
@@ -400,16 +408,14 @@ typedef struct kcontext_t {
 	struct kmemshare_t                *memshare;
 	struct kmemlocal_t                *memlocal;
 	struct kshare_t                   *share;
-	struct klocal_t                   *local;
 	struct kstack_t                   *stack;
-	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
 } kcontext_t ;
 
 typedef struct kshare_t {
 	karray_t ca;
-	struct kmap_t         *lcnameMapNN;
+	struct kmap_t               *lcnameMapNN;
 	/* system shared const */
 	const struct _kObject       *constNull;
 	const struct _kBoolean      *constTrue;
@@ -418,17 +424,15 @@ typedef struct kshare_t {
 	const struct _kArray        *emptyArray;
 
 	const struct _kArray         *fileidList;    // file, http://
-	struct kmap_t         *fileidMapNN;   //
-	const struct _kArray         *packList;   // are you using this?
-	struct kmap_t         *packMapNN;
-	const struct _kArray         *unameList;  // NAME, Name, INT_MAX Int_MAX
-	struct kmap_t         *unameMapNN;
-//	const struct _kArray         *symbolList;   // name, f,
-//	struct kmap_t         *symbolMapNN;
+	struct kmap_t                *fileidMapNN;   //
+	const struct _kArray         *packList;
+	struct kmap_t                *packMapNN;
+	const struct _kArray         *symbolList;  // NAME, Name, INT_MAX Int_MAX
+	struct kmap_t                *symbolMapNN;
 	const struct _kArray         *paramList;
-	struct kmap_t         *paramMapNN;
+	struct kmap_t                *paramMapNN;
 	const struct _kArray         *paramdomList;
-	struct kmap_t         *paramdomMapNN;
+	struct kmap_t                *paramdomMapNN;
 } kshare_t ;
 
 #define K_FRAME_NCMEMBER \
@@ -497,15 +501,15 @@ typedef struct kstack_t {
 	struct ksfp_t*               stack_uplimit;
 	const struct _kArray        *gcstack;
 	karray_t                     cwb;
+	// local info
+	kflag_t                      flag;
 	CTX_t                        *rootctx;
 	void*                        cstack_bottom;  // for GC
 	karray_t                     ref;   // reftrace
 	struct _kObject**            reftail;
 	ktype_t   evalty;
 	kushort_t evalidx;
-#ifndef __KERNEL__
-	kjmpbuf_t* evaljmpbuf;
-#endif
+	jmpbuf_i  *evaljmpbuf;
 } kstack_t;
 
 typedef struct kfield_t {
@@ -566,7 +570,7 @@ struct _kclass {
 	kfield_t  *fields;
 	kushort_t  fsize;         kushort_t fallocsize;
 	const char               *DBG_NAME;
-	ksymbol_t                  nameid;
+	ksymbol_t                 nameid;
 	kushort_t                 optvalue;
 
 	const struct _kArray     *methods;
@@ -623,11 +627,15 @@ struct _kclass {
 #define kClass_UnboxType        ((kflag_t)(1<<7))
 #define kClass_Interface        ((kflag_t)(1<<8))
 #define kClass_TypeVar          ((kflag_t)(1<<9))
+#define kClass_Forward          ((kflag_t)(1<<10))
 
 #define CT_isPrivate(ct)      (TFLAG_is(kflag_t,(ct)->cflag, kClass_Private))
 
 #define TY_isSingleton(T)     (TFLAG_is(kflag_t,(CT_(T))->cflag, kClass_Singleton))
 #define CT_isSingleton(ct)    (TFLAG_is(kflag_t,(ct)->cflag, kClass_Singleton))
+
+#define TY_isForward(T)     (TFLAG_is(kflag_t,(CT_(T))->cflag, kClass_Forward))
+#define CT_isForward(ct)    (TFLAG_is(kflag_t,(ct)->cflag, kClass_Forward))
 
 #define CT_isFinal(ct)         (TFLAG_is(kflag_t,(ct)->cflag, kClass_Final))
 
@@ -1347,8 +1355,6 @@ typedef struct {
 
 // gc
 
-#define KTODO(MSG) do { fprintf(stderr, "TODO: %s\n", MSG);abort(); } while (0)
-
 #if defined(_MSC_VER)
 #define OBJECT_SET(var, val) do {\
 	kObject **var_ = (kObject**)&val; \
@@ -1425,7 +1431,7 @@ typedef struct {
 #define DBG_ASSERT(a)    assert(a)
 #define TODO_ASSERT(a)   assert(a)
 #define DBG_P(fmt, ...)     PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
-#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
+#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); PLAT exit_i(EXIT_FAILURE)
 #define DUMP_P(fmt, ...)    PLAT printf_i(fmt, ## __VA_ARGS__)
 //#else
 //#define KNH_ASSERT(a)

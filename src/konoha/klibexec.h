@@ -367,7 +367,7 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 		mask = KW_PATTERN; // Pattern
 	}
 	uintptr_t hcode = strhash(name, len);
-	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def);
+	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->symbolMapNN, _ctx->share->symbolList, name, len, hcode, spol | SPOL_ASCII, def);
 	return (sym == def) ? def : (sym | mask);
 }
 
@@ -561,8 +561,8 @@ static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 	if(level == DEBUG_ && !verbose_debug) return;
 	va_list ap;
 	va_start(ap , fmt);
-	const char *B = CTX_isInteractive() ? PLAT begin(level) : "";
-	const char *E = CTX_isInteractive() ? PLAT end(level) : "";
+	const char *B = PLAT begin(level);
+	const char *E = PLAT end(level);
 	if(pline != 0) {
 		const char *file = SS_t(pline);
 		PLAT printf_i("%s - %s(%s:%d) " , B, TAG_t(level), shortfilename(file), (kushort_t)pline);
@@ -582,21 +582,17 @@ static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 
 static void Kraise(CTX, int param)
 {
-#ifndef __KERNEL__
 	kstack_t *base = _ctx->stack;
 	if(base->evaljmpbuf != NULL) {
-		klongjmp(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
+		PLAT longjmp_i(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
 	}
-#endif
-	abort();
+	PLAT exit_i(EXIT_FAILURE);
 }
 
 // -------------------------------------------------------------------------
 
 static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline);
-#ifdef __KERNEL__
-extern void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...);
-#endif
+
 static void klib2_init(struct _klib2 *l)
 {
 	l->Karray_init   = karray_init;
@@ -626,11 +622,7 @@ static void klib2_init(struct _klib2 *l)
 	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
-#ifdef __KERNEL__
-	l->Kreportf      = lkm_Kreportf;
-#else
 	l->Kreportf      = Kreportf;
-#endif
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;
 }

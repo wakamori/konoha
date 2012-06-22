@@ -893,8 +893,8 @@ static void KCLASSTABLE_init(CTX, kcontext_t *ctx)
 	share->fileidMapNN = kmap_init(0);
 	KINITv(share->packList, new_(StringArray, 8));
 	share->packMapNN = kmap_init(0);
-	KINITv(share->unameList, new_(StringArray, 32));
-	share->unameMapNN = kmap_init(0);
+	KINITv(share->symbolList, new_(StringArray, 32));
+	share->symbolMapNN = kmap_init(0);
 
 	share->paramMapNN = kmap_init(0);
 	KINITv(share->paramList, new_(Array, 32));
@@ -953,7 +953,7 @@ static void kshare_reftrace(CTX, kcontext_t *ctx)
 
 	KREFTRACEv(share->fileidList);
 	KREFTRACEv(share->packList);
-	KREFTRACEv(share->unameList);
+	KREFTRACEv(share->symbolList);
 	KREFTRACEv(share->paramList);
 	KREFTRACEv(share->paramdomList);
 	END_REFTRACE();
@@ -977,7 +977,7 @@ static void CLASSTABLE_free(CTX, kcontext_t *ctx)
 	kmap_free(share->lcnameMapNN, NULL);
 	kmap_free(share->fileidMapNN, NULL);
 	kmap_free(share->packMapNN, NULL);
-	kmap_free(share->unameMapNN, NULL);
+	kmap_free(share->symbolMapNN, NULL);
 	kmap_free(share->paramMapNN, NULL);
 	kmap_free(share->paramdomMapNN, NULL);
 	CLASSTABLE_freeCT(_ctx);

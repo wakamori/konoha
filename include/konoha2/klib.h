@@ -90,11 +90,11 @@ static kinline kString* TY_s_(CTX, ktype_t ty)
 static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 {
 	size_t index = (size_t) SYM_UNMASK(sym);
-//	if(!(index < kArray_size(_ctx->share->unameList))) {
-//		DBG_P("index=%d, size=%d", index, kArray_size(_ctx->share->unameList));
+//	if(!(index < kArray_size(_ctx->share->symbolList))) {
+//		DBG_P("index=%d, size=%d", index, kArray_size(_ctx->share->symbolList));
 //	}
-	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
-	return _ctx->share->unameList->strings[index];
+	DBG_ASSERT(index < kArray_size(_ctx->share->symbolList));
+	return _ctx->share->symbolList->strings[index];
 }
 
 static kinline const char* SYM_PRE(ksymbol_t sym)
@@ -112,8 +112,8 @@ static kinline const char* SYM_PRE(ksymbol_t sym)
 static kinline kbool_t sym_equals(CTX, ksymbol_t s1, ksymbol_t s2)
 {
 	if(SYM_HEAD(s1) == SYM_HEAD(s2)) {
-		const char *t1 = S_text(_ctx->share->unameList->strings[SYM_UNMASK(s1)]);
-		const char *t2 = S_text(_ctx->share->unameList->strings[SYM_UNMASK(s2)]);
+		const char *t1 = S_text(_ctx->share->symbolList->strings[SYM_UNMASK(s1)]);
+		const char *t2 = S_text(_ctx->share->symbolList->strings[SYM_UNMASK(s2)]);
 		while(1) {
 			if(t1[0] != t2[0]) {
 				if(t1[0] == '_') { t1++; continue; }
