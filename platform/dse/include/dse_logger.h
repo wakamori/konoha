@@ -23,28 +23,36 @@
  ***************************************************************************/
 
 /* ************************************************************************ */
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
 
-#include "dse.h"
+#include <logpool.h>
 
-#define HTTPD_ADDR "0.0.0.0"
-#define HTTPD_PORT 8080
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define KEYVALUE_u(K,V)    LOG_u, (K), ((uintptr_t)V)
+#define KEYVALUE_s(K,V)    LOG_s, (K), (V)
 
-int main (int argc, char **av)
+void dse_logpool_init(void) {
+	logpool_init(LOGPOOL_TRACE);
+}
+
+logpool_t *dse_openlog(void)
 {
-	struct dDserv *dserv = NULL;
-	dserv = dserv_new();
-	dserv_start(dserv, HTTPD_ADDR, HTTPD_PORT);
-	dserv_close(dserv);
-	return 0;
+	logpool_t *lp = logpool_open_trace(NULL, "0.0.0.0", 14801);
+	return lp;
 }
 
-#ifdef __cplusplus
+void dse_closelog(logpool_t *lp)
+{
+	logpool_close(lp);
 }
-#endif
+
+void dse_logpool_exit()
+{
+	logpool_exit();
+}
+
+#define dse_record(lp, args, trace_id, ...) \
+	logpool_record(lp, args, LOG_NOTICE, trace_id, \
+			__VA_ARGS__)
