@@ -130,6 +130,7 @@ set(PACKAGES
 	ijit
 	python
 	konoha.null
+	logpool
 )
 
 find_library(HAVE_LIBDL NAMES dl)
