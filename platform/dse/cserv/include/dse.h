@@ -142,10 +142,15 @@ static struct dReq *dse_parseJson(const char *input)
 		D_("error");
 		return NULL;
 	}
+	// for logpool
+	const char *str_logpoolip = json_string_value(logpool);
+	size_t logpoolip_len = strlen(str_logpoolip);
+	strncpy(ret->logpoolip, str_logpoolip, logpoolip_len + 1);
 	// store file
 	char *filename = ret->scriptfilepath;
 	const char *str_context = json_string_value(context);
 	size_t context_len = strlen(str_context);
+	ret->context = atoi(str_context);
 	strncpy(filename, str_context, context_len);
 	snprintf(filename, context_len+3, "%s.k", str_context);
 	FILE *fp = fopen(filename, "w");
@@ -233,6 +238,18 @@ static const char* _packagepath(char *buf, size_t bufsiz, const char *fname)
 	return (const char*)buf;
 }
 
+static const char* _exportpath(char *pathbuf, size_t bufsiz, const char *pname)
+{
+	char *p = strrchr(pathbuf, '/');
+	snprintf(p, bufsiz - (p  - pathbuf), "/%s_exports.k", _packname(pname));
+	FILE *fp = fopen(pathbuf, "r");
+	if(fp != NULL) {
+		fclose(fp);
+		return (const char*)pathbuf;
+	}
+	return NULL;
+}
+
 #define LOGSIZE 256
 
 static struct dRes *dse_dispatch(struct dReq *req)
@@ -240,7 +257,15 @@ static struct dRes *dse_dispatch(struct dReq *req)
 	kplatform_t dse = {
 		.name = "dse",
 		.stacksize = 4096, 
+		.malloc = malloc,
+		.free = free,
+		.realpath = realpath,
+		.fopen = fopen,
+		.fgetc = fgetc,
+		.feof = feof,
+		.fclose = fclose,
 		.packagepath = _packagepath,
+		.exportpath = _exportpath,
 	};
 	konoha_t konoha = konoha_open(&dse);
 	logpool_t *lp;
@@ -252,12 +277,14 @@ static struct dRes *dse_dispatch(struct dReq *req)
 	struct dRes *dres = newDRes();
 	switch (req->method){
 		case E_METHOD_EVAL: case E_METHOD_TYCHECK:
-			lp = dse_openlog();
-			dse_record(lp, &logpool_args, req->scriptfilepath,
+			lp = dse_openlog(req->logpoolip);
+			dse_record(lp, &logpool_args, "task",
+					KEYVALUE_u("context", req->context),
 					KEYVALUE_s("status", "startting"),
 					LOG_END);
 			ret = konoha_load(konoha, req->scriptfilepath);
-			dse_record(lp, &logpool_args, req->scriptfilepath,
+			dse_record(lp, &logpool_args, "task",
+					KEYVALUE_u("context", req->context),
 					KEYVALUE_s("status", "done"),
 					LOG_END);
 
