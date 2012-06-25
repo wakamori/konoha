@@ -130,7 +130,6 @@ set(PACKAGES
 ##	konoha.json
 	ijit
 	python
-	konoha.null
 	logpool
 )
 
