@@ -57,8 +57,8 @@ static kbool_t null_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("null"), _TERM, ExprTyCheck_(null), },
-		{ .name = NULL, },
+		{ .kw = SYM_("null"), _TERM, ExprTyCheck_(null), },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
