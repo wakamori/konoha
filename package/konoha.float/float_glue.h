@@ -26,7 +26,7 @@
 #define FLOAT_GLUE_H_
 
 #include<float.h>
-#include "./mt19937ar.h"
+#include "ext/mt19937ar.h"
 
 // Int
 static void Float_init(CTX, kObject *o, void *conf)
