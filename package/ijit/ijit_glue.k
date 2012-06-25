@@ -2,6 +2,7 @@ K.importPackage("sugar");
 K.importPackage("konoha.float");
 K.importPackage("llvm");
 K.importPackage("konoha.assignment");
+K.importPackage("konoha.null");
 K.importPackage("konoha.string");
 
 //enum ctype {
@@ -800,7 +801,7 @@ Boolean isExpr(Expr expr) {
 	int x   = expr.getAddr();
 	int ct  = System.getPointer(x, 8, 64);
 	int cid = System.getPointer(ct, 88, 16);
-	return cid == 15/*TY_Expr*/;
+	return cid == 16/*TY_Expr*/;
 }
 Expr Stmt.getExpr(int id, Expr def) {
 	Expr expr = this.getObjectNULL(id);

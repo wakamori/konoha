@@ -104,10 +104,11 @@ endif(KONOHA_VM_MODULE)
 set(PACKAGES
 	sugar
 	konoha
+	konoha.null
+	konoha.int
+	konoha.float
 	konoha.math
 	konoha.string
-	konoha.float
-##	konoha.int
 	llvm
 	konoha.pcre
 	konoha.hashmap
@@ -129,6 +130,7 @@ set(PACKAGES
 ##	konoha.json
 	ijit
 	python
+	logpool
 )
 
 find_library(HAVE_LIBDL NAMES dl)
@@ -198,11 +200,22 @@ endif(TEST_COVERAGE)
 enable_testing()
 set(TEST_BIN ${CMAKE_CURRENT_BINARY_DIR}/konoha)
 set(PARENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+macro(add_konoha_test test_name)
+	add_test(${test_name} ${TEST_BIN} ${ARGN})
+	set_tests_properties(${test_name} PROPERTIES TIMEOUT 10)
+	set_tests_properties(${test_name} PROPERTIES ENVIRONMENT
+		"KONOHA_PACKAGEPATH=${CMAKE_CURRENT_BINARY_DIR}/konoha2/package")
+endmacro(add_konoha_test test_name)
+
 file(GLOB_RECURSE test_files ${CMAKE_CURRENT_SOURCE_DIR}/test/*.k)
 foreach(f ${test_files})
 	string(REPLACE // / f ${f})
 	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/test/ "" test_name ${f})
-	add_test(${test_name} ${TEST_BIN} --test-with ${f})
+	add_konoha_test(${test_name} --test-with ${f})
+	if(TEST_IJIT)
+		add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+	endif(TEST_IJIT)
 	set_tests_properties(${test_name} PROPERTIES TIMEOUT 10)
 endforeach(f ${test_files})
 
@@ -233,8 +246,10 @@ macro(create_package_project _PKGNAME)
 		string(REPLACE // / f ${f})
 		string(REPLACE ${PARENT_SOURCE_DIR}/package/ "" test_name ${f})
 		string(REPLACE /test "" test_name ${test_name})
-		add_test(${test_name} ${TEST_BIN} --test-with ${f})
-		set_tests_properties(${test_name} PROPERTIES TIMEOUT 10)
+		add_konoha_test(${test_name} --test-with ${f})
+		if(TEST_IJIT)
+			add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+		endif(TEST_IJIT)
 		if (PACKAGE_ENV)
 			set_tests_properties(${test_name} PROPERTIES ENVIRONMENT ${PACKAGE_ENV})
 		endif (PACKAGE_ENV)
@@ -265,6 +280,12 @@ macro(create_package_project _PKGNAME)
 		install(TARGETS ${LIB} DESTINATION ${_KONOHA_PACKAGE_DIR})
 	endif(${LEN} GREATER 0)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_SCRIPT_CODE} DESTINATION ${_KONOHA_PACKAGE_DIR})
+	add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_SCRIPT_CODE}
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		${CMAKE_CURRENT_SOURCE_DIR}/${PACKAGE_SCRIPT_CODE}
+		${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_SCRIPT_CODE})
+	add_custom_target(copy_${PACKAGE_SCRIPT_CODE} ALL DEPENDS
+		${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_SCRIPT_CODE})
 endmacro(create_package_project)
 
 macro(add_konoha_package PKGNAME)
@@ -286,23 +307,6 @@ foreach(dir ${PACKAGES})
 	endif()
 endforeach()
 
-#add_executable(test_konoha src/tool/test_konoha.c)
-#target_link_libraries(test_konoha ${ExtraLibs})
-
-#macro(add_konoha_test scr)
-#set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/test/parser)
-#set(TEST_BIN ${CMAKE_CURRENT_BINARY_DIR}/test_konoha)
-#add_test(${scr} ${TEST_BIN} ${TEST_DIR}
-#		${CMAKE_CURRENT_BINARY_DIR} ${scr})
-#endmacro(add_konoha_test scr)
-
-#file(GLOB test_files "${CMAKE_CURRENT_SOURCE_DIR}/test/parser/*.k")
-#foreach(f ${test_files})
-#	set(_tmp)
-#	POP(${f} "/" _tmp)
-#	add_konoha_test(${_tmp})
-#endforeach()
-
 macro(add_clib_test test_name)
 	add_executable(${test_name} ${ARGN})
 	target_link_libraries(${test_name} ${ExtraLibs})
@@ -320,13 +324,20 @@ add_clib_test(test_map     ./test/src/test_map.c)
 add_clib_test(test_string  ./test/src/test_string.c)
 add_clib_test(test_cpp     ./test/src/test_cpp.cpp)
 
-macro(add_builtin_test test_name args)
-	add_test(Builtin/${test_name} ${TEST_BIN} ${args})
-endmacro(add_builtin_test test_name args)
+macro(add_builtin_test test_name)
+	add_konoha_test(Builtin/${test_name} ${ARGN})
+endmacro(add_builtin_test test_name)
 
 add_builtin_test(Release/Logger  --builtin-test=test_logger)
 add_builtin_test(Release/Kwb     --builtin-test=test_kwb)
 add_builtin_test(Release/Kvproto --builtin-test=test_kvproto)
+
+add_test(Shell/Release/Oneline
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test-oneline.sh ${TEST_BIN}
+	"System.p(\"hi\");")
+add_test(Shell/Release/Multiline
+	${CMAKE_CURRENT_SOURCE_DIR}/test/test-multiline.sh ${TEST_BIN}
+	${CMAKE_CURRENT_SOURCE_DIR}/test/Release/Fibonacci.k)
 
 install(TARGETS konoha2 konoha2_bin
 		RUNTIME DESTINATION bin

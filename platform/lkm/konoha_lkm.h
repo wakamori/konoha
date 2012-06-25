@@ -38,27 +38,94 @@ typedef intptr_t FILE;
 #define stdout KERN_INFO
 #define stderr KERN_ALERT
 
-#define malloc(x) kmalloc(x,GFP_KERNEL)
+//#define malloc(x) kmalloc(x,GFP_KERNEL)
+
 #define calloc(x,y) kcalloc(x,y,GFP_KERNEL)
 #define realloc(x,y) krealloc(x,y,GFP_KERNEL)
 
+static inline void *malloc(size_t size)
+{
+	return kmalloc(size,GFP_KERNEL);
+}
 static inline void free(void *p)
 {
 	kfree(p);
 }
 
-#define strtoll(x,y,z) kstrtoll(x,z,y)
+#define isrange(c,a,z) (c >= a && z >= c)
+
+static inline long long int _strtoll(const char *nptr, char **endptr, int base)
+{
+	if(*nptr == '0') {
+		nptr++;
+		if(*nptr == 'x' || *nptr == 'X') {
+			base = 16;
+			nptr++;
+		}else {
+			base = 8;
+		}
+	}else if(*nptr == '+'){
+		nptr++;
+	}
+	if(base == 0)
+		base = 10;
+
+	long long int tmp = 0;
+	char c = 0;
+	for(tmp = 0;(c =  *nptr) != '\0';nptr++) {
+		c = isrange(c,'0','9') ? c - '0':
+			(isrange(c,'A','Z') ? c - 'A' + 10 :
+			 (isrange(c,'a','z') ? c - 'a' + 10:-1));
+		if(c == -1)
+			break;
+		tmp = tmp * base + c;
+	}
+	if(endptr != NULL) {
+		*endptr = (char *)nptr;
+	}
+	return tmp;
+}
+
+static inline long long int strtoll(const char *nptr, char **endptr, int base)
+{
+	while(*nptr == ' ')
+		nptr++;
+
+	if(*nptr == '-'){
+		return -1 * _strtoll(nptr+1,endptr,base);
+	}
+	return _strtoll(nptr,endptr,base);
+}
+
 #define bzero(x,y) memset(x,0x00,y)
-#define fopen(a,b) NULL
-#define fclose(fp)
+//#define fopen(a,b) NULL
+static inline FILE *fopen(const char *a,const char *b)
+{
+	(void)a;(void)b;
+	return NULL;
+}
+
+//#define fclose(fp)
+static inline int fclose(FILE *fp)
+{
+	return 0;
+}
 #define dlopen(a,b) NULL
 #define dlsym(a,b) NULL
-#define realpath(path,buf) NULL
-
+//#define realpath(path,buf) NULL
+static inline char *realpath(const char *a,char *b)
+{
+	(void)a;(void)b;
+	return NULL;
+}
 #define fprintf(out,fmt, arg...) printk(KERN_ALERT fmt , ##arg )
 #define vfprintf(out,fmt, arg...) vprintk(fmt , arg )
 #define fputs(prompt, fp) 
-#define fgetc(fp) (-1)
+//#define fgetc(fp) (-1)
+static inline int fgetc(FILE *fp)
+{
+	return -1;
+}
 #define EOF -1
 #define fflush(x)
 #define exit(i)  printk(KERN_EMERG "KONOHA_exit!!!")

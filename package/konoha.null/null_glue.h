@@ -22,29 +22,51 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-/* ************************************************************************ */
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+#ifndef NULL_GLUE_H_
+#define NULL_GLUE_H_
 
-#include "dse.h"
+// --------------------------------------------------------------------------
 
-#define HTTPD_ADDR "0.0.0.0"
-#define HTTPD_PORT 8080
+#define _Public   kMethod_Public
+#define _Const    kMethod_Const
+#define _Coercion kMethod_Coercion
+#define _F(F)   (intptr_t)(F)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int main (int argc, char **av)
+static	kbool_t null_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
 {
-	struct dDserv *dserv = NULL;
-	dserv = dserv_new();
-	dserv_start(dserv, HTTPD_ADDR, HTTPD_PORT);
-	dserv_close(dserv);
-	return 0;
+	return true;
 }
 
-#ifdef __cplusplus
+static kbool_t null_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+{
+	return true;
 }
-#endif
+
+// --------------------------------------------------------------------------
+
+static KMETHOD ExprTyCheck_null(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	VAR_ExprTyCheck(stmt, expr, gma, reqty);
+	DBG_P("typing null as %s", TY_t(reqty));
+	if(reqty == TY_var) reqty = TY_Object;
+	RETURN_(kExpr_setVariable(expr, NULL, reqty, 0, gma));
+}
+
+static kbool_t null_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+{
+	USING_SUGAR;
+	KDEFINE_SYNTAX SYNTAX[] = {
+		{ .kw = SYM_("null"), _TERM, ExprTyCheck_(null), },
+		{ .kw = KW_END, },
+	};
+	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	return true;
+}
+
+static kbool_t null_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+{
+	return true;
+}
+
+#endif /* NULL_GLUE_H_ */

@@ -85,7 +85,6 @@ static KMETHOD StmtTyCheck_DefaultAssignment(CTX, ksfp_t *sfp _RIX)
 
 static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 {
-	USING_SUGAR;
 	struct _kToken *tkNew, *tkNewOp;
 	kToken *tmp, *tkHead;
 	int newc, news = e;
@@ -110,7 +109,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 		newopr[j] = opr[j];
 	}
 	newopr[osize-1] = '\0';
-	setToken(tkNewOp, newopr, osize, tmp->tt, tmp->topch, KW_(newopr));
+	setToken(tkNewOp, newopr, osize, tmp->tt, tmp->topch, SYM_(newopr));
 
 	tkNew = new_W(Token, 0);
 	setToken(tkNew, "=", 1, TK_OPERATOR, '=', KW_LET);
@@ -119,7 +118,9 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 
 	struct _kToken *newtk = new_W(Token, 0);
 	tkHead = tls->toks[e+1];
-	newtk->tt = AST_PARENTHESIS; newtk->kw = AST_PARENTHESIS; newtk->uline = tkHead->uline;
+	newtk->tt = AST_PARENTHESIS;
+	newtk->kw = (AST_PARENTHESIS | KW_PATTERN);
+	newtk->uline = tkHead->uline;
 	//newtk->topch = tkHead->topch; newtk->lpos = tkHead->closech;
 	KSETv(newtk->sub, new_(TokenArray, 0));
 	i = news;
@@ -162,13 +163,13 @@ static kbool_t assignment_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("="), /*.op2 = "*", .priority_op2 = 4096,*/ ExprTyCheck_(assignment)},
-		{ TOKEN("+="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
-		{ TOKEN("-="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
-		{ TOKEN("*="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
-		{ TOKEN("/="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
-		{ TOKEN("%="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
-		{ .name = NULL, },
+		{ .kw = SYM_("="), /*.op2 = "*", .priority_op2 = 4096,*/ ExprTyCheck_(assignment)},
+		{ .kw = SYM_("+="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
+		{ .kw = SYM_("-="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
+		{ .kw = SYM_("*="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
+		{ .kw = SYM_("/="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
+		{ .kw = SYM_("%="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

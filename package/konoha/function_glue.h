@@ -146,7 +146,7 @@ static kbool_t function_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 			rule = "function $SYMBOL $params $block",
 			TopStmtTyCheck_(FunctionDecl), ParseExpr_(function), },
 		{ TOKEN("$param"), ExprTyCheck_(FuncStyleCall), },
-		{ .name = NULL, },
+		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

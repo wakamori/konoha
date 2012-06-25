@@ -38,9 +38,9 @@
 extern "C" {
 #endif
 
-typedef ksymbol_t keyword_t;
+typedef ksymbol_t synid_t;
 
-#define KW_t(X)   KW_t_(_ctx, X)
+#define KW_t(X)   SYM_PRE(X),SYM_t(X)
 
 #define kflag_clear(flag)  (flag) = 0
 #define K_CHECKSUM 1
@@ -135,7 +135,7 @@ typedef struct tenv_t {
 
 typedef const struct _ksyntax ksyntax_t;
 struct _ksyntax {
-	keyword_t kw;  kflag_t flag;
+	ksymbol_t  kw; 	kflag_t flag;
 	kArray   *syntaxRuleNULL;
 	kFunc    *PatternMatch;
 	kFunc    *ParseExpr;
@@ -143,7 +143,7 @@ struct _ksyntax {
 	kFunc    *StmtTyCheck;
 	kFunc    *ExprTyCheck;
 	// binary
-	ktype_t    ty;   kshort_t priority;
+	kshort_t   priority;  ktype_t  ty;
 	kmethodn_t op2;  kmethodn_t op1;      // & a
 };
 
@@ -153,7 +153,6 @@ struct _ksyntax {
 #define SYNIDX_StmtTyCheck    3
 #define SYNIDX_ExprTyCheck    4
 
-#define TOKEN(T)  .name = T
 #define PatternMatch_(NAME)    .PatternMatch   = PatternMatch_##NAME
 #define ParseExpr_(NAME)       .ParseExpr      = ParseExpr_##NAME
 #define TopStmtTyCheck_(NAME)  .TopStmtTyCheck = StmtTyCheck_##NAME
@@ -174,8 +173,7 @@ struct _ksyntax {
 #define SYNFLAG_StmtJumpSkip       ((kflag_t)1 << 10)  /* break */
 
 typedef struct KDEFINE_SYNTAX {
-	const char *name;
-	keyword_t kw;  kflag_t flag;
+	ksymbol_t kw;  kflag_t flag;
 	const char *rule;
 	const char *op2;
 	const char *op1;
@@ -199,24 +197,24 @@ struct _kKonohaSpace {
 	struct kmap_t    *syntaxMapNN;
 	//
 	kObject          *scrobj;
-	kArray*           methods;  // default K_EMPTYARRAY
-	karray_t          cl;       // const variable
+	kArray*           methods;   // default K_EMPTYARRAY
+	karray_t          cl;        // const variable
 };
 
 typedef kshort_t    kexpr_t;
 
 typedef enum {
-	TK_NONE,          // KW_Err
-	TK_INDENT,        // KW_Expr
-	TK_SYMBOL,        // KW_Symbol
-	TK_USYMBOL,       // KW_Usymbol
-	TK_TEXT,          // KW_Text
-	TK_INT,           // KW_Int
-	TK_FLOAT,         // KW_Float
-	TK_TYPE,          // KW_Type
-	AST_PARENTHESIS,  // KW_Parenthesis
+	TK_NONE,          // KW_ERR
+	TK_INDENT,        // KW_ExprPattern
+	TK_SYMBOL,        // KW_SymbolPattern
+	TK_USYMBOL,       // KW_UsymbolPattern
+	TK_TEXT,          // KW_TextPattern
+	TK_INT,           // KW_IntPattern
+	TK_FLOAT,         // KW_FloatPattern
+	TK_TYPE,          // KW_TypePattern
+	AST_PARENTHESIS,  // KW_ParenthesisPattern
 	AST_BRACKET,      // KW_Brancet
-	AST_BRACE,        // KW_Brace
+	AST_BRACE,        // KW_BracePattern
 
 	TK_OPERATOR,
 	TK_MSYMBOL,       //
@@ -245,7 +243,7 @@ struct _kToken {
 	};
 	union {
 		kshort_t   topch;
-		ktype_t    ty;       // if kw == KW_Type
+		ktype_t    ty;       // if kw == KW_TypePattern
 		kmethodn_t mn;	     // if tt == TK_MN
 	};
 };
@@ -399,27 +397,26 @@ struct _kGamma {
 #define K_NULLEXPR   (kExpr*)((CT_Expr)->nulvalNUL)
 #define K_NULLBLOCK  (kBlock*)((CT_Block)->nulvalNUL)
 
-#define TK_SHIFT    10000
-#define KW_TK(N)    (((keyword_t)N)+TK_SHIFT)
+#define KW_END  ((ksymbol_t)-1)
+#define KW_ERR  (((ksymbol_t)0)|0) /**/
+#define KW_ExprPattern (((ksymbol_t)1)|KW_PATTERN) /*$expr*/
+#define KW_SymbolPattern (((ksymbol_t)2)|KW_PATTERN) /*$SYMBOL*/
+#define KW_UsymbolPattern (((ksymbol_t)3)|KW_PATTERN) /*$USYMBOL*/
+#define KW_TextPattern (((ksymbol_t)4)|KW_PATTERN) /*$TEXT*/
+#define KW_IntPattern (((ksymbol_t)5)|KW_PATTERN) /*$INT*/
+#define KW_FloatPattern (((ksymbol_t)6)|KW_PATTERN) /*$FLOAT*/
+#define KW_TypePattern (((ksymbol_t)7)|KW_PATTERN) /*$type*/
+#define KW_ParenthesisPattern (((ksymbol_t)8)|KW_PATTERN) /*$()*/
+#define KW_BracketPattern  (((ksymbol_t)9)|KW_PATTERN) /*$[]*/
+#define KW_BracePattern (((ksymbol_t)10)|KW_PATTERN) /*${}*/
+#define KW_BlockPattern (((ksymbol_t)11)|KW_PATTERN) /*$block*/
+#define KW_ParamsPattern (((ksymbol_t)12)|KW_PATTERN) /*$params*/
+#define KW_ToksPattern (((ksymbol_t)13)|KW_PATTERN) /*$toks*/
 
-#define KW_Err     0
-#define KW_Expr    1
-#define KW_Symbol  2
-#define KW_Usymbol 3
-#define            KW_StmtConstDecl KW_Usymbol
-#define KW_Text    4
-#define KW_Int     5
-#define KW_Float   6
-#define KW_Type    7
-#define            KW_StmtTypeDecl KW_Type
-#define KW_Parenthesis  8
-#define KW_Brancet      9
-#define KW_Brace        10
-
-#define KW_Block   11
-#define KW_Params  12
-#define            KW_ExprMethodCall  KW_Params
-#define KW_Toks    13
+#define KW_StmtConstDecl   KW_UsymbolPattern
+#define KW_StmtTypeDecl    KW_TypePattern
+#define KW_ExprMethodCall  KW_ParamsPattern
+#define KW_StmtMethodDecl  KW_void
 
 #define KW_DOT     14
 #define KW_DIV     (1+KW_DOT)
@@ -436,16 +433,15 @@ struct _kGamma {
 #define KW_AND     (12+KW_DOT)
 #define KW_OR      (13+KW_DOT)
 #define KW_NOT     (14+KW_DOT)
-//#define KW_COLON   (15+KW_DOT)
 #define KW_LET     (15+KW_DOT)
 #define KW_COMMA   (16+KW_DOT)
-#define KW_DOLLAR  (17+KW_DOT)
+#define KW_DOLLAR  KW_PATTERN
 
-#define KW_void      (18+KW_DOT)
-#define KW_StmtMethodDecl          KW_void
+// #define KW_void (((ksymbol_t)31)|0) /*void*/
+
+#define KW_void      31
 #define KW_boolean   (1+KW_void)
 #define KW_int       (2+KW_void)
-//#define KW_null      (3+KW_void)
 #define KW_true      (3+KW_void)
 #define KW_false     (4+KW_void)
 #define KW_if        (5+KW_void)
@@ -453,6 +449,7 @@ struct _kGamma {
 #define KW_return    (7+KW_void)
 // reserved
 #define KW_new       (8+KW_void)
+
 #define FN_this      FN_("this")
 
 struct _kKonohaSpace;
@@ -469,8 +466,8 @@ typedef struct {
 	kclass_t *cGamma;
 	kclass_t *cTokenArray;
 	//
-	kArray         *keywordList;
-	struct kmap_t         *keywordMapNN;
+//	kArray         *keywordList;
+//	struct kmap_t         *keywordMapNN;
 	kArray         *packageList;
 	struct kmap_t         *packageMapNO;
 	kKonohaSpace         *rootks;
@@ -482,7 +479,7 @@ typedef struct {
 	kFunc *ParseExpr_Op;
 
 	// export
-	keyword_t  (*keyword)(CTX, const char*, size_t, ksymbol_t);
+	synid_t  (*keyword)(CTX, const char*, size_t, ksymbol_t);
 	void (*KonohaSpace_setTokenizer)(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo);
 	void (*KonohaSpace_tokenize)(CTX, kKonohaSpace *, const char *, kline_t, kArray *);
 
@@ -490,10 +487,10 @@ typedef struct {
 	kExpr* (*Expr_setNConstValue)(CTX, kExpr *expr, ktype_t ty, uintptr_t ndata);
 	kExpr* (*Expr_setVariable)(CTX, kExpr *expr, kexpr_t build, ktype_t ty, intptr_t index, kGamma *gma);
 
-	kToken* (*Stmt_token)(CTX, kStmt *stmt, keyword_t kw, kToken *def);
-	kExpr* (*Stmt_expr)(CTX, kStmt *stmt, keyword_t kw, kExpr *def);
-	const char* (*Stmt_text)(CTX, kStmt *stmt, keyword_t kw, const char *def);
-	kBlock* (*Stmt_block)(CTX, kStmt *stmt, keyword_t kw, kBlock *def);
+	kToken* (*Stmt_token)(CTX, kStmt *stmt, synid_t kw, kToken *def);
+	kExpr* (*Stmt_expr)(CTX, kStmt *stmt, synid_t kw, kExpr *def);
+	const char* (*Stmt_text)(CTX, kStmt *stmt, synid_t kw, const char *def);
+	kBlock* (*Stmt_block)(CTX, kStmt *stmt, synid_t kw, kBlock *def);
 
 	kExpr*     (*Expr_tyCheckAt)(CTX, kStmt *, kExpr *, size_t, kGamma *, ktype_t, int);
 	kbool_t    (*Stmt_tyCheckExpr)(CTX, kStmt*, ksymbol_t, kGamma *, ktype_t, int);
@@ -504,8 +501,8 @@ typedef struct {
 
 	ksyntax_t* (*KonohaSpace_syn)(CTX, kKonohaSpace *, ksymbol_t, int);
 	void       (*KonohaSpace_defineSyntax)(CTX, kKonohaSpace *, KDEFINE_SYNTAX *);
-	void       (*SYN_setSugarFunc)(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo);
-	void       (*SYN_addSugarFunc)(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo);
+	void       (*SYN_setSugarFunc)(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo);
+	void       (*SYN_addSugarFunc)(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo);
 
 	kbool_t    (*makeSyntaxRule)(CTX, kArray*, int, int, kArray *);
 	kBlock*    (*new_Block)(CTX, kKonohaSpace *, kStmt *, kArray *, int, int, int);
@@ -522,7 +519,6 @@ typedef struct {
 } kmodsugar_t;
 
 #define EXPORT_SUGAR(base) \
-	base->keyword             = keyword;\
 	base->KonohaSpace_setTokenizer = KonohaSpace_setTokenizer;\
 	base->KonohaSpace_tokenize = KonohaSpace_tokenize;\
 	base->Stmt_token          = Stmt_token;\
@@ -573,9 +569,11 @@ typedef struct {
 #define TPOL_COERCION       (1 << 2)
 #define TPOL_CONST          (1 << 4)
 
+#define KW_(T)  J
+
 #ifdef USING_SUGAR_AS_BUILTIN
 
-#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
+//#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                KonohaSpace_syn(_ctx, KS, KW, 0)
 
 #define kStmt_token(STMT, KW, DEF)  Stmt_token(_ctx, STMT, KW, DEF)
@@ -604,7 +602,7 @@ typedef struct {
 #define TY_Gamma                             _e->cGamma->cid
 #define TY_TokenArray                        _e->cTokenArray->cid
 
-#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
+//#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
 #define SYN_(KS, KW)                         _e->KonohaSpace_syn(_ctx, KS, KW, 0)
 #define NEWSYN_(KS, KW)                      (struct _ksyntax*)_e->KonohaSpace_syn(_ctx, KS, KW, 1)
 
@@ -627,15 +625,8 @@ typedef struct {
 
 ///* ------------------------------------------------------------------------ */
 
-static inline const char *KW_t_(CTX, keyword_t kw)
-{
-	kArray *a = kmodsugar->keywordList;
-	DBG_ASSERT(kw < kArray_size(a));
-	return S_text(a->strings[kw]);
-}
-
 // In future, typeof operator is introduced
-#define TK_isType(TK)    ((TK)->kw == KW_Type)
+#define TK_isType(TK)    ((TK)->kw == KW_TypePattern)
 #define TK_type(TK)       (TK)->ty
 
 #define kStmt_ks(STMT)   Stmt_ks(_ctx, STMT)

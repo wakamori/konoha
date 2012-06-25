@@ -77,9 +77,9 @@ static void kmodlogpool_setup(CTX, struct kmodshare_t *def, int newctx)
 			if ((pos = strchr(serverinfo, ':')) != NULL) {
 				port = strtol(pos+1, NULL, 10);
 				memcpy(host, serverinfo, pos - serverinfo);
-			} else {
-				memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
 			}
+		} else {
+			memcpy(host, DEFAULT_SERVER, strlen(DEFAULT_SERVER));
 		}
 		ctxlogpool_t *base = (ctxlogpool_t*)calloc(sizeof(ctxlogpool_t), 1);
 		base->h.reftrace = ctxlogpool_reftrace;

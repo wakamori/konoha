@@ -22,51 +22,37 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#ifndef NULL_GLUE_H_
-#define NULL_GLUE_H_
+/* ************************************************************************ */
 
-// --------------------------------------------------------------------------
+#include <logpool.h>
 
-#define _Public   kMethod_Public
-#define _Const    kMethod_Const
-#define _Coercion kMethod_Coercion
-#define _F(F)   (intptr_t)(F)
+#define LOG_END 0
+#define LOG_s   1
+#define LOG_u   2
 
-static	kbool_t null_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
-{
-	return true;
+#define KEYVALUE_u(K,V)    LOG_u, (K), ((uintptr_t)V)
+#define KEYVALUE_s(K,V)    LOG_s, (K), (V)
+
+void dse_logpool_init(void) {
+	logpool_init(LOGPOOL_TRACE);
 }
 
-static kbool_t null_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+logpool_t *dse_openlog(void)
 {
-	return true;
+	logpool_t *lp = logpool_open_trace(NULL, "0.0.0.0", 14801);
+	return lp;
 }
 
-// --------------------------------------------------------------------------
-
-static KMETHOD ExprTyCheck_null(CTX, ksfp_t *sfp _RIX)
+void dse_closelog(logpool_t *lp)
 {
-	USING_SUGAR;
-	VAR_ExprTyCheck(stmt, expr, gma, reqty);
-	DBG_P("typing null as %s", TY_t(reqty));
-	if(reqty == TY_var) reqty = TY_Object;
-	RETURN_(kExpr_setVariable(expr, NULL, reqty, 0, gma));
+	logpool_close(lp);
 }
 
-static kbool_t null_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+void dse_logpool_exit()
 {
-	USING_SUGAR;
-	KDEFINE_SYNTAX SYNTAX[] = {
-		{ TOKEN("null"), _TERM, ExprTyCheck_(null), },
-		{ .name = NULL, },
-	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
-	return true;
+	logpool_exit();
 }
 
-static kbool_t null_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
-{
-	return true;
-}
-
-#endif /* NULL_GLUE_H_ */
+#define dse_record(lp, args, trace_id, ...) \
+	logpool_record(lp, args, LOG_NOTICE, trace_id, \
+			__VA_ARGS__)

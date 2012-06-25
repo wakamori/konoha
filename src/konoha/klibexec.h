@@ -339,26 +339,36 @@ static kpack_t Kpack(CTX, const char *name, size_t len, int spol, ksymbol_t def)
 static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t def)
 {
 	ksymbol_t mask = 0;
-	if(name[1] == 'e' && name[2] == 't') {
-		if(name[0] == 'g' || name[0] == 'G') {
+	int ch0 = name[0], ch1 = name[1];
+	if(ch1 == 'e' && name[2] == 't') {
+		if(ch0 == 'g' || ch0 == 'G') {
 			len -= 3; name += 3;
 			mask = MN_GETTER;
 		}
-		else if(name[0] == 's' || name[0] == 'S') {
+		else if(ch0 == 's' || ch0 == 'S') {
 			len -= 3; name += 3;
 			mask = MN_SETTER;
 		}
 	}
-	else if(name[1] == 's' && (name[0] == 'i' || name[0] == 'I')) {
+	else if(ch1 == 's' && (ch0 == 'i' || ch0 == 'I')) {
 		len -= 2; name += 2;
 		mask = MN_ISBOOL;
 	}
-	else if(name[0] == '@') {
+	else if(ch1 == 'o' && (ch0 == 't' || ch0 == 'T')) {
+		len -= 2; name += 2;
+		mask = MN_TOCID;
+	}
+	else if(ch0 == '@') {
 		len -= 1; name += 1;
 		mask = MN_Annotation;
 	}
+	else if(ch0 == '$') {
+		len -= 1; name += 1;
+		mask = KW_PATTERN; // Pattern
+	}
 	uintptr_t hcode = strhash(name, len);
-	return Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def) | mask;
+	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def);
+	return (sym == def) ? def : (sym | mask);
 }
 
 // -------------------------------------------------------------------------

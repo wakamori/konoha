@@ -88,10 +88,9 @@ static void KonohaSpace_free(CTX, kObject *o)
 
 // syntax
 static void checkFuncArray(CTX, kFunc **synp);
-static ksymbol_t keyword(CTX, const char *name, size_t len, ksymbol_t def);
 static void parseSyntaxRule(CTX, const char *rule, kline_t pline, kArray *a);
 
-static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, keyword_t kw, int isnew)
+static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, ksymbol_t kw, int isnew)
 {
 	kKonohaSpace *ks = ks0;
 	uintptr_t hcode = kw;
@@ -129,7 +128,7 @@ static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, keyword_t kw, int isne
 			checkFuncArray(_ctx, &(syn->ExprTyCheck));
 		}
 		else {
-			syn->kw = kw;
+			syn->kw  = kw;
 			syn->ty  = TY_unknown;
 			syn->op1 = SYM_NONAME;
 			syn->op2 = SYM_NONAME;
@@ -156,7 +155,7 @@ static void checkFuncArray(CTX, kFunc **synp)
 	}
 }
 
-static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo)
+static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo)
 {
 	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
 	kFunc **synp = &(syn->PatternMatch);
@@ -164,7 +163,7 @@ static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kF
 	KSETv(synp[idx], fo);
 }
 
-static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kFunc *fo)
+static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo)
 {
 	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
 	kFunc **synp = &(syn->PatternMatch);
@@ -182,7 +181,6 @@ static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, keyword_t kw, size_t idx, kF
 	kArray_add(a, fo);
 }
 
-
 static void setSugarFunc(CTX, knh_Fmethod f, kFunc **synp, knh_Fmethod *p, kFunc **mp)
 {
 	if(f != NULL) {
@@ -198,10 +196,8 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 {
 	knh_Fmethod pPatternMatch = NULL, pParseExpr = NULL, pStmtTyCheck = NULL, pExprTyCheck = NULL;
 	kFunc *mPatternMatch = NULL, *mParseExpr = NULL, *mStmtTyCheck = NULL, *mExprTyCheck = NULL;
-	while(syndef->name != NULL) {
-		keyword_t kw = keyword(_ctx, syndef->name, strlen(syndef->name), SYM_NEWID);
-		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syn(_ctx, ks, kw, 1/*isnew*/);
-		//syn->token = syndef->name;
+	while(syndef->kw != KW_END) {
+		struct _ksyntax* syn = (struct _ksyntax*)KonohaSpace_syn(_ctx, ks, syndef->kw, 1/*isnew*/);
 		syn->flag  |= ((kflag_t)syndef->flag);
 		if(syndef->type != 0) {
 			syn->ty = syndef->type;
@@ -232,7 +228,7 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 				KSETv(syn->ParseExpr, kmodsugar->ParseExpr_Term);
 			}
 		}
-		DBG_ASSERT(syn == SYN_(ks, kw));
+		DBG_ASSERT(syn == SYN_(ks, syndef->kw));
 		syndef++;
 	}
 	//DBG_P("syntax size=%d, hmax=%d", ks->syntaxMapNN->size, ks->syntaxMapNN->hmax);
@@ -242,8 +238,8 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 static const char* T_statement_(CTX, ksymbol_t kw)
 {
 	static char buf[80];  // this is not good, but this is very rare case.
-	const char *statement = KW_t(kw), *postfix = " statement";
-	if(kw == KW_Expr) { statement = "expression"; postfix = ""; }
+	const char *statement = SYM_t(kw), *postfix = " statement";
+	if(kw == KW_ExprPattern) { statement = "expression"; postfix = ""; }
 	if(kw == KW_StmtTypeDecl) { statement = "variable"; postfix = " declaration"; }
 	if(kw == KW_StmtMethodDecl) { statement =  "function"; postfix = " declaration"; }
 	snprintf(buf, sizeof(buf), "%s%s", statement, postfix);
@@ -601,7 +597,7 @@ static void dumpToken(CTX, kToken *tk)
 			DUMP_P("%s %d+%d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_mn(tk->mn), kToken_s(tk));
 		}
 		else {
-			DUMP_P("%s %d+%d: kw=%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, KW_t(tk->kw), kToken_s(tk));
+			DUMP_P("%s %d+%d: kw=%s%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, KW_t(tk->kw), kToken_s(tk));
 		}
 	}
 }
@@ -739,7 +735,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 			DUMP_P("[%d] ExprTerm: null", n);
 		}
 		else if(Expr_isTerm(expr)) {
-			DUMP_P("[%d] ExprTerm: kw='%s' %s", n, KW_t(expr->tk->kw), kToken_s(expr->tk));
+			DUMP_P("[%d] ExprTerm: kw='%s%s' %s", n, KW_t(expr->tk->kw), kToken_s(expr->tk));
 			if(expr->ty != TY_var) {
 
 			}
@@ -751,7 +747,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 				DUMP_P("[%d] Cons: kw=NULL, size=%ld", n, kArray_size(expr->cons));
 			}
 			else {
-				DUMP_P("[%d] Cons: kw='%s', size=%ld", n, KW_t(expr->syn->kw), kArray_size(expr->cons));
+				DUMP_P("[%d] Cons: kw='%s%s', size=%ld", n, KW_t(expr->syn->kw), kArray_size(expr->cons));
 			}
 			if(expr->ty != TY_var) {
 
@@ -857,8 +853,8 @@ static void Stmt_reftrace(CTX, kObject *o)
 static void _dumpToken(CTX, void *arg, kvs_t *d)
 {
 	if((d->key & SYMKEY_BOXED) == SYMKEY_BOXED) {
-		keyword_t key = ~SYMKEY_BOXED & d->key;
-		DUMP_P("key='%s': ", KW_t(key));
+		synid_t key = ~SYMKEY_BOXED & d->key;
+		DUMP_P("key='%s%s': ", KW_t(key));
 		if(IS_Token(d->oval)) {
 			dumpToken(_ctx, (kToken*)d->oval);
 		} else if (IS_Expr(d->oval)) {
@@ -893,11 +889,10 @@ typedef struct flagop_t {
 static uintptr_t Stmt_flag(CTX, kStmt *stmt, flagop_t *fop, uintptr_t flag)
 {
 	while(fop->key != NULL) {
-		keyword_t kw = keyword(_ctx, fop->key, fop->keysize, SYM_NONAME);
+		synid_t kw = ksymbolA(fop->key, fop->keysize, SYM_NONAME);
 		if(kw != SYM_NONAME) {
 			kObject *op = kObject_getObjectNULL(stmt, kw);
 			if(op != NULL) {
-				DBG_P("found %s", fop->key);
 				flag |= fop->flag;
 			}
 		}
@@ -908,12 +903,12 @@ static uintptr_t Stmt_flag(CTX, kStmt *stmt, flagop_t *fop, uintptr_t flag)
 
 #define kStmt_is(STMT, KW) Stmt_is(_ctx, STMT, KW)
 
-static inline kbool_t Stmt_is(CTX, kStmt *stmt, keyword_t kw)
+static inline kbool_t Stmt_is(CTX, kStmt *stmt, synid_t kw)
 {
 	return (kObject_getObjectNULL(stmt, kw) != NULL);
 }
 
-static kToken* Stmt_token(CTX, kStmt *stmt, keyword_t kw, kToken *def)
+static kToken* Stmt_token(CTX, kStmt *stmt, synid_t kw, kToken *def)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk != NULL && IS_Token(tk)) {
@@ -922,7 +917,7 @@ static kToken* Stmt_token(CTX, kStmt *stmt, keyword_t kw, kToken *def)
 	return def;
 }
 
-static kExpr* Stmt_expr(CTX, kStmt *stmt, keyword_t kw, kExpr *def)
+static kExpr* Stmt_expr(CTX, kStmt *stmt, synid_t kw, kExpr *def)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, kw);
 	if(expr != NULL && IS_Expr(expr)) {
@@ -931,7 +926,7 @@ static kExpr* Stmt_expr(CTX, kStmt *stmt, keyword_t kw, kExpr *def)
 	return def;
 }
 
-static const char* Stmt_text(CTX, kStmt *stmt, keyword_t kw, const char *def)
+static const char* Stmt_text(CTX, kStmt *stmt, synid_t kw, const char *def)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, kw);
 	if(expr != NULL) {
@@ -948,7 +943,7 @@ static const char* Stmt_text(CTX, kStmt *stmt, keyword_t kw, const char *def)
 
 static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kKonohaSpace *ks);
 static kBlock *new_Block(CTX, kKonohaSpace* ks, kStmt *stmt, kArray *tls, int s, int e, int delim);
-static kBlock* Stmt_block(CTX, kStmt *stmt, keyword_t kw, kBlock *def)
+static kBlock* Stmt_block(CTX, kStmt *stmt, synid_t kw, kBlock *def)
 {
 	kBlock *bk = (kBlock*)kObject_getObjectNULL(stmt, kw);
 	if(bk != NULL) {

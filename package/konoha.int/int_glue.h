@@ -86,11 +86,11 @@ static kbool_t int_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-			{ TOKEN("<<"), _OP, .op2 = "opLSHIFT", .priority_op2 = 128,},
-			{ TOKEN(">>"), _OP, .op2 = "opRSHIFT", .priority_op2 = 128,},
+			{ .kw = SYM_("<<"), _OP, .op2 = "opLSHIFT", .priority_op2 = 128,},
+			{ .kw = SYM_(">>"), _OP, .op2 = "opRSHIFT", .priority_op2 = 128,},
 //			{ TOKEN("++"), _OP, .op1 = "opINC", .priority_op2 = 16, .flag = SYNFLAG_ExprPostfixOp2, },
 //			{ TOKEN("--"), _OP, .op1 = "opDEC", .priority_op2 = 16, .flag = SYNFLAG_ExprPostfixOp2,},
-			{ .name = NULL, },
+			{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;

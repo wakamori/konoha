@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 find_library(HAVE_LIBCURL NAMES curl)
 if(HAVE_LIBCURL)
-	message(hoge)
 	set(ExtraLibs ${ExtraLibs} ${HAVE_LIBCURL})
 	set(PACKAGE_EXTRA_LIBRARY ${ExtraLibs})
 	set(PACKAGE_SOURCE_CODE curl_glue.c)
