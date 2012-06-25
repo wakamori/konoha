@@ -230,7 +230,7 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	int TY_FuncStmtTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 2, P_FuncStmtTyCheck))->cid;
 	kparam_t P_FuncExprTyCheck[] = {{TY_Stmt}, {TY_Expr}, {TY_Gamma}, {TY_Int}};
 	int TY_FuncExprTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 4, P_FuncExprTyCheck))->cid;
-	DBG_P("func=%s", TY_t(TY_FuncExprTyCheck));
+	//DBG_P("func=%s", TY_t(TY_FuncExprTyCheck));
 
 	intptr_t MethodData[] = {
 		_Public, _F(Token_isTypeName), TY_Boolean, TY_Token, MN_("isTypeName"), 0,

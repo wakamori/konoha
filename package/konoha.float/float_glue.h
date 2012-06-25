@@ -175,6 +175,7 @@ static KMETHOD Float_random(CTX, ksfp_t *sfp _RIX)
 #define _Const    kMethod_Const
 #define _Im       kMethod_Immutable
 #define _Coercion kMethod_Coercion
+#define _Static   kMethod_Static
 #define _F(F)   (intptr_t)(F)
 
 static	kbool_t float_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
@@ -210,7 +211,7 @@ static	kbool_t float_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public|_Const|_Im, _F(Float_toString), TY_String, TY_Float, MN_to(TY_String), 0,
 		_Public|_Const|_Im, _F(String_toFloat), TY_Float, TY_String, MN_to(TY_Float), 0,
 		_Public|_Const|_Im, _F(Float_opMINUS), TY_Float, TY_Float, MN_("opMINUS"), 0,
-		_Public|_Im, _F(Float_random), TY_Float, TY_Float, MN_("random"), 0,
+		_Public|_Static|_Im, _F(Float_random), TY_Float, TY_Float, MN_("random"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
