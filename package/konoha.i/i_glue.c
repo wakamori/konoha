@@ -127,7 +127,6 @@ KMETHOD KonohaSpace_man(CTX, ksfp_t *sfp _RIX)
 	kKonohaSpace *ks = sfp[0].ks;
 	kclass_t *ct = O_ct(sfp[1].o);
 	DBG_P("*** man %s", TY_t(ct->cid));
-//	((struct _kclass*)CT_Method)->p = Method_p;
 	while(ks != NULL) {
 		copyMethodList(_ctx, ct->cid, ks->methods, list);
 		ks = ks->parentNULL;

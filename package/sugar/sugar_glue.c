@@ -107,6 +107,7 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
+	DBG_P("func=%p", SUGAR SYN_addSugarFunc);
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_ExprTyCheck, sfp[2].fo);
 }
 
