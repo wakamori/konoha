@@ -54,7 +54,6 @@
 #define USE_BUILTINTEST  1
 
 #ifndef __KERNEL__
-//#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
@@ -106,6 +105,7 @@ typedef struct {
 	// low-level functions
 	void* (*malloc_i)(size_t);
 	void  (*free_i)(void *);
+
 	char* (*realpath_i)(const char*, char*);
 	FILE_i* (*fopen_i)(const char*, const char*);
 	int     (*fgetc_i)(FILE_i *);

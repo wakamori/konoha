@@ -31,58 +31,50 @@ extern "C" {
 /* ------------------------------------------------------------------------ */
 /* [perror] */
 
-static const char* T_emsg(CTX, int pe)
+static int isPRINT(CTX, int pe)
 {
-	switch(pe) {
-		case CRIT_:
-		case ERR_: return "(error)";
-		case WARN_: return "(warning)";
-		case INFO_:
-			if(CTX_isInteractive() || CTX_isCompileOnly() || verbose_sugar) {
-				return "(info)";
-			}
-			return NULL;
-		case DEBUG_:
-			if(verbose_sugar) {
-				return "(debug)";
-			}
-			return NULL;
+	if(verbose_sugar) return true;
+	if(pe == INFO_) {
+		if(CTX_isInteractive() || CTX_isCompileOnly()) {
+			return true;
+		}
+		return false;
 	}
-	return "(unknown)";
+	return true;
 }
 
 static kString* vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, va_list ap)
 {
-	const char *msg = T_emsg(_ctx, pe);
-	size_t errref = ((size_t)-1);
-	if(msg != NULL) {
+	if(isPRINT(_ctx, pe)) {
+		const char *msg = TAG_t(pe);
+		size_t errref = ((size_t)-1);
 		ctxsugar_t *base = ctxsugar;
 		kwb_t wb;
 		kwb_init(&base->cwb, &wb);
+		size_t pos = wb.m->bytesize;
 		if(uline > 0) {
 			const char *file = SS_t(uline);
-			kwb_printf(&wb, "%s (%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
+			kwb_printf(&wb, "%s(%s:%d) " , msg, shortfilename(file), (kushort_t)uline);
 		}
 		else {
-			kwb_printf(&wb, "%s " , msg);
+			kwb_printf(&wb, "%s" , msg);
 		}
+		size_t len = wb.m->bytesize - pos;
 		kwb_vprintf(&wb, fmt, ap);
 		msg = kwb_top(&wb, 1);
+		kreportf(pe, uline, "%s", msg + len);
 		kString *emsg = new_kString(msg, strlen(msg), 0);
 		errref = kArray_size(base->errors);
 		kArray_add(base->errors, emsg);
 		if(pe == ERR_ || pe == CRIT_) {
 			base->err_count ++;
 		}
-		kreportf(NoneTag, 0, "%s", S_text(emsg));
 		return emsg;
 	}
 	return NULL;
 }
 
-#define SUGAR_P(PE, UL, POS, FMT, ...)  S/*sugar_p(_ctx, PE, UL, POS, FMT,  ## __VA_ARGS__)*/
 #define pWARN(UL, FMT, ...) sugar_p(_ctx, WARN_, UL, -1, FMT, ## __VA_ARGS__)
-#define ERR_SyntaxError(UL)  SUGAR_P(ERR_, UL, -1, "syntax sugar error at %s:%d", __FUNCTION__, __LINE__)
 
 static kString* sugar_p(CTX, int pe, kline_t uline, int lpos, const char *fmt, ...)
 {

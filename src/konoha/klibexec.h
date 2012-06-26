@@ -565,7 +565,7 @@ static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 	const char *E = CTX_isInteractive() ? PLAT end(level) : "";
 	if(pline != 0) {
 		const char *file = SS_t(pline);
-		PLAT printf_i("%s - (%s:%d) %s" , B, shortfilename(file), (kushort_t)pline, TAG_t(level));
+		PLAT printf_i("%s - %s(%s:%d) " , B, TAG_t(level), shortfilename(file), (kushort_t)pline);
 	}
 	else {
 		PLAT printf_i("%s - %s" , B, TAG_t(level));
@@ -626,7 +626,6 @@ static void klib2_init(struct _klib2 *l)
 	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
-//	l->Kreport       = Kreport;
 #ifdef __KERNEL__
 	l->Kreportf      = lkm_Kreportf;
 #else
