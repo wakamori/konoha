@@ -104,10 +104,11 @@ endif(KONOHA_VM_MODULE)
 set(PACKAGES
 	sugar
 	konoha
+	konoha.null
+	konoha.int
+	konoha.float
 	konoha.math
 	konoha.string
-	konoha.float
-##	konoha.int
 	llvm
 	konoha.pcre
 	konoha.hashmap
@@ -129,7 +130,6 @@ set(PACKAGES
 ##	konoha.json
 	ijit
 	python
-	konoha.null
 	logpool
 )
 
