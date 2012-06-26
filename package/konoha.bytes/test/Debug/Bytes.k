@@ -1,8 +1,8 @@
 /* written by shinpei nakata */
 
 
-K.importPackage("konoha.bytes");
-K.importPackage("konoha");
+K.import("konoha.bytes");
+K.import("konoha");
 /* byte */
 System.p("hoge".toBytes());
 

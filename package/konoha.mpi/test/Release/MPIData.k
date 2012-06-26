@@ -1,8 +1,8 @@
 // written by wakamatsu
-K.importPackage("konoha");
-K.importPackage("konoha.bytes");
-K.importPackage("konoha.string");
-K.importPackage("konoha.mpi");
+K.import("konoha");
+K.import("konoha.bytes");
+K.import("konoha.string");
+K.import("konoha.mpi");
 
 void test_bytes() {
 	Bytes b = "hello".toBytes();

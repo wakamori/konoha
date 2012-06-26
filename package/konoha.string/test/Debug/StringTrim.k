@@ -1,6 +1,6 @@
 //written by takeo onoda
 
-K.importPackage("konoha.string");
+K.import("konoha.string");
 
 void test() {
 	System.p("  \t\n\t foo \t\n bar \t\n\t".trim());
