@@ -629,11 +629,9 @@ KDEFINE_PACKAGE* konoha_init(void);
 
 void MODSUGAR_loadMethod(CTX)
 {
-	int FN_pkgname = FN_("pkgname");
 	intptr_t MethodData[] = {
-		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("importPackage"), 1, TY_String, FN_pkgname,
-		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("import"), 1, TY_String, FN_pkgname,
-//		_Public, _F(KonohaSpace_loadScript_), TY_Boolean, TY_KonohaSpace, MN_("loadScript"), 1, TY_String, FN_("path"),
+//		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("importPackage"), 1, TY_String, FN_pkgname,
+		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("import"), 1, TY_String, FN("name"),
 		_Public, _F(KonohaSpace_loadScript_), TY_Boolean, TY_KonohaSpace, MN_("load"), 1, TY_String, FN_("path"),
 		DEND,
 	};
