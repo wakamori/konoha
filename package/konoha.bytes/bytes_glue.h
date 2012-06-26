@@ -25,6 +25,7 @@
 #ifndef BYTES_GLUE_H_
 #define BYTES_GLUE_H_
 
+#include <stdio.h>
 #include <konoha2/logger.h>
 #include <konoha2/bytes.h>
 

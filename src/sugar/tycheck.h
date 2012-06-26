@@ -808,7 +808,7 @@ static KMETHOD UndefinedStmtTyCheck(CTX, ksfp_t *sfp _RIX)  // $expr
 {
 	VAR_StmtTyCheck(stmt, gma);
 	const char *location = kGamma_isTOPLEVEL(gma) ? "at the top level" : "inside the function";
-	kStmt_p(stmt, ERR_, "%s is not available %s", T_statement(stmt->syn->kw), location);
+	kStmt_p(stmt, ERR_, "%s%s is not available %s", T_statement(stmt->syn->kw), location);
 	RETURNb_(false);
 }
 
@@ -841,7 +841,7 @@ static kbool_t Stmt_TyCheck(CTX, ksyntax_t *syn, kStmt *stmt, kGamma *gma)
 	result = Stmt_TyCheckFunc(_ctx, fo, stmt, gma);
 	if(stmt->syn == NULL) return true; // this means done;
 	if(result == false && stmt->build == TSTMT_UNDEFINED) {
-		kStmt_p(stmt, ERR_, "statement typecheck error: %s", T_statement(syn->kw));
+		kStmt_p(stmt, ERR_, "statement typecheck error: %s%s", T_statement(syn->kw));
 	}
 	return result;
 }

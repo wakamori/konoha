@@ -74,7 +74,7 @@ static kString* vperrorf(CTX, int pe, kline_t uline, int lpos, const char *fmt, 
 		if(pe == ERR_ || pe == CRIT_) {
 			base->err_count ++;
 		}
-		kreport(pe, S_text(emsg));
+		kreportf(NoneTag, 0, "%s", S_text(emsg));
 		return emsg;
 	}
 	return NULL;

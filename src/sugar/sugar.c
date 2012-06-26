@@ -289,7 +289,11 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 
 // -------------------------------------------------------------------------
 
-static kline_t readquote(CTX, FILE *fp, kline_t line, kwb_t *wb, int quote)
+#ifndef EOF
+#define EOF (-1)
+#endif
+
+static kline_t readquote(CTX, FILE_i *fp, kline_t line, kwb_t *wb, int quote)
 {
 	int ch, prev = quote;
 	while((ch = PLAT fgetc_i(fp)) != EOF) {
@@ -304,7 +308,7 @@ static kline_t readquote(CTX, FILE *fp, kline_t line, kwb_t *wb, int quote)
 	return line;
 }
 
-static kline_t readcomment(CTX, FILE *fp, kline_t line, kwb_t *wb)
+static kline_t readcomment(CTX, FILE_i *fp, kline_t line, kwb_t *wb)
 {
 	int ch, prev = 0, level = 1;
 	while((ch = PLAT fgetc_i(fp)) != EOF) {
@@ -319,7 +323,7 @@ static kline_t readcomment(CTX, FILE *fp, kline_t line, kwb_t *wb)
 	return line;
 }
 
-static kline_t readchunk(CTX, FILE *fp, kline_t line, kwb_t *wb)
+static kline_t readchunk(CTX, FILE_i *fp, kline_t line, kwb_t *wb)
 {
 	int ch;
 	int prev = 0, isBLOCK = 0;
@@ -358,7 +362,7 @@ static int isemptychunk(const char *t, size_t len)
 	return 0;
 }
 
-static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE *fp, kline_t uline, kline_t pline)
+static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE_i *fp, kline_t uline, kline_t pline)
 {
 	kstatus_t status = K_CONTINUE;
 	kwb_t wb;
@@ -417,12 +421,12 @@ static kline_t uline_init(CTX, const char *path, size_t len, int line, int isrea
 static kstatus_t KonohaSpace_loadscript(CTX, kKonohaSpace *ks, const char *path, size_t len, kline_t pline)
 {
 	kstatus_t status = K_BREAK;
-	if(path[0] == '-' && path[1] == 0) {
-		kline_t uline = FILEID_("<stdin>") | 1;
-		status = KonohaSpace_loadstream(_ctx, ks, stdin, uline, pline);
-	}
-	else {
-		FILE *fp = PLAT fopen_i(path, "r");
+//	if(path[0] == '-' && path[1] == 0) {
+//		kline_t uline = FILEID_("<stdin>") | 1;
+//		status = KonohaSpace_loadstream(_ctx, ks, stdin, uline, pline);
+//	}
+//	else {
+		FILE_i *fp = PLAT fopen_i(path, "r");
 		if(fp != NULL) {
 			kline_t uline = uline_init(_ctx, path, len, 1, 1);
 			status = KonohaSpace_loadstream(_ctx, ks, fp, uline, pline);
@@ -431,7 +435,7 @@ static kstatus_t KonohaSpace_loadscript(CTX, kKonohaSpace *ks, const char *path,
 		else {
 			kreportf(ERR_, pline, "script not found: %s", path);
 		}
-	}
+//	}
 	return status;
 }
 
@@ -472,11 +476,12 @@ static KDEFINE_PACKAGE PKGDEFNULL = {
 static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char *pathbuf, size_t bufsiz, const char *pname, kline_t pline)
 {
 	char *p = strrchr(pathbuf, '.');
-	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
+//	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
+	strncpy(p, K_OSDLLEXT, bufsiz - (p  - pathbuf));
 	void *gluehdr = dlopen(pathbuf, CTX_isCompileOnly() ? RTLD_NOW : RTLD_LAZY);  // FIXME
 	if(gluehdr != NULL) {
 		char funcbuf[80];
-		snprintf(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));
+		PLAT snprintf_i(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));
 		Fpackageinit f = (Fpackageinit)dlsym(gluehdr, funcbuf);
 		if(f != NULL) {
 			KDEFINE_PACKAGE *packdef = f();
@@ -504,7 +509,7 @@ static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 {
 	char fbuf[256];
 	const char *path = PLAT packagepath(fbuf, sizeof(fbuf), S_text(PN_s(packid)));
-	FILE *fp = PLAT fopen_i(path, "r");
+	FILE_i *fp = PLAT fopen_i(path, "r");
 	kpackage_t *pack = NULL;
 	if(fp != NULL) {
 		INIT_GCSTACK();
@@ -580,7 +585,7 @@ static kbool_t KonohaSpace_importPackage(CTX, kKonohaSpace *ks, const char *name
 			if(res && pack->export_script != 0) {
 				kString *fname = SS_s(pack->export_script);
 				kline_t uline = pack->export_script | (kline_t)1;
-				FILE *fp = PLAT fopen_i(S_text(fname), "r");
+				FILE_i *fp = PLAT fopen_i(S_text(fname), "r");
 				if(fp != NULL) {
 					res = (KonohaSpace_loadstream(_ctx, ks, fp, uline, pline) == K_CONTINUE);
 					PLAT fclose_i(fp);
@@ -608,7 +613,7 @@ static KMETHOD KonohaSpace_importPackage_(CTX, ksfp_t *sfp _RIX)
 static KMETHOD KonohaSpace_loadScript_(CTX, ksfp_t *sfp _RIX)
 {
 	kline_t pline = sfp[K_RTNIDX].uline;
-	FILE *fp = PLAT fopen_i(S_text(sfp[1].s), "r");
+	FILE_i *fp = PLAT fopen_i(S_text(sfp[1].s), "r");
 	if(fp != NULL) {
 		kline_t uline = uline_init(_ctx, S_text(sfp[1].s), S_size(sfp[1].s), 1, 1);
 		kstatus_t status = KonohaSpace_loadstream(_ctx, sfp[0].ks, fp, uline, 0);

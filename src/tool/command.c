@@ -25,10 +25,11 @@
 #include <konoha2/konoha2.h>
 #include <konoha2/sugar.h>
 #include "konoha2/gc.h"
-#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <syslog.h>
+#include <dlfcn.h>
 #include <konoha2/klib.h>
 
 #ifdef __cplusplus
@@ -37,7 +38,9 @@ extern "C" {
 
 kstatus_t MODSUGAR_eval(CTX, const char *script, size_t len, kline_t uline);
 kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline);
+
 const kplatform_t* platform_shell(void);
+const kplatform_t* platform_test(void);
 
 // -------------------------------------------------------------------------
 // getopt
@@ -290,7 +293,7 @@ static void dumpEval(CTX, kwb_t *wb)
 		ksfp_t *lsfp = base->stack + base->evalidx;
 		CT_(ty)->p(_ctx, lsfp, 0, wb, P_DUMP);
 		fflush(stdout);
-		fprintf(stdout, "TY=%s EVAL=%s\n", TY_t(ty), kwb_top(wb,1));
+		fprintf(stdout, "TYPE=%s EVAL=%s\n", TY_t(ty), kwb_top(wb,1));
 	}
 }
 
@@ -350,45 +353,19 @@ int konoha_shell(konoha_t konoha)
 // test
 
 static FILE *stdlog;
-static void Kreport(CTX, int level, const char *msg)
+
+static int TEST_vprintf(const char *fmt, va_list ap)
 {
-	fflush(stdlog);
-	fputs(" - ", stdlog);
-	fputs(msg, stdlog);
-	fputs("\n", stdlog);
+	return vfprintf(stdlog, fmt, ap);
 }
 
-static const char *T_ERR(int level)
+static int TEST_printf(const char *fmt, ...)
 {
-	switch(level) {
-	case CRIT_:
-	case ERR_/*ERROR*/: return "(error) ";
-	case WARN_/*WARNING*/: return "(warning) ";
-	case INFO_/*INFO, NOTICE*/: return "(info) ";
-	case PRINT_: return "";
-	default/*DEBUG*/: return "(debug) ";
-	}
-}
-
-static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
-{
-	if(level == DEBUG_ && !verbose_sugar) return;
 	va_list ap;
-	va_start(ap , fmt);
-	fflush(stdlog);
-	if(pline != 0) {
-		const char *file = SS_t(pline);
-		fprintf(stdlog, " - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
-	}
-	else {
-		fprintf(stdlog, " - %s" , T_ERR(level));
-	}
-	vfprintf(stdlog, fmt, ap);
-	fprintf(stdlog, "\n");
+	va_start(ap, fmt);
+	int res = vfprintf(stdlog, fmt, ap);
 	va_end(ap);
-	if(level == CRIT_) {
-		kraise(0);
-	}
+	return res;
 }
 
 static int check_result(FILE *fp0, FILE *fp1)
@@ -418,7 +395,7 @@ static int konoha_test(const char *testname)
 	verbose_sugar = 0;
 	verbose_gc    = 0;
 	verbose_code  = 0;
-	konoha_t konoha = konoha_open(platform_shell());
+	konoha_t konoha = konoha_open(platform_test());
 	if(preimport != NULL) {
 		konoha_preimport((CTX_t)konoha, preimport);
 	}
@@ -437,8 +414,8 @@ static int konoha_test(const char *testname)
 		fprintf(stdout, "no proof file: %s\n", testname);
 	}
 	stdlog = fopen(result_file, "w");
-	((struct _klib2*)konoha->lib2)->Kreport  = Kreport;
-	((struct _klib2*)konoha->lib2)->Kreportf = Kreportf;
+//	((struct _klib2*)konoha->lib2)->Kreport  = Kreport;
+//	((struct _klib2*)konoha->lib2)->Kreportf = Kreportf;
 	konoha_load(konoha, script_file);
 	fprintf(stdlog, "Q.E.D.\n");   // Q.E.D.
 	fclose(stdlog);
@@ -540,23 +517,119 @@ static const char* exportpath(char *pathbuf, size_t bufsiz, const char *pname)
 	return NULL;
 }
 
+static const char* begin(kinfotag_t t)
+{
+	DBG_ASSERT(t <= NoneTag);
+	static const char* tags[] = {
+		"\x1b[1m\x1b[31m", /*CritTag*/
+		"\x1b[1m\x1b[31m", /*ErrTag*/
+		"\x1b[1m\x1b[31m", /*WarnTag*/
+		"\x1b[1m", /*NoticeTag*/
+		"\x1b[1m", /*InfoTag*/
+		"", /*DebugTag*/
+		"", /* NoneTag*/
+	};
+	return tags[(int)t];
+}
+
+static const char* end(kinfotag_t t)
+{
+	DBG_ASSERT(t <= NoneTag);
+	static const char* tags[] = {
+		"\x1b[0m", /*CritTag*/
+		"\x1b[0m", /*ErrTag*/
+		"\x1b[0m", /*WarnTag*/
+		"\x1b[0m", /*NoticeTag*/
+		"\x1b[0m", /*InfoTag*/
+		"", /* Debug */
+		"", /* NoneTag*/
+	};
+	return tags[(int)t];
+}
+
+static void dbg_p(const char *file, const char *func, int line, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap , fmt);
+	fflush(stdout);
+	fprintf(stderr, "DEBUG(%s:%d) ", func, line);
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
+}
+
 const kplatform_t* platform_shell(void)
 {
 	static kplatform_t plat = {
-		.name          = "shell",
-		.stacksize     = K_PAGESIZE * 4,
+		.name            = "shell",
+		.stacksize       = K_PAGESIZE * 4,
 		.malloc_i        = malloc,
 		.free_i          = free,
 		.realpath_i      = realpath,
-		.fopen_i         = fopen,
-		.fgetc_i         = fgetc,
-		.feof_i          = feof,
-		.fclose_i        = fclose,
-		.packagepath   = packagepath,
-		.exportpath    = exportpath,
+		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,
+		.fgetc_i         = (int     (*)(FILE_i *))fgetc,
+		.feof_i          = (int     (*)(FILE_i *))feof,
+		.fclose_i        = (int     (*)(FILE_i *))fclose,
+		.syslog_i        = syslog,
+		.vsyslog_i       = vsyslog,
+		.printf_i        = printf,
+		.vprintf_i       = vprintf,
+		.snprintf_i      = snprintf,
+		.vsnprintf_i     = vsnprintf, // retreating..
+		// high level
+		.packagepath     = packagepath,
+		.exportpath      = exportpath,
+		.begin           = begin,
+		.end             = end,
+		.dbg_p           = dbg_p,
 	};
 	return (const kplatform_t*)(&plat);
 }
+
+// -------------------------------------------------------------------------
+
+static const char* TEST_begin(kinfotag_t t)
+{
+	return "";
+}
+
+static const char* TEST_end(kinfotag_t t)
+{
+	return "";
+}
+
+static void TEST_dbg_p(const char *file, const char *func, int line, const char *fmt, ...)
+{
+}
+
+const kplatform_t* platform_test(void)
+{
+	static kplatform_t plat = {
+		.name            = "test",
+		.stacksize       = K_PAGESIZE * 4,
+		.malloc_i        = malloc,
+		.free_i          = free,
+		.realpath_i      = realpath,
+		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,
+		.fgetc_i         = (int     (*)(FILE_i *))fgetc,
+		.feof_i          = (int     (*)(FILE_i *))feof,
+		.fclose_i        = (int     (*)(FILE_i *))fclose,
+		.syslog_i        = syslog,
+		.vsyslog_i       = vsyslog,
+		.printf_i        = TEST_printf,
+		.vprintf_i       = TEST_vprintf,
+		.snprintf_i      = snprintf,
+		.vsnprintf_i     = vsnprintf, // retreating..
+		// high level
+		.packagepath     = packagepath,
+		.exportpath      = exportpath,
+		.begin           = TEST_begin,
+		.end             = TEST_end,
+		.dbg_p           = TEST_dbg_p,
+	};
+	return (const kplatform_t*)(&plat);
+}
+
 
 // -------------------------------------------------------------------------
 // ** main **

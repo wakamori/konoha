@@ -26,6 +26,7 @@
 #define JSON_GLUE_H_
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <jansson.h>
 
 #ifdef __cplusplus

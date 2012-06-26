@@ -54,7 +54,7 @@
 #define USE_BUILTINTEST  1
 
 #ifndef __KERNEL__
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
@@ -78,7 +78,26 @@
 /* ------------------------------------------------------------------------ */
 /* platform */
 
+#ifdef __GCC__
+#define __PRINT_FMT(idx1, idx2) __attribute__((format(printf, idx1, idx2)))
+#else
+#define __PRINT_FMT(idx1, idx2)
+#endif
+
 #define PLAT (_ctx->plat)->
+
+typedef enum {
+	CritTag, ErrTag, WarnTag, NoticeTag, InfoTag, DebugTag, NoneTag,
+} kinfotag_t;
+
+#define CRIT_ CritTag
+#define ERR_  ErrTag
+#define WARN_ WarnTag
+#define INFO_ InfoTag
+#define DEBUG_ DebugTag
+#define PRINT_ NoneTag
+
+typedef void FILE_i;
 
 typedef struct {
 	// settings
@@ -88,13 +107,24 @@ typedef struct {
 	void* (*malloc_i)(size_t);
 	void  (*free_i)(void *);
 	char* (*realpath_i)(const char*, char*);
-	FILE* (*fopen_i)(const char*, const char*);
-	int   (*fgetc_i)(FILE *);
-	int   (*feof_i)(FILE *);
-	int   (*fclose_i)(FILE *);
+	FILE_i* (*fopen_i)(const char*, const char*);
+	int     (*fgetc_i)(FILE_i *);
+	int     (*feof_i)(FILE_i *);
+	int     (*fclose_i)(FILE_i *);
+	//
+	void  (*syslog_i)(int priority, const char *message, ...) __PRINT_FMT(2, 3);
+	void  (*vsyslog_i)(int priority, const char *message, va_list args);
+	int   (*printf_i)(const char *fmt, ...) __PRINT_FMT(2, 3);
+	int   (*vprintf_i)(const char *fmt, va_list args);
+	int   (*snprintf_i)(char *str, size_t size, const char *fmt, ...);
+	int   (*vsnprintf_i)(char *str, size_t size, const char *fmt, va_list args);
+
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
 	const char* (*exportpath)(char *buf, size_t bufsiz, const char *pkgname);
+	const char* (*begin)(kinfotag_t);
+	const char* (*end)(kinfotag_t);
+	void  (*dbg_p)(const char *file, const char *func, int line, const char *fmt, ...) __PRINT_FMT(4, 5);
 } kplatform_t;
 
 /* ------------------------------------------------------------------------ */
@@ -161,12 +191,6 @@ typedef uintptr_t        kuint_t;
 
 typedef intptr_t         kindex_t;
 typedef kushort_t        kflag_t;    /* flag field */
-
-#ifdef __GCC__
-#define __PRINT_FMT(idx1, idx2) __attribute__((format(printf, idx1, idx2)))
-#else
-#define __PRINT_FMT(idx1, idx2)
-#endif
 
 #define KFLAG_H(N)               ((sizeof(kflag_t)*8)-N)
 #define KFLAG_H0                 ((kflag_t)(1 << KFLAG_H(1)))
@@ -1159,12 +1183,10 @@ struct _klib2 {
 
 	void       (*KS_syncMethods)(CTX);
 	void       (*KCodeGen)(CTX, kMethod *, const struct _kBlock *);
-	void       (*Kreport)(CTX, int level, const char *msg);
-	void       (*Kreportf)(CTX, int level, kline_t, const char *fmt, ...);
+	void       (*Kreportf)(CTX, kinfotag_t, kline_t, const char *fmt, ...);
 	void       (*Kraise)(CTX, int isContinue);     // module
 
 	uintptr_t  (*Ktrace)(CTX, struct klogconf_t *logconf, ...);
-	void       (*Kp)(const char *file, const char *func, int line, const char *fmt, ...) __PRINT_FMT(4, 5);
 };
 
 #define K_NULL            (_ctx->share->constNull)
@@ -1191,7 +1213,7 @@ struct _klib2 {
 
 #define kwb_init(M,W)            (KPI)->Kwb_init(M,W)
 #define kwb_write(W,B,S)         (KPI)->Kwb_write(_ctx,W,B,S)
-#define kwb_putc(W,...)          (KPI)->Kwb_putc(_ctx,W, ## __VA_ARGS__, EOF)
+#define kwb_putc(W,...)          (KPI)->Kwb_putc(_ctx,W, ## __VA_ARGS__, -1)
 #define kwb_vprintf(W,FMT,ARG)   (KPI)->Kwb_vprintf(_ctx,W, FMT, ARG)
 #define kwb_printf(W,FMT,...)    (KPI)->Kwb_printf(_ctx, W, FMT, ## __VA_ARGS__)
 
@@ -1289,15 +1311,6 @@ typedef struct {
 	uintptr_t ty;
 	kfloat_t value;
 } KDEFINE_FLOAT_CONST;
-
-typedef enum {
-	CRIT_,     // raise(0)
-	ERR_,
-	WARN_,
-	INFO_,
-	DEBUG_,
-	PRINT_
-} kreportlevel_t;
 
 //#define CRIT_  0
 //#define ERR_   1
@@ -1413,9 +1426,9 @@ typedef enum {
 #define KNH_ASSERT(a)    assert(a)
 #define DBG_ASSERT(a)    assert(a)
 #define TODO_ASSERT(a)   assert(a)
-#define DBG_P(fmt, ...)     _ctx->lib2->Kp(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
-#define DBG_ABORT(fmt, ...) _ctx->lib2->Kp(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
-#define DUMP_P(fmt, ...)    fprintf(stderr, fmt, ## __VA_ARGS__)
+#define DBG_P(fmt, ...)     PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
+#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
+#define DUMP_P(fmt, ...)    PLAT printf_i(fmt, ## __VA_ARGS__)
 //#else
 //#define KNH_ASSERT(a)
 //#define DBG_ASSERT(a)
@@ -1437,11 +1450,6 @@ extern void konoha_close(konoha_t konoha);
 extern kbool_t konoha_load(konoha_t konoha, const char *scriptfile);
 extern kbool_t konoha_eval(konoha_t konoha, const char *script, kline_t uline);
 extern kbool_t konoha_run(konoha_t konoha);  // TODO
-
-//extern void MODSUGAR_init(CTX, kcontext_t *ctx);
-//extern void kvproto_free(CTX, struct karray_t *p);
-//extern void kvproto_reftrace(CTX, struct karray_t *p);
-
 
 #ifdef USE_BUILTINTEST
 typedef int (*Ftest)(CTX);

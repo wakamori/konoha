@@ -135,7 +135,7 @@ static KMETHOD Int_toFloat(CTX, ksfp_t *sfp _RIX)
 static KMETHOD Float_toString(CTX, ksfp_t *sfp _RIX)
 {
 	char buf[40];
-	snprintf(buf, sizeof(buf), KFLOAT_FMT, sfp[0].fvalue);
+	PLAT snprintf_i(buf, sizeof(buf), KFLOAT_FMT, sfp[0].fvalue);
 	RETURN_(new_kString(buf, strlen(buf), SPOL_ASCII));
 }
 

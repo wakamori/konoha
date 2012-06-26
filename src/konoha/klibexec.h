@@ -103,10 +103,10 @@ static void Kwb_vprintf(CTX, kwb_t *wb, const char *fmt, va_list ap)
 	va_copy(ap2, ap);
 	karray_t *m = wb->m;
 	size_t s = m->bytesize;
-	size_t n = vsnprintf( m->bytebuf + s, m->bytemax - s, fmt, ap);
+	size_t n = PLAT vsnprintf_i( m->bytebuf + s, m->bytemax - s, fmt, ap);
 	if(n >= (m->bytemax - s)) {
 		karray_expand(_ctx, m, n + 1);
-		n = vsnprintf(m->bytebuf + s, m->bytemax - s, fmt, ap2);
+		n = PLAT vsnprintf_i(m->bytebuf + s, m->bytemax - s, fmt, ap2);
 	}
 	va_end(ap2);
 	m->bytesize += n;
@@ -556,85 +556,25 @@ static void KObject_removeKey(CTX, kObject *o, ksymbol_t key)
 /* debug mode */
 int verbose_debug = 0;
 
-#define CTX_isTERM()     CTX_isInteractive()
-
-static const char* T_BEGIN(CTX, int pe)
-{
-	if(CTX_isTERM()) {
-		switch(pe) {
-			case CRIT_:
-			case ERR_/*ERROR*/: return "\x1b[1m\x1b[31m";
-			case WARN_/*WARNING*/: return "\x1b[1m\x1b[31m";
-			case INFO_/*INFO*/: return "\x1b[1m";
-			case PRINT_/*INFO*/: return "\x1b[1m";
-			default:/*DEBUG*/ return "";
-		}
-	}
-	return "";
-}
-
-static const char* T_END(CTX, int pe)
-{
-	return CTX_isTERM() ? "\x1b[0m" : "";
-}
-
-static void Kreport(CTX, int level, const char *msg)
-{
-	fflush(stdout);
-	fputs(T_BEGIN(_ctx, level), stdout);
-	fputs(" - ", stdout);
-	fputs(msg, stdout);
-	fputs(T_END(_ctx, level), stdout);
-	fputs("\n", stdout);
-}
-
-static const char *T_ERR(int level)
-{
-	switch(level) {
-		case CRIT_:
-		case ERR_/*ERROR*/: return "(error) ";
-		case WARN_/*WARNING*/: return "(warning) ";
-		case INFO_/*INFO, NOTICE*/: return "(info) ";
-		case PRINT_: return "";
-		default/*DEBUG*/: return "(debug) ";
-	}
-}
-
-static void Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
+static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 {
 	if(level == DEBUG_ && !verbose_debug) return;
 	va_list ap;
 	va_start(ap , fmt);
-	fflush(stdout);
-	fputs(T_BEGIN(_ctx, level), stdout);
+	const char *B = CTX_isInteractive() ? PLAT begin(level) : "";
+	const char *E = CTX_isInteractive() ? PLAT end(level) : "";
 	if(pline != 0) {
 		const char *file = SS_t(pline);
-		fprintf(stdout, " - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
+		PLAT printf_i("%s - (%s:%d) %s" , B, shortfilename(file), (kushort_t)pline, TAG_t(level));
 	}
 	else {
-		fprintf(stdout, " - %s" , T_ERR(level));
+		PLAT printf_i("%s - %s" , B, TAG_t(level));
 	}
-	vfprintf(stdout, fmt, ap);
-	fputs(T_END(_ctx, level), stdout);
-	fprintf(stdout, "\n");
+	PLAT vprintf_i(fmt, ap);
+	PLAT printf_i("%s\n", E);
 	va_end(ap);
 	if(level == CRIT_) {
 		kraise(0);
-	}
-}
-
-// -------------------------------------------------------------------------
-
-static void Kdbg_p(const char *file, const char *func, int line, const char *fmt, ...)
-{
-	if(verbose_debug) {
-		va_list ap;
-		va_start(ap , fmt);
-		fflush(stdout);
-		fprintf(stderr, "DEBUG(%s:%d) ", func, line);
-		vfprintf(stderr, fmt, ap);
-		fprintf(stderr, "\n");
-		va_end(ap);
 	}
 }
 
@@ -686,13 +626,12 @@ static void klib2_init(struct _klib2 *l)
 	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
-	l->Kreport       = Kreport;
+//	l->Kreport       = Kreport;
 #ifdef __KERNEL__
 	l->Kreportf      = lkm_Kreportf;
 #else
 	l->Kreportf      = Kreportf;
 #endif
-	l->Kp            = Kdbg_p;
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;
 }
