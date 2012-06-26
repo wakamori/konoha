@@ -599,11 +599,15 @@ struct _kclass {
 #define kClass_UnboxType        ((kflag_t)(1<<7))
 #define kClass_Interface        ((kflag_t)(1<<8))
 #define kClass_TypeVar          ((kflag_t)(1<<9))
+#define kClass_Forward          ((kflag_t)(1<<10))
 
 #define CT_isPrivate(ct)      (TFLAG_is(kflag_t,(ct)->cflag, kClass_Private))
 
 #define TY_isSingleton(T)     (TFLAG_is(kflag_t,(CT_(T))->cflag, kClass_Singleton))
 #define CT_isSingleton(ct)    (TFLAG_is(kflag_t,(ct)->cflag, kClass_Singleton))
+
+#define TY_isForward(T)     (TFLAG_is(kflag_t,(CT_(T))->cflag, kClass_Forward))
+#define CT_isForward(ct)    (TFLAG_is(kflag_t,(ct)->cflag, kClass_Forward))
 
 #define CT_isFinal(ct)         (TFLAG_is(kflag_t,(ct)->cflag, kClass_Final))
 

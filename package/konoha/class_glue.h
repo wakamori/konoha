@@ -25,6 +25,9 @@
 #ifndef CLASS_GLUE_H_
 #define CLASS_GLUE_H_
 
+#include <konoha2/konoha2.h>
+#include <konoha2/sugar.h>
+
 static KMETHOD Fmethod_FieldGetter(CTX, ksfp_t *sfp _RIX)
 {
 	size_t delta = sfp[K_MTDIDX].mtdNC->delta;
@@ -247,6 +250,13 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 	if(s + 2 < kArray_size(tls)) {
 		kToken *tk1 = tls->toks[s+1];
 		kToken *tk2 = tls->toks[s+2];
+		kclass_t *ct = CT_(TK_type(tk1));
+		if (ct->cid == CLASS_Tvoid) {
+			RETURN_(SUGAR Stmt_p(_ctx, stmt, tk1, ERR_, "undefined class: %s", S_text(tk1->text)));
+		} else if (CT_isForward(ct)) {
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "invalid application of 'new' to incomplete class %s", CT_t(ct));
+		}
+
 		if(TK_isType(tk1) && tk2->tt == AST_PARENTHESIS) {  // new C (...)
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			kExpr *expr = SUGAR new_ConsExpr(_ctx, syn, 2, tkNEW, NewExpr(_ctx, syn, tk1, TK_type(tk1), 0));
@@ -403,19 +413,25 @@ static size_t checkFieldSize(CTX, kBlock *bk)
 static void CT_setField(CTX, struct _kclass *ct, kclass_t *supct, int fctsize)
 {
 	size_t fsize = supct->fsize + fctsize;
+	ct->fields = (kfield_t*)KCALLOC(fsize, sizeof(kfield_t));
+	ct->fsize = supct->fsize;
+	ct->fallocsize = fsize;
+	if(supct->fsize > 0) {
+		memcpy(ct->fields, supct->fields, sizeof(kfield_t)*supct->fsize);
+		memcpy(ct->WnulvalNUL, supct->WnulvalNUL, sizeof(kObject*) * supct->fsize);
+	}
+}
+
+static void CT_initField(CTX, struct _kclass *ct, kclass_t *supct, int fctsize)
+{
+	size_t fsize = supct->fsize + fctsize;
 	ct->cstruct_size = size64(fctsize * sizeof(kObject*) + sizeof(kObjectHeader));
 	DBG_P("supct->fsize=%d, fctsize=%d, cstruct_size=%d", supct->fsize, fctsize, ct->cstruct_size);
 	if(fsize > 0) {
 		ct->fnull(_ctx, ct);
 		ct->init = ObjectField_init;
 		ct->reftrace = ObjectField_reftrace;
-		ct->fields = (kfield_t*)KCALLOC(fsize, sizeof(kfield_t));
-		ct->fsize = supct->fsize;
-		ct->fallocsize = fsize;
-		if(supct->fsize > 0) {
-			memcpy(ct->fields, supct->fields, sizeof(kfield_t)*supct->fsize);
-			memcpy(ct->WnulvalNUL, supct->WnulvalNUL, sizeof(kObject*) * supct->fsize);
-		}
+		CT_setField(_ctx, ct, supct, fctsize);
 	}
 }
 
@@ -521,14 +537,34 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 			RETURNb_(false);
 		}
 	}
-	struct _kclass *ct = defineClassName(_ctx, gma->genv->ks, cflag, tkC->text, supcid, stmt->uline);
+	struct _kclass *ct = (struct _kclass*)kKonohaSpace_getCT(gma->genv->ks, NULL/*FIXME*/, S_text(tkC->text), S_size(tkC->text), TY_unknown);
+	if (ct != NULL) {
+		if (!CT_isForward(ct)) {
+			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is already defined", CT_t(ct));
+			RETURNb_(false);
+		}
+	} else {
+		ct = defineClassName(_ctx, gma->genv->ks, cflag, tkC->text, supcid, stmt->uline);
+	}
 	((struct _kToken*)tkC)->kw = KW_TypePattern;
 	((struct _kToken*)tkC)->ty = ct->cid;
 	Stmt_parseClassBlock(_ctx, stmt, tkC);
 	kBlock *bk = kStmt_block(stmt, KW_BlockPattern, K_NULLBLOCK);
-	CT_setField(_ctx, ct, supct, checkFieldSize(_ctx, bk));
-	if(!CT_addClassFields(_ctx, ct, gma, bk, stmt->uline)) {
-		RETURNb_(false);
+	if (ct->nulvalNUL == NULL) {
+		/* ct is created at this time */
+		CT_initField(_ctx, ct, supct, checkFieldSize(_ctx, bk));
+	} else {
+		size_t fsize = checkFieldSize(_ctx, bk);
+		CT_setField(_ctx, ct, supct, fsize);
+	}
+	if (bk == K_NULLBLOCK) {
+		/* forward declaration, do nothing */
+		FLAG_set(ct->cflag, kClass_Forward);
+	} else {
+		FLAG_unset(ct->cflag, kClass_Forward);
+		if(!CT_addClassFields(_ctx, ct, gma, bk, stmt->uline)) {
+			RETURNb_(false);
+		}
 	}
 	kStmt_done(stmt);
 	CT_checkMethodDecl(_ctx, tkC, bk, &stmt);
@@ -540,7 +576,7 @@ static kbool_t class_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("new"), ParseExpr_(new), },
-		{ .kw = SYM_("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $USYMBOL] $block", TopStmtTyCheck_(class), },
+		{ .kw = SYM_("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $USYMBOL] [$block]", TopStmtTyCheck_(class), },
 		{ .kw = SYM_("extends"), .rule = "\"extends\" $USYMBOL", },
 		{ .kw = SYM_("."), ExprTyCheck_(Getter) },
 		{ .kw = KW_END, },
