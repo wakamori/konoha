@@ -223,7 +223,7 @@ add_library(konoha2 SHARED ${RUNTIME} ${GC} ${LOGGER} ${PARSER} ${VM})
 target_link_libraries(konoha2 ${ExtraLibs})
 set(ExtraLibs ${ExtraLibs} konoha2)
 
-add_executable(konoha2_bin src/tool/command.c)
+add_executable(konoha2_bin platform/shell/command.c)
 target_link_libraries(konoha2_bin ${ExtraLibs})
 set_target_properties(konoha2_bin PROPERTIES OUTPUT_NAME konoha)
 
