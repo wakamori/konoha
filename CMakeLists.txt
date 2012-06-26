@@ -127,8 +127,8 @@ set(PACKAGES
 ##	konoha.mpi
 	konoha.bytes
 ##	konoha.curl
-##	konoha.json
 	ijit
+##	jansson
 	python
 	logpool
 )

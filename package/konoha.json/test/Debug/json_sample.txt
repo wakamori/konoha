@@ -1,1 +1,0 @@
-{"int": 10, "float": 1.0, "string": "hoge", "bool": true, "array": [{"foo": "bar"}, {"hoge": "huga"}], "json": {"foo": "bar", "hoge": "huga"}}

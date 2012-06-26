@@ -26,7 +26,7 @@
 #include<konoha2/sugar.h>
 #include<konoha2/float.h>
 
-#include "json_glue.h"
+#include "jansson_glue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,14 +34,14 @@ extern "C" {
 
 struct kcontext_t *ctx;
 
-KDEFINE_PACKAGE* json_init(void)
+KDEFINE_PACKAGE* jansson_init(void)
 {
 	static KDEFINE_PACKAGE d = {
-		KPACKNAME("json", "1.0"),
-		.initPackage = json_initPackage,
-		.setupPackage = json_setupPackage,
-		.initKonohaSpace = json_initKonohaSpace,
-		.setupKonohaSpace = json_setupKonohaSpace,
+		KPACKNAME("jansson", "1.0"),
+		.initPackage = jansson_initPackage,
+		.setupPackage = jansson_setupPackage,
+		.initKonohaSpace = jansson_initKonohaSpace,
+		.setupKonohaSpace = jansson_setupKonohaSpace,
 	};
 	return &d;
 }
