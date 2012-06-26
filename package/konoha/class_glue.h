@@ -510,7 +510,6 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 	kcid_t supcid = TY_Object;
 	kclass_t *supct = CT_Object;
 	if (tkE) {
-		assert(tkE->tt == KW_UsymbolPattern);
 		supcid = TK_type(tkE);
 		supct = CT_(supcid);
 		if(CT_isFinal(supct)) {
