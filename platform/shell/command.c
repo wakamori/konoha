@@ -66,15 +66,16 @@ static struct option long_options[] = {
 	{"verbose:code",  no_argument, &verbose_code, 1},
 	{"interactive", no_argument,   0, 'i'},
 	{"typecheck",   no_argument,   0, 'c'},
-	{"preimport",     required_argument, 0, 'P'},
-	{"start-with", required_argument, 0, 'S'},
+	{"define",    required_argument, 0, 'D'},
+	{"import",    required_argument, 0, 'I'},
+	{"startwith", required_argument, 0, 'S'},
 	{"test",  required_argument, 0, 'T'},
 	{"test-with",  required_argument, 0, 'T'},
 	{"builtin-test",  required_argument, 0, 'B'},
 	{NULL, 0, 0, 0},
 };
 
-static int konoha_ginit(int argc, const char **argv)
+static int konoha_ginit(int argc, char **argv)
 {
 	if(getenv("KONOHA_DEBUG") != NULL) {
 		verbose_debug = 1;
@@ -84,7 +85,7 @@ static int konoha_ginit(int argc, const char **argv)
 	}
 	while (1) {
 		int option_index = 0;
-		int c = getopt_long (argc, argv, "icI:S:", long_options, &option_index);
+		int c = getopt_long (argc, argv, "icD:I:S:", long_options, &option_index);
 		if (c == -1) break; /* Detect the end of the options. */
 		switch (c) {
 		case 0:
@@ -110,7 +111,11 @@ static int konoha_ginit(int argc, const char **argv)
 			builtin_test = optarg;
 			break;
 
-		case 'P':
+		case 'D':
+			printf ("option --define `%s'\n", optarg);
+			break;
+
+		case 'I':
 			preimport = optarg;
 			break;
 
@@ -180,7 +185,7 @@ static void konoha_startup(konoha_t konoha, const char *startup_script)
 // -------------------------------------------------------------------------
 // command_line
 
-static void konoha_commandline(CTX, int argc, const char** argv)
+static void konoha_commandline(CTX, int argc, char** argv)
 {
 	kclass_t *CT_StringArray0 = CT_p0(_ctx, CT_Array, TY_String);
 	kArray *a = (kArray*)new_kObject(CT_StringArray0, NULL);
@@ -660,9 +665,11 @@ const kplatform_t* platform_test(void)
 
 extern int konoha_AssertResult;
 
-int main(int argc, const char *argv[])
+int main(int argc, char *argv[])
 {
 	kbool_t ret = 1;
+//	char *args[argc+1];
+//	memcpy(args, argv, sizeof(char*) * argc);
 	int scriptidx = konoha_ginit(argc, argv);
 	if(builtin_test != NULL) {
 		return konoha_builtintest(builtin_test);
