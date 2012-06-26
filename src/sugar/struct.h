@@ -972,7 +972,7 @@ static kBlock* Stmt_block(CTX, kStmt *stmt, synid_t kw, kBlock *def)
 static void Block_init(CTX, kObject *o, void *conf)
 {
 	struct _kBlock *bk = (struct _kBlock*)o;
-	kKonohaSpace *ks = (conf != NULL) ? (kKonohaSpace*)conf : kmodsugar->rootks;
+	kKonohaSpace *ks = (conf != NULL) ? (kKonohaSpace*)conf : KNULL(KonohaSpace);
 	bk->parentNULL = NULL;
 	KINITv(bk->ks, ks);
 	KINITv(bk->blocks, new_(StmtArray, 0));

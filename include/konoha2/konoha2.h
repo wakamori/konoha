@@ -1312,14 +1312,12 @@ typedef struct {
 	kfloat_t value;
 } KDEFINE_FLOAT_CONST;
 
-//#define CRIT_  0
-//#define ERR_   1
-//#define WARN_  2
-//#define INFO_  3
-//#define PRINT_ 4
-//#define DEBUG_ 5
+typedef struct {
+	const char *key;
+	uintptr_t ty;
+	kObject *value;
+} KDEFINE_OBJECT_CONST;
 
-#define kreport(LEVEL, MSG)            (KPI)->Kreport(_ctx, LEVEL, MSG)
 #define kreportf(LEVEL, UL, fmt, ...)  (KPI)->Kreportf(_ctx, LEVEL, UL, fmt, ## __VA_ARGS__)
 #define kraise(PARAM)                  (KPI)->Kraise(_ctx, PARAM)
 

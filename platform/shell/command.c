@@ -74,7 +74,7 @@ static struct option long_options[] = {
 	{NULL, 0, 0, 0},
 };
 
-static int konoha_ginit(int argc, char **argv)
+static int konoha_ginit(int argc, const char **argv)
 {
 	if(getenv("KONOHA_DEBUG") != NULL) {
 		verbose_debug = 1;
@@ -153,7 +153,7 @@ static void konoha_preimport(CTX, const char *preimport)
 	if(!KREQUIRE_PACKAGE(bufname, 0)) {
 		exit(1);
 	}
-	KEXPORT_PACKAGE(bufname, kmodsugar->rootks, 0);
+	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
 }
 
 // -------------------------------------------------------------------------
@@ -176,6 +176,26 @@ static void konoha_startup(konoha_t konoha, const char *startup_script)
 		exit(1);
 	}
 }
+
+// -------------------------------------------------------------------------
+// command_line
+
+static void konoha_commandline(CTX, int argc, const char** argv)
+{
+	kclass_t *CT_StringArray0 = CT_p0(_ctx, CT_Array, TY_String);
+	kArray *a = (kArray*)new_kObject(CT_StringArray0, NULL);
+	int i;
+	for(i = 0; i < argc; i++) {
+		DBG_P("argv=%d, '%s'", i, argv[i]);
+		kArray_add(a, new_kString(argv[i], strlen(argv[i]), SPOL_TEXT));
+	}
+	KDEFINE_OBJECT_CONST ConstData[] = {
+			{"SCRIPT_ARGV", CT_StringArray0->cid, (kObject*)a},
+			{}
+	};
+	kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+}
+
 
 // -------------------------------------------------------------------------
 // minishell
@@ -640,7 +660,7 @@ const kplatform_t* platform_test(void)
 
 extern int konoha_AssertResult;
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
 	kbool_t ret = 1;
 	int scriptidx = konoha_ginit(argc, argv);
@@ -651,6 +671,7 @@ int main(int argc, char *argv[])
 		return konoha_test(test_script);
 	}
 	konoha_t konoha = konoha_open(platform_shell());
+	konoha_commandline(konoha, argc - scriptidx, argv + scriptidx);
 	if(preimport != NULL) {
 		konoha_preimport((CTX_t)konoha, preimport);
 	}

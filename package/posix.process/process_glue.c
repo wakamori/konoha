@@ -166,7 +166,7 @@ static	kbool_t process_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		{_KVi(SIGKILL)},
 		{}
 	};
-	kKonohaSpace_loadConstData(kmodsugar->rootks, IntData, 0);
+	kKonohaSpace_loadConstData(ks, IntData, 0);
 	return true;
 }
 

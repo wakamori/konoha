@@ -128,7 +128,7 @@ kstatus_t MODSUGAR_eval(CTX, const char *script, kline_t uline)
 		DUMP_P("\n>>>----\n'%s'\n------\n", script);
 	}
 	kmodsugar->h.setup(_ctx, (kmodshare_t*)kmodsugar, 0/*lazy*/);
-	return KonohaSpace_eval(_ctx, kmodsugar->rootks, script, uline);
+	return KonohaSpace_eval(_ctx, KNULL(KonohaSpace), script, uline);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -191,7 +191,7 @@ static void kmodsugar_reftrace(CTX, struct kmodshare_t *baseh)
 	kmodsugar_t *base = (kmodsugar_t*)baseh;
 	kmap_reftrace(base->packageMapNO, pack_reftrace);
 	BEGIN_REFTRACE(8);
-	KREFTRACEv(base->rootks);
+//	KREFTRACEv(base->rootks);
 	KREFTRACEv(base->packageList);
 	KREFTRACEv(base->UndefinedParseExpr);
 	KREFTRACEv(base->UndefinedStmtTyCheck);
@@ -265,7 +265,8 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	base->cGamma = Konoha_addClassDef(PN_sugar, PN_sugar, NULL, &defGamma, 0);
 	base->cTokenArray = CT_p0(_ctx, CT_Array, base->cToken->cid);
 
-	KINITv(base->rootks, new_(KonohaSpace, NULL));
+	//KINITv(base->rootks, new_(KonohaSpace, NULL));
+	knull(base->cKonohaSpace);
 	knull(base->cToken);
 	knull(base->cExpr);
 	knull(base->cBlock);
@@ -277,7 +278,7 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	KINITv(base->ParseExpr_Op,   new_SugarFunc(ParseExpr_Op));
 	KINITv(base->ParseExpr_Term, new_SugarFunc(ParseExpr_Term));
 
-	defineDefaultSyntax(_ctx, base->rootks);
+	defineDefaultSyntax(_ctx, KNULL(KonohaSpace));
 	DBG_ASSERT(SYM_("$params") == KW_ParamsPattern);
 	DBG_ASSERT(SYM_(".") == KW_DOT);
 	DBG_ASSERT(SYM_(",") == KW_COMMA);
@@ -445,7 +446,7 @@ kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline)
 		kmodsugar->h.setup(_ctx, (kmodshare_t*)kmodsugar, 0/*lazy*/);
 	}
 	INIT_GCSTACK();
-	kKonohaSpace *ns = new_(KonohaSpace, kmodsugar->rootks);
+	kKonohaSpace *ns = new_(KonohaSpace, KNULL(KonohaSpace));
 	PUSH_GCSTACK(ns);
 	kstatus_t result = KonohaSpace_loadscript(_ctx, ns, path, len, pline);
 	RESET_GCSTACK();
@@ -499,7 +500,7 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 
 static kKonohaSpace* new_KonohaSpace(CTX, kpack_t packdom, kpack_t packid)
 {
-	struct _kKonohaSpace *ks = new_W(KonohaSpace, kmodsugar->rootks);
+	struct _kKonohaSpace *ks = new_W(KonohaSpace, KNULL(KonohaSpace));
 	ks->packid = packid;
 	ks->packdom = packid;
 	return (kKonohaSpace*)ks;
@@ -644,10 +645,10 @@ void MODSUGAR_loadMethod(CTX)
 	KSET_KLIB2(importPackage, KonohaSpace_importPackage, 0);
 #ifdef WITH_ECLIPSE
 	KDEFINE_PACKAGE *d = konoha_init();
-	d->initPackage(_ctx, kmodsugar->rootks, 0, NULL, 0);
-	d->setupPackage(_ctx, kmodsugar->rootks, 0);
-	d->initKonohaSpace(_ctx, kmodsugar->rootks, 0);
-	d->setupKonohaSpace(_ctx, kmodsugar->rootks, 0);
+	d->initPackage(_ctx, KNULL(KonohaSpace), 0, NULL, 0);
+	d->setupPackage(_ctx, KNULL(KonohaSpace), 0);
+	d->initKonohaSpace(_ctx, KNULL(KonohaSpace), 0);
+	d->setupKonohaSpace(_ctx, KNULL(KonohaSpace), 0);
 #endif
 }
 
