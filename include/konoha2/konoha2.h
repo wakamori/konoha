@@ -85,13 +85,13 @@ typedef struct {
 	const char *name;
 	size_t stacksize;
 	// low-level functions
-	void* (*malloc_p)(size_t);
-	void  (*free_p)(void *);
-	char* (*realpath_p)(const char*, char*);
-	FILE* (*fopen_p)(const char*, const char*);
-	int   (*fgetc_p)(FILE *);
-	int   (*feof_p)(FILE *);
-	int   (*fclose_p)(FILE *);
+	void* (*malloc_i)(size_t);
+	void  (*free_i)(void *);
+	char* (*realpath_i)(const char*, char*);
+	FILE* (*fopen_i)(const char*, const char*);
+	int   (*fgetc_i)(FILE *);
+	int   (*feof_i)(FILE *);
+	int   (*fclose_i)(FILE *);
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
 	const char* (*exportpath)(char *buf, size_t bufsiz, const char *pkgname);
