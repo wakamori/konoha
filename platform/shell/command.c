@@ -39,8 +39,7 @@ extern "C" {
 kstatus_t MODSUGAR_eval(CTX, const char *script, size_t len, kline_t uline);
 kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline);
 
-const kplatform_t* platform_shell(void);
-const kplatform_t* platform_test(void);
+kplatform_t* platform_shell(void);
 
 // -------------------------------------------------------------------------
 // getopt
@@ -52,155 +51,6 @@ extern int verbose_debug;
 extern int verbose_code;
 extern int verbose_sugar;
 extern int verbose_gc;
-
-static const char* preimport      = NULL;
-static const char* startup_script = NULL;
-static const char* test_script    = NULL;
-static const char* builtin_test   = NULL;
-
-static struct option long_options[] = {
-	/* These options set a flag. */
-	{"verbose", no_argument,       &verbose_debug, 1},
-	{"verbose:gc",    no_argument, &verbose_gc, 1},
-	{"verbose:sugar", no_argument, &verbose_sugar, 1},
-	{"verbose:code",  no_argument, &verbose_code, 1},
-	{"interactive", no_argument,   0, 'i'},
-	{"typecheck",   no_argument,   0, 'c'},
-	{"define",    required_argument, 0, 'D'},
-	{"import",    required_argument, 0, 'I'},
-	{"startwith", required_argument, 0, 'S'},
-	{"test",  required_argument, 0, 'T'},
-	{"test-with",  required_argument, 0, 'T'},
-	{"builtin-test",  required_argument, 0, 'B'},
-	{NULL, 0, 0, 0},
-};
-
-static int konoha_ginit(int argc, char **argv)
-{
-	if(getenv("KONOHA_DEBUG") != NULL) {
-		verbose_debug = 1;
-		verbose_gc = 1;
-		verbose_sugar = 1;
-		verbose_code = 1;
-	}
-	while (1) {
-		int option_index = 0;
-		int c = getopt_long (argc, argv, "icD:I:S:", long_options, &option_index);
-		if (c == -1) break; /* Detect the end of the options. */
-		switch (c) {
-		case 0:
-			/* If this option set a flag, do nothing else now. */
-			if (long_options[option_index].flag != 0)
-				break;
-			printf ("option %s", long_options[option_index].name);
-			if (optarg)
-				printf (" with arg %s", optarg);
-			printf ("\n");
-			break;
-
-		case 'c':
-			compileonly_flag = 1;
-			break;
-
-		case 'i':
-			interactive_flag = 1;
-			break;
-
-		case 'B':
-//			DUMP_P ("option --test-with `%s'\n", optarg);
-			builtin_test = optarg;
-			break;
-
-		case 'D':
-			printf ("option --define `%s'\n", optarg);
-			break;
-
-		case 'I':
-			preimport = optarg;
-			break;
-
-		case 'S':
-//			DUMP_P ("option --start-with `%s'\n", optarg);
-			startup_script = optarg;
-			break;
-
-		case 'T':
-//			DUMP_P ("option --test-with `%s'\n", optarg);
-			test_script = optarg;
-			break;
-
-		case '?':
-			/* getopt_long already printed an error message. */
-			break;
-
-		default:
-			abort ();
-		}
-	}
-	if(!(optind < argc)) {
-		interactive_flag = 1;
-	}
-	if(preimport == NULL) {
-		preimport = getenv("KONOHA_PREIMPORT");
-	}
-	return optind;
-}
-
-// -------------------------------------------------------------------------
-// preimport
-
-static void konoha_preimport(CTX, const char *preimport)
-{
-	size_t len = strlen(preimport)+1;
-	char bufname[len];
-	memcpy(bufname, preimport, len);
-	// TODO: --preimport konoha.i:konoha.bytes
-	if(!KREQUIRE_PACKAGE(bufname, 0)) {
-		exit(1);
-	}
-	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
-}
-
-// -------------------------------------------------------------------------
-// startup
-
-static void konoha_startup(konoha_t konoha, const char *startup_script)
-{
-	char buf[256];
-	char *path = getenv("KONOHA_SCRIPTPATH"), *local = "";
-	if(path == NULL) {
-		path = getenv("KONOHA_HOME");
-		local = "/script";
-	}
-	if(path == NULL) {
-		path = getenv("HOME");
-		local = "/.konoha2/script";
-	}
-	snprintf(buf, sizeof(buf), "%s%s/%s.k", path, local, startup_script);
-	if(!konoha_load(konoha, (const char*)buf)) {
-		exit(1);
-	}
-}
-
-// -------------------------------------------------------------------------
-// command_line
-
-static void konoha_commandline(CTX, int argc, char** argv)
-{
-	kclass_t *CT_StringArray0 = CT_p0(_ctx, CT_Array, TY_String);
-	kArray *a = (kArray*)new_kObject(CT_StringArray0, NULL);
-	int i;
-	for(i = 0; i < argc; i++) {
-		DBG_P("argv=%d, '%s'", i, argv[i]);
-		kArray_add(a, new_kString(argv[i], strlen(argv[i]), SPOL_TEXT));
-	}
-	KDEFINE_OBJECT_CONST ConstData[] = {
-			{"SCRIPT_ARGV", CT_StringArray0->cid, (kObject*)a},
-			{}
-	};
-	kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
-}
-
 
 // -------------------------------------------------------------------------
 // minishell
@@ -362,7 +212,7 @@ static void show_version(CTX)
 	fprintf(stdout, "\n");
 }
 
-int konoha_shell(konoha_t konoha)
+static kbool_t konoha_shell(konoha_t konoha)
 {
 	void *handler = dlopen("libreadline" K_OSDLLEXT, RTLD_LAZY);
 	void *f = (handler != NULL) ? dlsym(handler, "readline") : NULL;
@@ -371,126 +221,7 @@ int konoha_shell(konoha_t konoha)
 	kadd_history = (f != NULL) ? (int (*)(const char*))f : add_history;
 	show_version((CTX_t)konoha);
 	shell((CTX_t)konoha);
-	return 1;
-}
-
-// -------------------------------------------------------------------------
-// test
-
-static FILE *stdlog;
-
-static int TEST_vprintf(const char *fmt, va_list ap)
-{
-	return vfprintf(stdlog, fmt, ap);
-}
-
-static int TEST_printf(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	int res = vfprintf(stdlog, fmt, ap);
-	va_end(ap);
-	return res;
-}
-
-static int check_result(FILE *fp0, FILE *fp1)
-{
-	char buf0[128];
-	char buf1[128];
-	while (true) {
-		size_t len0, len1;
-		len0 = fread(buf0, 1, sizeof(buf0), fp0);
-		len1 = fread(buf1, 1, sizeof(buf1), fp1);
-		if (len0 != len1) {
-			return 1;//FAILED
-		}
-		if (len0 == 0) {
-			break;
-		}
-		if (memcmp(buf0, buf1, len0) != 0) {
-			return 1;//FAILED
-		}
-	}
-	return 0; //OK
-}
-
-static int konoha_test(const char *testname)
-{
-	verbose_debug = 0;
-	verbose_sugar = 0;
-	verbose_gc    = 0;
-	verbose_code  = 0;
-	konoha_t konoha = konoha_open(platform_test());
-	if(preimport != NULL) {
-		konoha_preimport((CTX_t)konoha, preimport);
-	}
-	if(startup_script != NULL) {
-		konoha_startup(konoha, startup_script);
-	}
-	int ret = 0;//OK
-	char script_file[256];
-	char correct_file[256];
-	char result_file[256];
-	snprintf(script_file, 256, "%s", testname);
-	snprintf(correct_file, 256, "%s.proof", script_file);
-	snprintf(result_file, 256, "%s.tested", script_file);
-	FILE *fp = fopen(correct_file, "r");
-	if (fp == NULL) {
-		fprintf(stdout, "no proof file: %s\n", testname);
-	}
-	stdlog = fopen(result_file, "w");
-//	((struct _klib2*)konoha->lib2)->Kreport  = Kreport;
-//	((struct _klib2*)konoha->lib2)->Kreportf = Kreportf;
-	konoha_load(konoha, script_file);
-	fprintf(stdlog, "Q.E.D.\n");   // Q.E.D.
-	fclose(stdlog);
-	if(fp != NULL) {
-		FILE *fp2 = fopen(result_file, "r");
-		ret = check_result(fp, fp2);
-		if(ret == 0) {
-			fprintf(stdout, "[PASS]: %s\n", testname);
-		}
-		fclose(fp);
-		fclose(fp2);
-	}
-	else {
-		ret = 1;
-	}
-	konoha_close(konoha);
-	return ret;
-}
-
-#ifdef USE_BUILTINTEST
-
-extern DEFINE_TESTFUNC KonohaTestSet[];
-
-static Ftest lookupTestFunc(DEFINE_TESTFUNC *d, const char *name)
-{
-	while(d->name != NULL) {
-		if(strcasecmp(name, d->name) == 0) {
-			return d->f;
-		}
-		d++;
-	}
-	return NULL;
-}
-#endif
-
-static int konoha_builtintest(const char* name)
-{
-#ifdef USE_BUILTINTEST
-	Ftest f = lookupTestFunc(KonohaTestSet, name);
-	if(f != NULL) {
-		konoha_t konoha = konoha_open(platform_shell());
-		int ret = f((CTX_t)konoha);
-		konoha_close(konoha);
-		return ret;
-	}
-	fprintf(stderr, "Built-in test is not found: '%s'\n", name);
-#else
-	fprintf(stderr, "Built-in tests are not built; rebuild with -DUSE_BUILTINTEST\n");
-#endif
-	return 1;
+	return true;
 }
 
 // -------------------------------------------------------------------------
@@ -587,7 +318,7 @@ static void NOP_dbg_p(const char *file, const char *func, int line, const char *
 {
 }
 
-const kplatform_t* platform_shell(void)
+kplatform_t* platform_shell(void)
 {
 	static kplatform_t plat = {
 		.name            = "shell",
@@ -615,10 +346,13 @@ const kplatform_t* platform_shell(void)
 	if(!verbose_debug) {
 		plat.dbg_p = NOP_dbg_p;
 	}
-	return (const kplatform_t*)(&plat);
+	return (&plat);
 }
 
 // -------------------------------------------------------------------------
+// konoha_test
+
+static FILE *stdlog;
 
 static const char* TEST_begin(kinfotag_t t)
 {
@@ -630,35 +364,260 @@ static const char* TEST_end(kinfotag_t t)
 	return "";
 }
 
-
-const kplatform_t* platform_test(void)
+static int TEST_vprintf(const char *fmt, va_list ap)
 {
-	static kplatform_t plat = {
-		.name            = "test",
-		.stacksize       = K_PAGESIZE * 4,
-		.malloc_i        = malloc,
-		.free_i          = free,
-		.realpath_i      = realpath,
-		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,
-		.fgetc_i         = (int     (*)(FILE_i *))fgetc,
-		.feof_i          = (int     (*)(FILE_i *))feof,
-		.fclose_i        = (int     (*)(FILE_i *))fclose,
-		.syslog_i        = syslog,
-		.vsyslog_i       = vsyslog,
-		.printf_i        = TEST_printf,
-		.vprintf_i       = TEST_vprintf,
-		.snprintf_i      = snprintf,
-		.vsnprintf_i     = vsnprintf, // retreating..
-		// high level
-		.packagepath     = packagepath,
-		.exportpath      = exportpath,
-		.begin           = TEST_begin,
-		.end             = TEST_end,
-		.dbg_p           = NOP_dbg_p,
-	};
-	return (const kplatform_t*)(&plat);
+	return vfprintf(stdlog, fmt, ap);
 }
 
+static int TEST_printf(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	int res = vfprintf(stdlog, fmt, ap);
+	va_end(ap);
+	return res;
+}
+
+static int check_result(FILE *fp0, FILE *fp1)
+{
+	char buf0[128];
+	char buf1[128];
+	while (true) {
+		size_t len0, len1;
+		len0 = fread(buf0, 1, sizeof(buf0), fp0);
+		len1 = fread(buf1, 1, sizeof(buf1), fp1);
+		if (len0 != len1) {
+			return 1;//FAILED
+		}
+		if (len0 == 0) {
+			break;
+		}
+		if (memcmp(buf0, buf1, len0) != 0) {
+			return 1;//FAILED
+		}
+	}
+	return 0; //OK
+}
+
+static int konoha_test(CTX, const char *testname)
+{
+	int ret = 1; //FAILED
+	char script_file[256];
+	char correct_file[256];
+	char result_file[256];
+	PLAT snprintf_i(script_file, 256,  "%s", testname);
+	PLAT snprintf_i(correct_file, 256, "%s.proof", script_file);
+	PLAT snprintf_i(result_file, 256,  "%s.tested", script_file);
+	FILE *fp = fopen(correct_file, "r");
+	if (fp == NULL) {
+		fprintf(stdout, "no proof file: %s\n", testname);
+	}
+	stdlog = fopen(result_file, "w");
+	konoha_load((konoha_t)_ctx, script_file);
+	fprintf(stdlog, "Q.E.D.\n");   // Q.E.D.
+	fclose(stdlog);
+
+	if(fp != NULL) {
+		FILE *fp2 = fopen(result_file, "r");
+		ret = check_result(fp, fp2);
+		if(ret == 0) {
+			fprintf(stdout, "[PASS]: %s\n", testname);
+		}
+		fclose(fp);
+		fclose(fp2);
+	}
+	return ret;
+}
+
+#ifdef USE_BUILTINTEST
+extern DEFINE_TESTFUNC KonohaTestSet[];
+static Ftest lookupTestFunc(DEFINE_TESTFUNC *d, const char *name)
+{
+	while(d->name != NULL) {
+		if(strcasecmp(name, d->name) == 0) {
+			return d->f;
+		}
+		d++;
+	}
+	return NULL;
+}
+#endif
+
+static int konoha_builtintest(konoha_t konoha, const char* name)
+{
+#ifdef USE_BUILTINTEST
+	Ftest f = lookupTestFunc(KonohaTestSet, name);
+	if(f != NULL) {
+		return f((CTX_t)konoha);
+	}
+	fprintf(stderr, "Built-in test is not found: '%s'\n", name);
+#else
+	fprintf(stderr, "Built-in tests are not built; rebuild with -DUSE_BUILTINTEST\n");
+#endif
+	return 1;
+}
+
+
+static void konoha_define(CTX, char *keyvalue)
+{
+	char *p = strchr(keyvalue, '=');
+	if(p != NULL) {
+		if(isdigit(p[1])) {
+			long n = strtol(p+1, NULL, 0);
+			KDEFINE_INT_CONST ConstData[] = {
+				{keyvalue, TY_Int, n}, {}
+			};
+			kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+		}
+		else {
+			KDEFINE_TEXT_CONST ConstData[] = {
+				{keyvalue, TY_TEXT, p+1}, {}
+			};
+			kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+		}
+	}
+	else {
+		fprintf(stdout, "invalid define option: use -D<key>=<value>\n");
+	}
+}
+
+static void konoha_import(CTX, char *packagename)
+{
+	size_t len = strlen(packagename)+1;
+	char bufname[len];
+	memcpy(bufname, packagename, len);
+	if(!KREQUIRE_PACKAGE(bufname, 0)) {
+		exit(1);
+	}
+	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
+}
+
+static void konoha_startup(konoha_t konoha, const char *startup_script)
+{
+	char buf[256];
+	char *path = getenv("KONOHA_SCRIPTPATH"), *local = "";
+	if(path == NULL) {
+		path = getenv("KONOHA_HOME");
+		local = "/script";
+	}
+	if(path == NULL) {
+		path = getenv("HOME");
+		local = "/.konoha2/script";
+	}
+	snprintf(buf, sizeof(buf), "%s%s/%s.k", path, local, startup_script);
+	if(!konoha_load(konoha, (const char*)buf)) {
+		exit(1);
+	}
+}
+
+static void konoha_commandline(CTX, int argc, char** argv)
+{
+	kclass_t *CT_StringArray0 = CT_p0(_ctx, CT_Array, TY_String);
+	kArray *a = (kArray*)new_kObject(CT_StringArray0, NULL);
+	int i;
+	for(i = 0; i < argc; i++) {
+		DBG_P("argv=%d, '%s'", i, argv[i]);
+		kArray_add(a, new_kString(argv[i], strlen(argv[i]), SPOL_TEXT));
+	}
+	KDEFINE_OBJECT_CONST ConstData[] = {
+			{"SCRIPT_ARGV", CT_StringArray0->cid, (kObject*)a},
+			{}
+	};
+	kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+}
+
+static struct option long_options2[] = {
+	/* These options set a flag. */
+	{"verbose", no_argument,       &verbose_debug, 1},
+	{"verbose:gc",    no_argument, &verbose_gc, 1},
+	{"verbose:sugar", no_argument, &verbose_sugar, 1},
+	{"verbose:code",  no_argument, &verbose_code, 1},
+	{"interactive", no_argument,   0, 'i'},
+	{"typecheck",   no_argument,   0, 'c'},
+	{"define",    required_argument, 0, 'D'},
+	{"import",    required_argument, 0, 'I'},
+	{"startwith", required_argument, 0, 'S'},
+	{"test",  required_argument, 0, 'T'},
+	{"test-with",  required_argument, 0, 'T'},
+	{"builtin-test",  required_argument, 0, 'B'},
+	{NULL, 0, 0, 0},
+};
+
+static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **argv)
+{
+	int ret = true, scriptidx = 0;
+	while (1) {
+		int option_index = 0;
+		int c = getopt_long (argc, argv, "icD:I:S:", long_options2, &option_index);
+		if (c == -1) break; /* Detect the end of the options. */
+		switch (c) {
+		case 0:
+			/* If this option set a flag, do nothing else now. */
+			if (long_options2[option_index].flag != 0)
+				break;
+			printf ("option %s", long_options2[option_index].name);
+			if (optarg)
+				printf (" with arg %s", optarg);
+			printf ("\n");
+			break;
+
+		case 'c':
+			compileonly_flag = 1;
+			break;
+
+		case 'i':
+			interactive_flag = 1;
+			break;
+
+		case 'B':
+			return konoha_builtintest(konoha, optarg);
+
+		case 'D':
+			konoha_define(konoha, optarg);
+			break;
+
+		case 'I':
+			konoha_import(konoha, optarg);
+			break;
+
+		case 'S':
+			konoha_startup(konoha, optarg);
+			break;
+
+		case 'T':
+//			DUMP_P ("option --test-with `%s'\n", optarg);
+			verbose_debug = 0;
+			verbose_sugar = 0;
+			verbose_gc    = 0;
+			verbose_code  = 0;
+			plat->dbg_p = NOP_dbg_p;
+			plat->printf_i  = TEST_printf;
+			plat->vprintf_i = TEST_vprintf;
+			plat->begin  = TEST_begin;
+			plat->end    = TEST_end;
+			return konoha_test(konoha, optarg);
+
+		case '?':
+			/* getopt_long already printed an error message. */
+			break;
+
+		default:
+			return 1;
+		}
+	}
+	scriptidx = optind;
+	konoha_commandline(konoha, argc - scriptidx, argv + scriptidx);
+	if(scriptidx < argc) {
+		ret = konoha_load(konoha, argv[scriptidx]);
+	}
+	else {
+		interactive_flag = 1;
+	}
+	if(ret && interactive_flag) {
+		ret = konoha_shell(konoha);
+	}
+	return (ret == true) ? 0 : 1;
+}
 
 // -------------------------------------------------------------------------
 // ** main **
@@ -668,33 +627,21 @@ extern int konoha_AssertResult;
 int main(int argc, char *argv[])
 {
 	kbool_t ret = 1;
-//	char *args[argc+1];
-//	memcpy(args, argv, sizeof(char*) * argc);
-	int scriptidx = konoha_ginit(argc, argv);
-	if(builtin_test != NULL) {
-		return konoha_builtintest(builtin_test);
+	if(getenv("KONOHA_DEBUG") != NULL) {
+		verbose_debug = 1;
+		verbose_gc = 1;
+		verbose_sugar = 1;
+		verbose_code = 1;
 	}
-	if(test_script != NULL) {
-		return konoha_test(test_script);
-	}
-	konoha_t konoha = konoha_open(platform_shell());
-	konoha_commandline(konoha, argc - scriptidx, argv + scriptidx);
-	if(preimport != NULL) {
-		konoha_preimport((CTX_t)konoha, preimport);
-	}
-	if(startup_script != NULL) {
-		konoha_startup(konoha, startup_script);
-	}
-	if(scriptidx < argc) {
-		ret = konoha_load(konoha, argv[scriptidx]);
-	}
-	if(ret && interactive_flag) {
-		ret = konoha_shell(konoha);
-	}
+	kplatform_t *plat = platform_shell();
+	konoha_t konoha = konoha_open((const kplatform_t*)plat);
+	ret = konoha_parseopt(konoha, plat, argc, argv);
 	konoha_close(konoha);
 	MODGC_check_malloced_size();
-	return ret ? konoha_AssertResult: 1;
+	return ret ? konoha_AssertResult: 0;
 }
+
+
 
 #ifdef __cplusplus
 }

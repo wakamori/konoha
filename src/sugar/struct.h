@@ -318,6 +318,13 @@ static void KonohaSpace_mergeConstData(CTX, struct _kKonohaSpace *ks, kvs_t *kvs
 	qsort(ks->cl.kvs, s + nitems, sizeof(kvs_t), comprKeyVal);
 }
 
+static size_t strlen_alnum(const char *p)
+{
+	size_t len = 0;
+	while(isalnum(p[len]) || p[len] == '_') len++;
+	return len;
+}
+
 static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kline_t pline)
 {
 	INIT_GCSTACK();
@@ -326,7 +333,7 @@ static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kli
 	kwb_init(&(_ctx->stack->cwb), &wb);
 	while(d[0] != NULL) {
 		//DBG_P("key='%s'", d[0]);
-		kv.key = ksymbolSPOL(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | SYMKEY_BOXED;
+		kv.key = ksymbolSPOL(d[0], strlen_alnum(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | SYMKEY_BOXED;
 		kv.ty  = (ktype_t)(uintptr_t)d[1];
 		if(kv.ty == TY_TEXT) {
 			kv.ty = TY_String;
