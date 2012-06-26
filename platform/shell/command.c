@@ -558,6 +558,10 @@ static void dbg_p(const char *file, const char *func, int line, const char *fmt,
 	va_end(ap);
 }
 
+static void NOP_dbg_p(const char *file, const char *func, int line, const char *fmt, ...)
+{
+}
+
 const kplatform_t* platform_shell(void)
 {
 	static kplatform_t plat = {
@@ -583,6 +587,9 @@ const kplatform_t* platform_shell(void)
 		.end             = end,
 		.dbg_p           = dbg_p,
 	};
+	if(!verbose_debug) {
+		plat.dbg_p = NOP_dbg_p;
+	}
 	return (const kplatform_t*)(&plat);
 }
 
@@ -598,9 +605,6 @@ static const char* TEST_end(kinfotag_t t)
 	return "";
 }
 
-static void TEST_dbg_p(const char *file, const char *func, int line, const char *fmt, ...)
-{
-}
 
 const kplatform_t* platform_test(void)
 {
@@ -625,7 +629,7 @@ const kplatform_t* platform_test(void)
 		.exportpath      = exportpath,
 		.begin           = TEST_begin,
 		.end             = TEST_end,
-		.dbg_p           = TEST_dbg_p,
+		.dbg_p           = NOP_dbg_p,
 	};
 	return (const kplatform_t*)(&plat);
 }
