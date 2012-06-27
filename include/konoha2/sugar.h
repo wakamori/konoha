@@ -470,7 +470,7 @@ typedef struct {
 //	struct kmap_t         *keywordMapNN;
 	kArray         *packageList;
 	struct kmap_t         *packageMapNO;
-	kKonohaSpace         *rootks;
+//	kKonohaSpace         *rootks;
 
 	kFunc *UndefinedParseExpr;
 	kFunc *UndefinedStmtTyCheck;

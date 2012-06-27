@@ -54,7 +54,6 @@
 #define USE_BUILTINTEST  1
 
 #ifndef __KERNEL__
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
@@ -78,23 +77,54 @@
 /* ------------------------------------------------------------------------ */
 /* platform */
 
+#ifdef __GCC__
+#define __PRINT_FMT(idx1, idx2) __attribute__((format(printf, idx1, idx2)))
+#else
+#define __PRINT_FMT(idx1, idx2)
+#endif
+
 #define PLAT (_ctx->plat)->
+
+typedef enum {
+	CritTag, ErrTag, WarnTag, NoticeTag, InfoTag, DebugTag, NoneTag,
+} kinfotag_t;
+
+#define CRIT_ CritTag
+#define ERR_  ErrTag
+#define WARN_ WarnTag
+#define INFO_ InfoTag
+#define DEBUG_ DebugTag
+#define PRINT_ NoneTag
+
+typedef void FILE_i;
 
 typedef struct {
 	// settings
 	const char *name;
 	size_t stacksize;
 	// low-level functions
-	void* (*malloc)(size_t);
-	void  (*free)(void *);
-	char* (*realpath)(const char*, char*);
-	FILE* (*fopen)(const char*, const char*);
-	int   (*fgetc)(FILE *);
-	int   (*feof)(FILE *);
-	int   (*fclose)(FILE *);
+	void* (*malloc_i)(size_t);
+	void  (*free_i)(void *);
+
+	char* (*realpath_i)(const char*, char*);
+	FILE_i* (*fopen_i)(const char*, const char*);
+	int     (*fgetc_i)(FILE_i *);
+	int     (*feof_i)(FILE_i *);
+	int     (*fclose_i)(FILE_i *);
+	//
+	void  (*syslog_i)(int priority, const char *message, ...) __PRINT_FMT(2, 3);
+	void  (*vsyslog_i)(int priority, const char *message, va_list args);
+	int   (*printf_i)(const char *fmt, ...) __PRINT_FMT(2, 3);
+	int   (*vprintf_i)(const char *fmt, va_list args);
+	int   (*snprintf_i)(char *str, size_t size, const char *fmt, ...);
+	int   (*vsnprintf_i)(char *str, size_t size, const char *fmt, va_list args);
+
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
 	const char* (*exportpath)(char *buf, size_t bufsiz, const char *pkgname);
+	const char* (*begin)(kinfotag_t);
+	const char* (*end)(kinfotag_t);
+	void  (*dbg_p)(const char *file, const char *func, int line, const char *fmt, ...) __PRINT_FMT(4, 5);
 } kplatform_t;
 
 /* ------------------------------------------------------------------------ */
@@ -161,12 +191,6 @@ typedef uintptr_t        kuint_t;
 
 typedef intptr_t         kindex_t;
 typedef kushort_t        kflag_t;    /* flag field */
-
-#ifdef __GCC__
-#define __PRINT_FMT(idx1, idx2) __attribute__((format(printf, idx1, idx2)))
-#else
-#define __PRINT_FMT(idx1, idx2)
-#endif
 
 #define KFLAG_H(N)               ((sizeof(kflag_t)*8)-N)
 #define KFLAG_H0                 ((kflag_t)(1 << KFLAG_H(1)))
@@ -287,7 +311,7 @@ typedef kushort_t       kparamid_t;
 
 #define SYM_MAX            KFLAG_H3
 #define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
-#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
+#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2|KFLAG_H3)))
 
 #define SYM_NONAME          ((ksymbol_t)-1)
 #define SYM_NEWID           ((ksymbol_t)-2)
@@ -360,9 +384,14 @@ typedef struct kmodshare_t {
 	void (*free)(CTX, struct kmodshare_t *);
 } kmodshare_t;
 
-#define CTX_isInteractive()  1
-#define CTX_isCompileOnly()  0
-#define CTX_isDebug()        0
+#define kContext_Debug          ((kflag_t)(1<<0))
+#define kContext_Interactive    ((kflag_t)(1<<1))
+#define kContext_CompileOnly    ((kflag_t)(1<<1))
+
+#define CTX_isInteractive(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_Interactive))
+#define CTX_isCompileOnly(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_CompileOnly))
+#define CTX_setInteractive(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_Interactive)
+#define CTX_setCompileOnly(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_CompileOnly)
 
 typedef struct kcontext_t {
 	int						          safepoint; // set to 1
@@ -376,16 +405,14 @@ typedef struct kcontext_t {
 	struct kmemshare_t                *memshare;
 	struct kmemlocal_t                *memlocal;
 	struct kshare_t                   *share;
-	struct klocal_t                   *local;
 	struct kstack_t                   *stack;
-	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
 } kcontext_t ;
 
 typedef struct kshare_t {
 	karray_t ca;
-	struct kmap_t         *lcnameMapNN;
+	struct kmap_t               *lcnameMapNN;
 	/* system shared const */
 	const struct _kObject       *constNull;
 	const struct _kBoolean      *constTrue;
@@ -394,17 +421,15 @@ typedef struct kshare_t {
 	const struct _kArray        *emptyArray;
 
 	const struct _kArray         *fileidList;    // file, http://
-	struct kmap_t         *fileidMapNN;   //
-	const struct _kArray         *packList;   // are you using this?
-	struct kmap_t         *packMapNN;
-	const struct _kArray         *unameList;  // NAME, Name, INT_MAX Int_MAX
-	struct kmap_t         *unameMapNN;
-//	const struct _kArray         *symbolList;   // name, f,
-//	struct kmap_t         *symbolMapNN;
+	struct kmap_t                *fileidMapNN;   //
+	const struct _kArray         *packList;
+	struct kmap_t                *packMapNN;
+	const struct _kArray         *symbolList;  // NAME, Name, INT_MAX Int_MAX
+	struct kmap_t                *symbolMapNN;
 	const struct _kArray         *paramList;
-	struct kmap_t         *paramMapNN;
+	struct kmap_t                *paramMapNN;
 	const struct _kArray         *paramdomList;
-	struct kmap_t         *paramdomMapNN;
+	struct kmap_t                *paramdomMapNN;
 } kshare_t ;
 
 #define K_FRAME_NCMEMBER \
@@ -473,6 +498,8 @@ typedef struct kstack_t {
 	struct ksfp_t*               stack_uplimit;
 	const struct _kArray        *gcstack;
 	karray_t                     cwb;
+	// local info
+	kflag_t                      flag;
 	CTX_t                        *rootctx;
 	void*                        cstack_bottom;  // for GC
 	karray_t                     ref;   // reftrace
@@ -542,7 +569,7 @@ struct _kclass {
 	kfield_t  *fields;
 	kushort_t  fsize;         kushort_t fallocsize;
 	const char               *DBG_NAME;
-	ksymbol_t                  nameid;
+	ksymbol_t                 nameid;
 	kushort_t                 optvalue;
 
 	const struct _kArray     *methods;
@@ -1163,12 +1190,10 @@ struct _klib2 {
 
 	void       (*KS_syncMethods)(CTX);
 	void       (*KCodeGen)(CTX, kMethod *, const struct _kBlock *);
-	void       (*Kreport)(CTX, int level, const char *msg);
-	void       (*Kreportf)(CTX, int level, kline_t, const char *fmt, ...);
+	void       (*Kreportf)(CTX, kinfotag_t, kline_t, const char *fmt, ...);
 	void       (*Kraise)(CTX, int isContinue);     // module
 
 	uintptr_t  (*Ktrace)(CTX, struct klogconf_t *logconf, ...);
-	void       (*Kp)(const char *file, const char *func, int line, const char *fmt, ...) __PRINT_FMT(4, 5);
 };
 
 #define K_NULL            (_ctx->share->constNull)
@@ -1195,7 +1220,7 @@ struct _klib2 {
 
 #define kwb_init(M,W)            (KPI)->Kwb_init(M,W)
 #define kwb_write(W,B,S)         (KPI)->Kwb_write(_ctx,W,B,S)
-#define kwb_putc(W,...)          (KPI)->Kwb_putc(_ctx,W, ## __VA_ARGS__, EOF)
+#define kwb_putc(W,...)          (KPI)->Kwb_putc(_ctx,W, ## __VA_ARGS__, -1)
 #define kwb_vprintf(W,FMT,ARG)   (KPI)->Kwb_vprintf(_ctx,W, FMT, ARG)
 #define kwb_printf(W,FMT,...)    (KPI)->Kwb_printf(_ctx, W, FMT, ## __VA_ARGS__)
 
@@ -1294,23 +1319,12 @@ typedef struct {
 	kfloat_t value;
 } KDEFINE_FLOAT_CONST;
 
-typedef enum {
-	CRIT_,     // raise(0)
-	ERR_,
-	WARN_,
-	INFO_,
-	DEBUG_,
-	PRINT_
-} kreportlevel_t;
+typedef struct {
+	const char *key;
+	uintptr_t ty;
+	kObject *value;
+} KDEFINE_OBJECT_CONST;
 
-//#define CRIT_  0
-//#define ERR_   1
-//#define WARN_  2
-//#define INFO_  3
-//#define PRINT_ 4
-//#define DEBUG_ 5
-
-#define kreport(LEVEL, MSG)            (KPI)->Kreport(_ctx, LEVEL, MSG)
 #define kreportf(LEVEL, UL, fmt, ...)  (KPI)->Kreportf(_ctx, LEVEL, UL, fmt, ## __VA_ARGS__)
 #define kraise(PARAM)                  (KPI)->Kraise(_ctx, PARAM)
 
@@ -1417,9 +1431,9 @@ typedef enum {
 #define KNH_ASSERT(a)    assert(a)
 #define DBG_ASSERT(a)    assert(a)
 #define TODO_ASSERT(a)   assert(a)
-#define DBG_P(fmt, ...)     _ctx->lib2->Kp(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
-#define DBG_ABORT(fmt, ...) _ctx->lib2->Kp(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
-#define DUMP_P(fmt, ...)    fprintf(stderr, fmt, ## __VA_ARGS__)
+#define DBG_P(fmt, ...)     PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
+#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
+#define DUMP_P(fmt, ...)    PLAT printf_i(fmt, ## __VA_ARGS__)
 //#else
 //#define KNH_ASSERT(a)
 //#define DBG_ASSERT(a)
@@ -1441,11 +1455,6 @@ extern void konoha_close(konoha_t konoha);
 extern kbool_t konoha_load(konoha_t konoha, const char *scriptfile);
 extern kbool_t konoha_eval(konoha_t konoha, const char *script, kline_t uline);
 extern kbool_t konoha_run(konoha_t konoha);  // TODO
-
-//extern void MODSUGAR_init(CTX, kcontext_t *ctx);
-//extern void kvproto_free(CTX, struct karray_t *p);
-//extern void kvproto_reftrace(CTX, struct karray_t *p);
-
 
 #ifdef USE_BUILTINTEST
 typedef int (*Ftest)(CTX);

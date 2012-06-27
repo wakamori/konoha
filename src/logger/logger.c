@@ -27,6 +27,7 @@
 #include <konoha2/konoha2.h>
 #include <konoha2/logger.h>
 #include <konoha2/konoha2_local.h>
+#include <syslog.h>
 
 /* ------------------------------------------------------------------------ */
 /* [logger] */
@@ -133,7 +134,7 @@ static uintptr_t Ktrace_p(CTX, klogconf_t *logconf, va_list ap)
 	}
 	p[0] = '}'; p++;
 	p[0] = '\0';
-	fprintf(stderr, "konoha: %s\n", buf);
+	PLAT syslog_i(LOG_INFO, "%s", buf);
 	return 0;// FIXME reference to log
 }
 
@@ -185,7 +186,7 @@ void MODLOGGER_free(CTX, kcontext_t *ctx)
 void MODLOGGER_init(CTX, kcontext_t *ctx)
 {
 	kmodlogger_t *base = (kmodlogger_t*)calloc(sizeof(kmodlogger_t), 1);
-	base->h.name     = "verbose";
+	base->h.name     = "syslog";
 	base->h.setup    = kmodlogger_setup;
 	base->h.reftrace = kmodlogger_reftrace;
 	//base->h.free     = kmodlogger_free;

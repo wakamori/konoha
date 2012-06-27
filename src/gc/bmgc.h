@@ -25,6 +25,7 @@
 /* ************************************************************************ */
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #define K_USING_POSIX_
 #if defined(K_USING_POSIX_)
@@ -747,7 +748,7 @@ static void Kfree(CTX, void *p, size_t s)
 void MODGC_check_malloced_size(void)
 {
 	if(verbose_gc) {
-		DUMP_P("\nklib:memory leaked=%ld\n", klib2_malloced);
+		fprintf(stdout, "\nklib:memory leaked=%ld\n", klib2_malloced);
 #ifdef GCDEBUG
 		DUMP_P("sys :memory leaked=%ld\n", malloced_size);
 #endif

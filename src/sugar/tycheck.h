@@ -808,7 +808,7 @@ static KMETHOD UndefinedStmtTyCheck(CTX, ksfp_t *sfp _RIX)  // $expr
 {
 	VAR_StmtTyCheck(stmt, gma);
 	const char *location = kGamma_isTOPLEVEL(gma) ? "at the top level" : "inside the function";
-	kStmt_p(stmt, ERR_, "%s is not available %s", T_statement(stmt->syn->kw), location);
+	kStmt_p(stmt, ERR_, "%s%s is not available %s", T_statement(stmt->syn->kw), location);
 	RETURNb_(false);
 }
 
@@ -841,7 +841,7 @@ static kbool_t Stmt_TyCheck(CTX, ksyntax_t *syn, kStmt *stmt, kGamma *gma)
 	result = Stmt_TyCheckFunc(_ctx, fo, stmt, gma);
 	if(stmt->syn == NULL) return true; // this means done;
 	if(result == false && stmt->build == TSTMT_UNDEFINED) {
-		kStmt_p(stmt, ERR_, "statement typecheck error: %s", T_statement(syn->kw));
+		kStmt_p(stmt, ERR_, "statement typecheck error: %s%s", T_statement(syn->kw));
 	}
 	return result;
 }
@@ -1249,8 +1249,8 @@ static kBlock* Method_newBlock(CTX, kMethod *mtd, kString *source, kline_t uline
 	}
 	kArray *tls = ctxsugar->tokens;
 	size_t pos = kArray_size(tls);
-	KonohaSpace_tokenize(_ctx, kmodsugar->rootks, script, uline, tls);
-	kBlock *bk = new_Block(_ctx, kmodsugar->rootks, NULL, tls, pos, kArray_size(tls), ';');
+	KonohaSpace_tokenize(_ctx, KNULL(KonohaSpace), script, uline, tls); //FIXME: ks
+	kBlock *bk = new_Block(_ctx, KNULL(KonohaSpace), NULL, tls, pos, kArray_size(tls), ';');
 	kArray_clear(tls, pos);
 	return bk;
 }

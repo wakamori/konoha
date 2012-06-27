@@ -106,7 +106,7 @@ static void dumpMethod(CTX, ksfp_t *sfp, kMethod *mtd)
 	kwb_init(&(_ctx->stack->cwb), &wb);
 	KSETv(sfp[2].mtd, mtd);
 	O_ct(mtd)->p(_ctx, sfp, 2, &wb, 1);
-	fprintf(stdout, "%s\n", kwb_top(&wb, 1));
+	PLAT printf_i("%s\n", kwb_top(&wb, 1));
 	kwb_free(&wb);
 	return;
 }
@@ -127,7 +127,6 @@ KMETHOD KonohaSpace_man(CTX, ksfp_t *sfp _RIX)
 	kKonohaSpace *ks = sfp[0].ks;
 	kclass_t *ct = O_ct(sfp[1].o);
 	DBG_P("*** man %s", TY_t(ct->cid));
-//	((struct _kclass*)CT_Method)->p = Method_p;
 	while(ks != NULL) {
 		copyMethodList(_ctx, ct->cid, ks->methods, list);
 		ks = ks->parentNULL;

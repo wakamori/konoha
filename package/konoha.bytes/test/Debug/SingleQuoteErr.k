@@ -1,6 +1,6 @@
 /* written by shinpei nakata */
 
-K.importPackage("konoha.bytes");
+K.import("konoha.bytes");
 
 void f() {
 	int s = 'hogehoge';
