@@ -402,7 +402,6 @@ typedef struct kcontext_t {
 	struct kshare_t                   *share;
 	struct klocal_t                   *local;
 	struct kstack_t                   *stack;
-	struct klogger_t                  *logger;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
 } kcontext_t ;
