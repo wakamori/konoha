@@ -457,7 +457,6 @@ static int konoha_builtintest(konoha_t konoha, const char* name)
 	return 1;
 }
 
-
 static void konoha_define(CTX, char *keyvalue)
 {
 	char *p = strchr(keyvalue, '=');
@@ -614,6 +613,7 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 		interactive_flag = 1;
 	}
 	if(ret && interactive_flag) {
+		konoha_import(konoha, "konoha.i");
 		ret = konoha_shell(konoha);
 	}
 	return (ret == true) ? 0 : 1;

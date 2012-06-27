@@ -311,7 +311,7 @@ typedef kushort_t       kparamid_t;
 
 #define SYM_MAX            KFLAG_H3
 #define SYM_HEAD(sym)      (sym  & (KFLAG_H0|KFLAG_H1|KFLAG_H2))
-#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2)))
+#define SYM_UNMASK(sym)    (sym & (~(KFLAG_H0|KFLAG_H1|KFLAG_H2|KFLAG_H3)))
 
 #define SYM_NONAME          ((ksymbol_t)-1)
 #define SYM_NEWID           ((ksymbol_t)-2)
