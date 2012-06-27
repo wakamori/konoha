@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <setjmp.h>
 #include <syslog.h>
 #include <dlfcn.h>
 #include <konoha2/klib.h>
@@ -325,8 +326,8 @@ kplatform_t* platform_shell(void)
 		.stacksize       = K_PAGESIZE * 4,
 		.malloc_i        = malloc,
 		.free_i          = free,
-		.setjmp_i        = (int   (*)(jmpbuf_i*))sigsetjmp,
-		.longjmp_i       = (void   (*)(jmpbuf_i*, int))siglongjmp,
+		.setjmp_i        = ksetjmp,
+		.longjmp_i       = klongjmp,
 
 		.realpath_i      = realpath,
 		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,

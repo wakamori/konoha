@@ -53,15 +53,17 @@
 
 #define USE_BUILTINTEST  1
 
-#ifndef __KERNEL__
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
+
+#ifndef jmpbuf_i
 #include <setjmp.h>
-#else
-#include "konoha_lkm.h"
-#endif /* __KERNEL__ */
+#define jmpbuf_i jmp_buf
+#define ksetjmp  setjmp
+#define klongjmp longjmp
+#endif /*jmpbuf_i*/
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -97,7 +99,6 @@ typedef enum {
 #define PRINT_ NoneTag
 
 typedef void FILE_i;
-typedef void jmpbuf_i;
 
 typedef struct {
 	// settings
@@ -106,8 +107,8 @@ typedef struct {
 	// low-level functions
 	void* (*malloc_i)(size_t);
 	void  (*free_i)(void *);
-	int   (*setjmp_i)(jmpbuf_i*);
-	void   (*longjmp_i)(jmpbuf_i*, int);
+	int   (*setjmp_i)(jmpbuf_i);
+	void   (*longjmp_i)(jmpbuf_i, int);
 
 	char* (*realpath_i)(const char*, char*);
 	FILE_i* (*fopen_i)(const char*, const char*);
@@ -233,10 +234,6 @@ typedef uintptr_t                 kline_t;
 #define ULINE_setURI(line, fileid)    line |= (((kline_t)fileid) << (sizeof(kfileid_t) * 8))
 #define ULINE_fileid(line)            ((kfileid_t)(line >> (sizeof(kfileid_t) * 8)))
 #define ULINE_line(line)           (line & (kline_t)((kfileid_t)-1))
-
-#define jmpbuf_i_t       sigjmp_buf
-#define ksetjmp(B)      sigsetjmp(B, 0)
-#define klongjmp(B, N)  siglongjmp(B, N)
 
 /* ------------------------------------------------------------------------ */
 
@@ -512,9 +509,7 @@ typedef struct kstack_t {
 	struct _kObject**            reftail;
 	ktype_t   evalty;
 	kushort_t evalidx;
-#ifndef __KERNEL__
-	jmpbuf_i_t* evaljmpbuf;
-#endif
+	jmpbuf_i  *evaljmpbuf;
 } kstack_t;
 
 typedef struct kfield_t {

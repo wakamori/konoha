@@ -582,21 +582,17 @@ static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 
 static void Kraise(CTX, int param)
 {
-#ifndef __KERNEL__
 	kstack_t *base = _ctx->stack;
 	if(base->evaljmpbuf != NULL) {
-		klongjmp(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
+		PLAT longjmp_i(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
 	}
-#endif
 	PLAT exit_i(EXIT_FAILURE);
 }
 
 // -------------------------------------------------------------------------
 
 static kbool_t KRUNTIME_setModule(CTX, int x, kmodshare_t *d, kline_t pline);
-#ifdef __KERNEL__
-extern void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...);
-#endif
+
 static void klib2_init(struct _klib2 *l)
 {
 	l->Karray_init   = karray_init;
@@ -626,11 +622,7 @@ static void klib2_init(struct _klib2 *l)
 	l->Kfileid       = Kfileid;
 	l->Kpack         = Kpack;
 	l->Ksymbol2      = Ksymbol2;
-#ifdef __KERNEL__
-	l->Kreportf      = lkm_Kreportf;
-#else
 	l->Kreportf      = Kreportf;
-#endif
 	l->Kraise        = Kraise;
 	l->KsetModule    = KRUNTIME_setModule;
 }
