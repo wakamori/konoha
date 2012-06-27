@@ -130,7 +130,6 @@ set(PACKAGES
 	ijit
 ##	jansson
 	python
-	logpool
 )
 
 find_library(HAVE_LIBDL NAMES dl)
@@ -315,8 +314,6 @@ endmacro(add_clib_test sources)
 
 add_clib_test(test_sizeof  ./test/src/test_sizeof.c)
 add_clib_test(test_Kmalloc ./test/src/test_Kmalloc.c)
-#add_clib_test(test_vm_add0 ./test/src/vm/test_add0.c)
-#add_clib_test(test_vm_int  ./test/src/vm/test_int.c)
 add_clib_test(test_Karray  ./test/src/test_Karray.c)
 add_clib_test(test_gc      ./test/src/test_gc.c)
 add_clib_test(test_Kwb     ./test/src/test_Kwb.c)
