@@ -104,10 +104,11 @@ endif(KONOHA_VM_MODULE)
 set(PACKAGES
 	sugar
 	konoha
+	konoha.null
+	konoha.int
+	konoha.float
 	konoha.math
 	konoha.string
-	konoha.float
-##	konoha.int
 	llvm
 	konoha.pcre
 	konoha.hashmap
@@ -126,10 +127,10 @@ set(PACKAGES
 ##	konoha.mpi
 	konoha.bytes
 ##	konoha.curl
-##	konoha.json
 	ijit
+##	jansson
 	python
-	konoha.null
+	logpool
 )
 
 find_library(HAVE_LIBDL NAMES dl)
@@ -212,7 +213,9 @@ foreach(f ${test_files})
 	string(REPLACE // / f ${f})
 	string(REPLACE ${CMAKE_CURRENT_SOURCE_DIR}/test/ "" test_name ${f})
 	add_konoha_test(${test_name} --test-with ${f})
-	add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+	if(TEST_IJIT)
+		add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+	endif(TEST_IJIT)
 	set_tests_properties(${test_name} PROPERTIES TIMEOUT 10)
 endforeach(f ${test_files})
 
@@ -220,7 +223,7 @@ add_library(konoha2 SHARED ${RUNTIME} ${GC} ${LOGGER} ${PARSER} ${VM})
 target_link_libraries(konoha2 ${ExtraLibs})
 set(ExtraLibs ${ExtraLibs} konoha2)
 
-add_executable(konoha2_bin src/tool/command.c)
+add_executable(konoha2_bin platform/shell/command.c)
 target_link_libraries(konoha2_bin ${ExtraLibs})
 set_target_properties(konoha2_bin PROPERTIES OUTPUT_NAME konoha)
 
@@ -244,7 +247,9 @@ macro(create_package_project _PKGNAME)
 		string(REPLACE ${PARENT_SOURCE_DIR}/package/ "" test_name ${f})
 		string(REPLACE /test "" test_name ${test_name})
 		add_konoha_test(${test_name} --test-with ${f})
-		add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+		if(TEST_IJIT)
+			add_konoha_test(ijit:${test_name} --preimport=ijit --test-with ${f})
+		endif(TEST_IJIT)
 		if (PACKAGE_ENV)
 			set_tests_properties(${test_name} PROPERTIES ENVIRONMENT ${PACKAGE_ENV})
 		endif (PACKAGE_ENV)

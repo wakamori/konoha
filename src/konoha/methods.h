@@ -126,7 +126,7 @@ static KMETHOD Int_opGTE(CTX, ksfp_t *sfp _RIX)
 static KMETHOD Int_toString(CTX, ksfp_t *sfp _RIX)
 {
 	char buf[40];
-	snprintf(buf, sizeof(buf), "%ld", (intptr_t)sfp[0].ivalue);
+	PLAT snprintf_i(buf, sizeof(buf), "%ld", (intptr_t)sfp[0].ivalue);
 	RETURN_(new_kString(buf, strlen(buf), SPOL_ASCII));
 }
 

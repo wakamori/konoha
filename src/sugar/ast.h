@@ -369,7 +369,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 		if(rule->tt == TK_CODE) {
 			if(rule->kw != tk->kw) {
 				if(optional) return s;
-				kToken_p(stmt, tk, ERR_, "%s needs '%s%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
+				kToken_p(stmt, tk, ERR_, "%s%s needs '%s%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
 				return -1;
 			}
 			ti++;
@@ -386,7 +386,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 				c = lookAheadKeyword(tls, ti+1, e, rules->toks[ri+1]);
 				if(c == -1) {
 					if(optional) return s;
-					kToken_p(stmt, tk, ERR_, "%s needs '%s%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
+					kToken_p(stmt, tk, ERR_, "%s%s needs '%s%s'", T_statement(stmt->syn->kw), KW_t(rule->kw));
 					return -1;
 				}
 				ri++;
@@ -397,7 +397,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			if(next == -1) {
 				if(optional) return s;
 				if(err_count == ctxsugar->err_count) {
-					kToken_p(stmt, tk, ERR_, "%s needs syntax pattern %s%s, not %s ..", T_statement(stmt->syn->kw), KW_t(rule->kw), kToken_s(tk));
+					kToken_p(stmt, tk, ERR_, "%s%s needs syntax pattern %s%s, not %s ..", T_statement(stmt->syn->kw), KW_t(rule->kw), kToken_s(tk));
 				}
 				return -1;
 			}
@@ -418,7 +418,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			}
 			else {
 				if(optional) return s;
-				kToken_p(stmt, tk, ERR_, "%s needs '%c'", T_statement(stmt->syn->kw), rule->topch);
+				kToken_p(stmt, tk, ERR_, "%s%s needs '%c'", T_statement(stmt->syn->kw), rule->topch);
 				return -1;
 			}
 		}
@@ -428,7 +428,7 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			kToken *rule = rules->toks[ri];
 			if(rule->tt != AST_OPTIONAL) {
 				//kStmt_errline(stmt, uline);
-				kStmt_p(stmt, ERR_, "%s needs syntax pattern: %s", T_statement(stmt->syn->kw), KW_t(rule->kw));
+				kStmt_p(stmt, ERR_, "%s%s needs syntax pattern: %s", T_statement(stmt->syn->kw), KW_t(rule->kw));
 				return -1;
 			}
 		}

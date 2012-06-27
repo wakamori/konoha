@@ -1,5 +1,5 @@
-K.importPackage("konoha.float");
-K.importPackage("ijit");
+K.import("konoha.float");
+K.import("ijit");
 
 void f() {
     System.p(1.0);

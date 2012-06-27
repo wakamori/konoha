@@ -1,7 +1,7 @@
 // written by shinpei nakata
 
 void global_setup() {
-	K.importPackage("konoha.bytes");
+	K.import("konoha.bytes");
 }
 global_setup();
 

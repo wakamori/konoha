@@ -22,6 +22,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
+#include<stdio.h>
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
 
@@ -69,129 +70,47 @@ static KMETHOD Block_tyCheckAll(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
-//typedef kbool_t (*FcheckParam)(CTX, kParam *);
-//
-//static kbool_t checkMethod(CTX, kMethod *mtd, FcheckParam f, kclass_t *ct, kString *name, kline_t pline)
-//{
-//	if(mtd == NULL) {
-//		kreportf(CRIT_, pline, "undefined method: %s.%s", CT_t(ct), S_text(name));
-//		return false;
-//	}
-//	if(mtd->cid != ct->cid || !f(_ctx, kMethod_param(mtd))) {
-//		kreportf(CRIT_, pline, "mismatched method: %s.%s", CT_t(ct), S_text(name));
-//		return false;
-//	}
-//	return true;
-//}
-//
-//static void setSyntaxMethod(CTX, kMethod **synptr, kMethod *mtd, kString *key, kString *name, kline_t pline)
-//{
-//	if(synptr[0] != NULL && synptr[0] != mtd) {
-//		kreportf(INFO_, pline, "overloaded method: %s %s", S_text(key), S_text(name));
-//		Method_setProceedMethod(_ctx, mtd, synptr[0]);
-//		KSETv(synptr[0], mtd);
-//	}
-//	else{
-//		KINITv(synptr[0], mtd);
-//	}
-//}
-//
-//static kbool_t isPatternMatch(CTX, kParam *pa)
-//{
-//	USING_SUGAR;
-//	return (pa->psize == 3 && pa->rtype == TY_Int
-//			&& pa->p[0].ty == TY_TokenArray && pa->p[1].ty == TY_Int && pa->p[2].ty == TY_Int );
-//}
-//
-////## void KonohaSpace.addPatternMatch(String keyword, String name);
-//static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
-//{
-//	USING_SUGAR;
-//	kString *key = sfp[1].s;
-//	kString *name = sfp[2].s;
-//	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
-//	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
-//	if(checkMethod(_ctx, mtd, isPatternMatch, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
-//		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
-//		setSyntaxMethod(_ctx, &syn->PatternMatchNULL, mtd, key, name, sfp[K_RTNIDX].uline);
-//	}
-//}
-//
-//static kbool_t isParseExpr(CTX, kParam *pa)
-//{
-//	USING_SUGAR;
-//	return (pa->psize == 4 && pa->rtype == TY_Expr
-//			&& pa->p[0].ty == TY_TokenArray && pa->p[1].ty == TY_Int
-//			&& pa->p[2].ty == TY_Int && pa->p[3].ty == TY_Int );
-//}
-//
-////## void KonohaSpace.addParseExpr(String keyword, String name);
-//static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
-//{
-//	USING_SUGAR;
-//	kString *key = sfp[1].s;
-//	kString *name = sfp[2].s;
-//	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
-//	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
-//	if(checkMethod(_ctx, mtd, isParseExpr, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
-//		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
-//		setSyntaxMethod(_ctx, &syn->ParseExpr, mtd, key, name, sfp[K_RTNIDX].uline);
-//	}
-//}
-//
-//static kbool_t isStmtTyCheck(CTX, kParam *pa)
-//{
-//	USING_SUGAR;
-//	return (pa->psize == 1 && pa->rtype == TY_Boolean && pa->p[0].ty == TY_Gamma);
-//}
-//
-////## void KonohaSpace.addStmtTyCheck(String keyword, String name);
-//static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
-//{
-//	USING_SUGAR;
-//	kString *key = sfp[1].s;
-//	kString *name = sfp[2].s;
-//	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
-//	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
-//	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
-//		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
-//		setSyntaxMethod(_ctx, &syn->StmtTyCheck, mtd, key, name, sfp[K_RTNIDX].uline);
-//	}
-//}
-//
-////## void KonohaSpace.addTopStmtTyCheck(String keyword, String name);
-//static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
-//{
-//	USING_SUGAR;
-//	kString *key = sfp[1].s;
-//	kString *name = sfp[2].s;
-//	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
-//	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Stmt, mn);
-//	if(checkMethod(_ctx, mtd, isStmtTyCheck, CT_Stmt, name, sfp[K_RTNIDX].uline)) {
-//		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
-//		setSyntaxMethod(_ctx, &syn->TopStmtTyCheck, mtd, key, name, sfp[K_RTNIDX].uline);
-//	}
-//}
-//
-//static kbool_t isExprTyCheck(CTX, kParam *pa)
-//{
-//	USING_SUGAR;
-//	return (pa->psize == 2 && pa->rtype == TY_Boolean && pa->p[0].ty == TY_Gamma && pa->p[1].ty == TY_Int);
-//}
-//
-////## void KonohaSpace.addExprTyCheck(String keyword, String name);
-//static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
-//{
-//	USING_SUGAR;
-//	kString *key = sfp[1].s;
-//	kString *name = sfp[2].s;
-//	kmethodn_t mn = ksymbolA(S_text(name), S_size(name), SYM_NONAME);
-//	kMethod *mtd = kKonohaSpace_getMethodNULL(sfp[0].ks, TY_Expr, mn);
-//	if(checkMethod(_ctx, mtd, isExprTyCheck, CT_Expr, name, sfp[K_RTNIDX].uline)) {
-//		struct _ksyntax *syn = NEWSYN_(sfp[0].ks, KW_s(key));
-//		setSyntaxMethod(_ctx, &syn->ExprTyCheck, mtd, key, name, sfp[K_RTNIDX].uline);
-//	}
-//}
+//## void KonohaSpace.addPatternMatch(String keyword, String name);
+static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kString *key = sfp[1].s;
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_PatternMatch, sfp[2].fo);
+}
+
+//## void KonohaSpace.addParseExpr(String keyword, String name);
+static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kString *key = sfp[1].s;
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_ParseExpr, sfp[2].fo);
+}
+
+//## void KonohaSpace.addStmtTyCheck(String keyword, String name);
+static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kString *key = sfp[1].s;
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_StmtTyCheck, sfp[2].fo);
+}
+
+
+//## void KonohaSpace.addTopStmtTyCheck(String keyword, String name);
+static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kString *key = sfp[1].s;
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_TopStmtTyCheck, sfp[2].fo);
+}
+
+//## void KonohaSpace.addExprTyCheck(String keyword, Func f);
+static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kString *key = sfp[1].s;
+	DBG_P("func=%p", SUGAR SYN_addSugarFunc);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_ExprTyCheck, sfp[2].fo);
+}
 
 // --------------------------------------------------------------------------
 // AST Method
@@ -303,8 +222,18 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	USING_SUGAR;
 	int FN_buildid = FN_("buildid"), FN_key = FN_("key"), FN_defval = FN_("defval");
 	int FN_typeid = FN_("typeid"), FN_gma = FN_("gma"), FN_pol = FN_("pol");
-//	int FN_name = FN_("name");
+	int FN_func = FN_("func");
 //	int FN_tls = FN_("tokens"), FN_s = FN_("s"), FN_e = FN_("e");
+	kparam_t P_FuncPatternMatch[] = {{TY_Stmt}, {TY_Int}, {TY_TokenArray}, {TY_Int}, {TY_Int}};
+	int TY_FuncPatternMatch = (kClassTable_Generics(CT_Func, TY_Int, 5, P_FuncPatternMatch))->cid;
+	kparam_t P_FuncParseExpr[] = {{TY_Stmt}, {TY_TokenArray}, {TY_Int}, {TY_Int}, {TY_Int}};
+	int TY_FuncParseExpr = (kClassTable_Generics(CT_Func, TY_Expr, 5, P_FuncParseExpr))->cid;
+	kparam_t P_FuncStmtTyCheck[] = {{TY_Stmt}, {TY_Gamma}};
+	int TY_FuncStmtTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 2, P_FuncStmtTyCheck))->cid;
+	kparam_t P_FuncExprTyCheck[] = {{TY_Stmt}, {TY_Expr}, {TY_Gamma}, {TY_Int}};
+	int TY_FuncExprTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 4, P_FuncExprTyCheck))->cid;
+	//DBG_P("func=%s", TY_t(TY_FuncExprTyCheck));
+
 	intptr_t MethodData[] = {
 		_Public, _F(Token_isTypeName), TY_Boolean, TY_Token, MN_("isTypeName"), 0,
 		_Public, _F(Token_isParenthesis), TY_Boolean, TY_Token, MN_("isParenthesis"), 0,
@@ -314,11 +243,11 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public, _F(Stmt_tyCheckExpr), TY_Boolean, TY_Stmt, MN_("tyCheckExpr"), 4, TY_String, FN_key, TY_Gamma, FN_gma, TY_Int, FN_typeid, TY_Int, FN_pol,
 		_Public, _F(Block_tyCheckAll), TY_Boolean, TY_Block, MN_("tyCheckAll"), 1, TY_Gamma, FN_gma,
 
-//		_Public, _F(KonohaSpace_addPatternMatch), TY_void, TY_KonohaSpace, MN_("addStmtParser"), 2, TY_String, FN_key, TY_String, FN_name,
-//		_Public, _F(KonohaSpace_addParseExpr), TY_void, TY_KonohaSpace, MN_("addExprParser"), 2, TY_String, FN_key, TY_String, FN_name,
-//		_Public, _F(KonohaSpace_addTopStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addTopStmtTyChecker"), 2, TY_String, FN_key, TY_String, FN_name,
-//		_Public, _F(KonohaSpace_addStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addStmtTyChecker"), 2, TY_String, FN_key, TY_String, FN_name,
-//		_Public, _F(KonohaSpace_addExprTyCheck), TY_void, TY_KonohaSpace, MN_("addExprTyChecker"), 2, TY_String, FN_key, TY_String, FN_name,
+		_Public, _F(KonohaSpace_addPatternMatch), TY_void, TY_KonohaSpace, MN_("addPatternMatch"), 2, TY_String, FN_key, TY_FuncPatternMatch, FN_func,
+		_Public, _F(KonohaSpace_addParseExpr), TY_void, TY_KonohaSpace, MN_("addParseExpr"), 2, TY_String, FN_key, TY_FuncParseExpr, FN_func,
+		_Public, _F(KonohaSpace_addTopStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addTopStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
+		_Public, _F(KonohaSpace_addStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
+		_Public, _F(KonohaSpace_addExprTyCheck), TY_void, TY_KonohaSpace, MN_("addExprTyCheck"), 2, TY_String, FN_key, TY_FuncExprTyCheck, FN_func,
 
 		_Public, _F(Stmt_newExpr), TY_Expr, TY_Stmt, MN_("newExpr"), 1, TY_String, FN_key,
 //		_Public, _F(Stmt_parsedExpr), TY_Expr, TY_Stmt, MN_("parseExpr"), 3, TY_TokenArray, FN_tls, TY_Int, FN_s, TY_Int, FN_e,

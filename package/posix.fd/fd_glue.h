@@ -26,6 +26,7 @@
 #ifndef FD_GLUE_H_
 #define FD_GLUE_H_
 
+#include<stdio.h>
 
 /* ======================================================================== */
 /* FILE low-level*/

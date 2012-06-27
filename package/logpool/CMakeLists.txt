@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.6)
+find_library(LOGPOOL NAMES logpool)
+if(LOGPOOL)
+set(PACKAGE_SOURCE_CODE logpool_glue.c)
+set(PACKAGE_SCRIPT_CODE logpool_glue.k)
+set(PACKAGE_EXTRA_LIBRARY logpool)
+add_konoha_package(logpool)
+endif(LOGPOOL)

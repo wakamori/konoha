@@ -1,7 +1,7 @@
 /* this test is written by shinpei nakata */
 
 void global_setup() { 
-	K.importPackage("konoha.float")
+	K.import("konoha.float")
 }
 global_setup();
 

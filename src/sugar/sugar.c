@@ -128,7 +128,7 @@ kstatus_t MODSUGAR_eval(CTX, const char *script, kline_t uline)
 		DUMP_P("\n>>>----\n'%s'\n------\n", script);
 	}
 	kmodsugar->h.setup(_ctx, (kmodshare_t*)kmodsugar, 0/*lazy*/);
-	return KonohaSpace_eval(_ctx, kmodsugar->rootks, script, uline);
+	return KonohaSpace_eval(_ctx, KNULL(KonohaSpace), script, uline);
 }
 
 /* ------------------------------------------------------------------------ */
@@ -190,8 +190,7 @@ static void kmodsugar_reftrace(CTX, struct kmodshare_t *baseh)
 {
 	kmodsugar_t *base = (kmodsugar_t*)baseh;
 	kmap_reftrace(base->packageMapNO, pack_reftrace);
-	BEGIN_REFTRACE(8);
-	KREFTRACEv(base->rootks);
+	BEGIN_REFTRACE(6);
 	KREFTRACEv(base->packageList);
 	KREFTRACEv(base->UndefinedParseExpr);
 	KREFTRACEv(base->UndefinedStmtTyCheck);
@@ -265,7 +264,7 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	base->cGamma = Konoha_addClassDef(PN_sugar, PN_sugar, NULL, &defGamma, 0);
 	base->cTokenArray = CT_p0(_ctx, CT_Array, base->cToken->cid);
 
-	KINITv(base->rootks, new_(KonohaSpace, NULL));
+	knull(base->cKonohaSpace);
 	knull(base->cToken);
 	knull(base->cExpr);
 	knull(base->cBlock);
@@ -277,7 +276,7 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	KINITv(base->ParseExpr_Op,   new_SugarFunc(ParseExpr_Op));
 	KINITv(base->ParseExpr_Term, new_SugarFunc(ParseExpr_Term));
 
-	defineDefaultSyntax(_ctx, base->rootks);
+	defineDefaultSyntax(_ctx, KNULL(KonohaSpace));
 	DBG_ASSERT(SYM_("$params") == KW_ParamsPattern);
 	DBG_ASSERT(SYM_(".") == KW_DOT);
 	DBG_ASSERT(SYM_(",") == KW_COMMA);
@@ -289,10 +288,14 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 
 // -------------------------------------------------------------------------
 
-static kline_t readquote(CTX, FILE *fp, kline_t line, kwb_t *wb, int quote)
+#ifndef EOF
+#define EOF (-1)
+#endif
+
+static kline_t readquote(CTX, FILE_i *fp, kline_t line, kwb_t *wb, int quote)
 {
 	int ch, prev = quote;
-	while((ch = PLAT fgetc(fp)) != EOF) {
+	while((ch = PLAT fgetc_i(fp)) != EOF) {
 		if(ch == '\r') continue;
 		if(ch == '\n') line++;
 		kwb_putc(wb, ch);  // SLOW
@@ -304,10 +307,10 @@ static kline_t readquote(CTX, FILE *fp, kline_t line, kwb_t *wb, int quote)
 	return line;
 }
 
-static kline_t readcomment(CTX, FILE *fp, kline_t line, kwb_t *wb)
+static kline_t readcomment(CTX, FILE_i *fp, kline_t line, kwb_t *wb)
 {
 	int ch, prev = 0, level = 1;
-	while((ch = PLAT fgetc(fp)) != EOF) {
+	while((ch = PLAT fgetc_i(fp)) != EOF) {
 		if(ch == '\r') continue;
 		if(ch == '\n') line++;
 		kwb_putc(wb, ch);  // SLOW
@@ -319,11 +322,11 @@ static kline_t readcomment(CTX, FILE *fp, kline_t line, kwb_t *wb)
 	return line;
 }
 
-static kline_t readchunk(CTX, FILE *fp, kline_t line, kwb_t *wb)
+static kline_t readchunk(CTX, FILE_i *fp, kline_t line, kwb_t *wb)
 {
 	int ch;
 	int prev = 0, isBLOCK = 0;
-	while((ch = PLAT fgetc(fp)) != EOF) {
+	while((ch = PLAT fgetc_i(fp)) != EOF) {
 		if(ch == '\r') continue;
 		if(ch == '\n') line++;
 		kwb_putc(wb, ch);  // SLOW
@@ -358,13 +361,13 @@ static int isemptychunk(const char *t, size_t len)
 	return 0;
 }
 
-static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE *fp, kline_t uline, kline_t pline)
+static kstatus_t KonohaSpace_loadstream(CTX, kKonohaSpace *ns, FILE_i *fp, kline_t uline, kline_t pline)
 {
 	kstatus_t status = K_CONTINUE;
 	kwb_t wb;
 	char *p;
 	kwb_init(&(_ctx->stack->cwb), &wb);
-	while(! PLAT feof(fp)) {
+	while(! PLAT feof_i(fp)) {
 		kline_t chunkheadline = uline;
 		uline = readchunk(_ctx, fp, uline, &wb);
 		const char *script = kwb_top(&wb, 1);
@@ -402,10 +405,10 @@ static kline_t uline_init(CTX, const char *path, size_t len, int line, int isrea
 	kline_t uline = line;
 	if(isreal) {
 		char buf[PATH_MAX];
-		char *ptr = PLAT realpath(path, buf);
+		char *ptr = PLAT realpath_i(path, buf);
 		uline |= kfileid((const char*)buf, strlen(ptr), 0, _NEWID);
 		if(ptr != buf && ptr != NULL) {
-			PLAT free(ptr);
+			PLAT free_i(ptr);
 		}
 	}
 	else {
@@ -417,21 +420,21 @@ static kline_t uline_init(CTX, const char *path, size_t len, int line, int isrea
 static kstatus_t KonohaSpace_loadscript(CTX, kKonohaSpace *ks, const char *path, size_t len, kline_t pline)
 {
 	kstatus_t status = K_BREAK;
-	if(path[0] == '-' && path[1] == 0) {
-		kline_t uline = FILEID_("<stdin>") | 1;
-		status = KonohaSpace_loadstream(_ctx, ks, stdin, uline, pline);
-	}
-	else {
-		FILE *fp = PLAT fopen(path, "r");
+//	if(path[0] == '-' && path[1] == 0) {
+//		kline_t uline = FILEID_("<stdin>") | 1;
+//		status = KonohaSpace_loadstream(_ctx, ks, stdin, uline, pline);
+//	}
+//	else {
+		FILE_i *fp = PLAT fopen_i(path, "r");
 		if(fp != NULL) {
 			kline_t uline = uline_init(_ctx, path, len, 1, 1);
 			status = KonohaSpace_loadstream(_ctx, ks, fp, uline, pline);
-			PLAT fclose(fp);
+			PLAT fclose_i(fp);
 		}
 		else {
 			kreportf(ERR_, pline, "script not found: %s", path);
 		}
-	}
+//	}
 	return status;
 }
 
@@ -441,7 +444,7 @@ kstatus_t MODSUGAR_loadscript(CTX, const char *path, size_t len, kline_t pline)
 		kmodsugar->h.setup(_ctx, (kmodshare_t*)kmodsugar, 0/*lazy*/);
 	}
 	INIT_GCSTACK();
-	kKonohaSpace *ns = new_(KonohaSpace, kmodsugar->rootks);
+	kKonohaSpace *ns = new_(KonohaSpace, KNULL(KonohaSpace));
 	PUSH_GCSTACK(ns);
 	kstatus_t result = KonohaSpace_loadscript(_ctx, ns, path, len, pline);
 	RESET_GCSTACK();
@@ -472,11 +475,12 @@ static KDEFINE_PACKAGE PKGDEFNULL = {
 static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char *pathbuf, size_t bufsiz, const char *pname, kline_t pline)
 {
 	char *p = strrchr(pathbuf, '.');
-	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
+//	snprintf(p, bufsiz - (p  - pathbuf), "%s", K_OSDLLEXT);
+	strncpy(p, K_OSDLLEXT, bufsiz - (p  - pathbuf));
 	void *gluehdr = dlopen(pathbuf, CTX_isCompileOnly() ? RTLD_NOW : RTLD_LAZY);  // FIXME
 	if(gluehdr != NULL) {
 		char funcbuf[80];
-		snprintf(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));
+		PLAT snprintf_i(funcbuf, sizeof(funcbuf), "%s_init", packname(pname));
 		Fpackageinit f = (Fpackageinit)dlsym(gluehdr, funcbuf);
 		if(f != NULL) {
 			KDEFINE_PACKAGE *packdef = f();
@@ -494,7 +498,7 @@ static KDEFINE_PACKAGE *KonohaSpace_openGlueHandler(CTX, kKonohaSpace *ks, char 
 
 static kKonohaSpace* new_KonohaSpace(CTX, kpack_t packdom, kpack_t packid)
 {
-	struct _kKonohaSpace *ks = new_W(KonohaSpace, kmodsugar->rootks);
+	struct _kKonohaSpace *ks = new_W(KonohaSpace, KNULL(KonohaSpace));
 	ks->packid = packid;
 	ks->packdom = packid;
 	return (kKonohaSpace*)ks;
@@ -504,7 +508,7 @@ static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 {
 	char fbuf[256];
 	const char *path = PLAT packagepath(fbuf, sizeof(fbuf), S_text(PN_s(packid)));
-	FILE *fp = PLAT fopen(path, "r");
+	FILE_i *fp = PLAT fopen_i(path, "r");
 	kpackage_t *pack = NULL;
 	if(fp != NULL) {
 		INIT_GCSTACK();
@@ -528,7 +532,7 @@ static kpackage_t *loadPackageNULL(CTX, kpack_t packid, kline_t pline)
 			}
 			return pack;
 		}
-		PLAT fclose(fp);
+		PLAT fclose_i(fp);
 		RESET_GCSTACK();
 	}
 	else {
@@ -580,10 +584,10 @@ static kbool_t KonohaSpace_importPackage(CTX, kKonohaSpace *ks, const char *name
 			if(res && pack->export_script != 0) {
 				kString *fname = SS_s(pack->export_script);
 				kline_t uline = pack->export_script | (kline_t)1;
-				FILE *fp = PLAT fopen(S_text(fname), "r");
+				FILE_i *fp = PLAT fopen_i(S_text(fname), "r");
 				if(fp != NULL) {
 					res = (KonohaSpace_loadstream(_ctx, ks, fp, uline, pline) == K_CONTINUE);
-					PLAT fclose(fp);
+					PLAT fclose_i(fp);
 				}
 				else {
 					kreportf(WARN_, pline, "script not found: %s", S_text(fname));
@@ -608,11 +612,11 @@ static KMETHOD KonohaSpace_importPackage_(CTX, ksfp_t *sfp _RIX)
 static KMETHOD KonohaSpace_loadScript_(CTX, ksfp_t *sfp _RIX)
 {
 	kline_t pline = sfp[K_RTNIDX].uline;
-	FILE *fp = PLAT fopen(S_text(sfp[1].s), "r");
+	FILE_i *fp = PLAT fopen_i(S_text(sfp[1].s), "r");
 	if(fp != NULL) {
 		kline_t uline = uline_init(_ctx, S_text(sfp[1].s), S_size(sfp[1].s), 1, 1);
 		kstatus_t status = KonohaSpace_loadstream(_ctx, sfp[0].ks, fp, uline, 0);
-		PLAT fclose(fp);
+		PLAT fclose_i(fp);
 		RETURNb_(status == K_CONTINUE);
 	}
 	else {
@@ -629,11 +633,9 @@ KDEFINE_PACKAGE* konoha_init(void);
 
 void MODSUGAR_loadMethod(CTX)
 {
-	int FN_pkgname = FN_("pkgname");
 	intptr_t MethodData[] = {
-		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("importPackage"), 1, TY_String, FN_pkgname,
-		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("import"), 1, TY_String, FN_pkgname,
-//		_Public, _F(KonohaSpace_loadScript_), TY_Boolean, TY_KonohaSpace, MN_("loadScript"), 1, TY_String, FN_("path"),
+//		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("importPackage"), 1, TY_String, FN_pkgname,
+		_Public, _F(KonohaSpace_importPackage_), TY_Boolean, TY_KonohaSpace, MN_("import"), 1, TY_String, FN_("name"),
 		_Public, _F(KonohaSpace_loadScript_), TY_Boolean, TY_KonohaSpace, MN_("load"), 1, TY_String, FN_("path"),
 		DEND,
 	};
@@ -641,10 +643,10 @@ void MODSUGAR_loadMethod(CTX)
 	KSET_KLIB2(importPackage, KonohaSpace_importPackage, 0);
 #ifdef WITH_ECLIPSE
 	KDEFINE_PACKAGE *d = konoha_init();
-	d->initPackage(_ctx, kmodsugar->rootks, 0, NULL, 0);
-	d->setupPackage(_ctx, kmodsugar->rootks, 0);
-	d->initKonohaSpace(_ctx, kmodsugar->rootks, 0);
-	d->setupKonohaSpace(_ctx, kmodsugar->rootks, 0);
+	d->initPackage(_ctx, KNULL(KonohaSpace), 0, NULL, 0);
+	d->setupPackage(_ctx, KNULL(KonohaSpace), 0);
+	d->initKonohaSpace(_ctx, KNULL(KonohaSpace), 0);
+	d->setupKonohaSpace(_ctx, KNULL(KonohaSpace), 0);
 #endif
 }
 

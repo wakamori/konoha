@@ -273,13 +273,8 @@ static void opcode_check(void)
 
 static const char *T_opcode(kopcode_t opcode)
 {
-	if(opcode < KOPCODE_MAX) {
-		return OPDATA[opcode].name;
-	}
-	else {
-		fprintf(stderr, "opcode=%d\n", (int)opcode);
-		return "OPCODE_??";
-	}
+	DBG_ASSERT(opcode < KOPCODE_MAX);
+	return OPDATA[opcode].name;
 }
 
 #ifdef OLD

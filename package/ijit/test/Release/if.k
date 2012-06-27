@@ -1,4 +1,4 @@
-K.importPackage("ijit");
+K.import("ijit");
 int g(int x) {
     if (x >= 10) {
         if (x > 100) {

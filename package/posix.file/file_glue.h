@@ -27,6 +27,8 @@
 #ifndef FILE_GLUE_H_
 #define FILE_GLUE_H_
 
+#include<stdio.h>
+
 typedef const struct _kFILE kFILE;
 struct _kFILE {
 	kObjectHeader h;

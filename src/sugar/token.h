@@ -230,10 +230,11 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 		}
 		if(ch == '\\' && (next = tenv->source[pos]) != 0) {
 			switch (next) {
-			case 'n': ch = '\n'; pos++; break;
-			case 't': ch = '\t'; pos++; break;
-			case 'r': ch = '\r'; pos++; break;
-			case '"': ch = '\"'; pos++; break;
+			case 'n':  ch = '\n'; pos++; break;
+			case 't':  ch = '\t'; pos++; break;
+			case 'r':  ch = '\r'; pos++; break;
+			case '\\': ch = '\\'; pos++; break;
+			case '"':  ch = '\"'; pos++; break;
 			}
 		}
 		prev = ch;

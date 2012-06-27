@@ -234,16 +234,23 @@ static void KonohaSpace_defineSyntax(CTX, kKonohaSpace *ks, KDEFINE_SYNTAX *synd
 	//DBG_P("syntax size=%d, hmax=%d", ks->syntaxMapNN->size, ks->syntaxMapNN->hmax);
 }
 
-#define T_statement(kw)  T_statement_(_ctx, kw)
-static const char* T_statement_(CTX, ksymbol_t kw)
+#define T_statement(kw)  KW_tSTMT_(_ctx, kw), KW_tSTMTPOST(kw)
+
+static const char* KW_tSTMT_(CTX, ksymbol_t kw)
 {
-	static char buf[80];  // this is not good, but this is very rare case.
-	const char *statement = SYM_t(kw), *postfix = " statement";
-	if(kw == KW_ExprPattern) { statement = "expression"; postfix = ""; }
-	if(kw == KW_StmtTypeDecl) { statement = "variable"; postfix = " declaration"; }
-	if(kw == KW_StmtMethodDecl) { statement =  "function"; postfix = " declaration"; }
-	snprintf(buf, sizeof(buf), "%s%s", statement, postfix);
-	return (const char*)buf;
+	const char *statement = SYM_t(kw);
+	if(kw == KW_ExprPattern) statement = "expression";
+	else if(kw == KW_StmtTypeDecl) statement = "variable";
+	else if(kw == KW_StmtMethodDecl) statement =  "function";
+	return statement;
+}
+
+static const char* KW_tSTMTPOST(ksymbol_t kw)
+{
+	const char *postfix = " statement";
+	if(kw == KW_ExprPattern) postfix = "";
+	else if(kw == KW_StmtTypeDecl || kw == KW_StmtMethodDecl) postfix = " declaration";
+	return postfix;
 }
 
 // USymbolTable
@@ -311,6 +318,13 @@ static void KonohaSpace_mergeConstData(CTX, struct _kKonohaSpace *ks, kvs_t *kvs
 	qsort(ks->cl.kvs, s + nitems, sizeof(kvs_t), comprKeyVal);
 }
 
+static size_t strlen_alnum(const char *p)
+{
+	size_t len = 0;
+	while(isalnum(p[len]) || p[len] == '_') len++;
+	return len;
+}
+
 static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kline_t pline)
 {
 	INIT_GCSTACK();
@@ -319,7 +333,7 @@ static void KonohaSpace_loadConstData(CTX, kKonohaSpace *ks, const char **d, kli
 	kwb_init(&(_ctx->stack->cwb), &wb);
 	while(d[0] != NULL) {
 		//DBG_P("key='%s'", d[0]);
-		kv.key = ksymbolSPOL(d[0], strlen(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | SYMKEY_BOXED;
+		kv.key = ksymbolSPOL(d[0], strlen_alnum(d[0]), SPOL_TEXT|SPOL_ASCII, _NEWID) | SYMKEY_BOXED;
 		kv.ty  = (ktype_t)(uintptr_t)d[1];
 		if(kv.ty == TY_TEXT) {
 			kv.ty = TY_String;
@@ -602,13 +616,11 @@ static void dumpToken(CTX, kToken *tk)
 	}
 }
 
-static void dumpIndent(int nest)
+static void dumpIndent(CTX, int nest)
 {
-	if(verbose_sugar) {
-		int i;
-		for(i = 0; i < nest; i++) {
-			DUMP_P("  ");
-		}
+	int i;
+	for(i = 0; i < nest; i++) {
+		DUMP_P("  ");
 	}
 }
 
@@ -618,11 +630,11 @@ static void dumpTokenArray(CTX, int nest, kArray *a, int s, int e)
 		if(nest == 0) DUMP_P("\n");
 		while(s < e) {
 			kToken *tk = a->toks[s];
-			dumpIndent(nest);
+			dumpIndent(_ctx, nest);
 			if(IS_Array(tk->sub)) {
 				DUMP_P("%c\n", tk->topch);
 				dumpTokenArray(_ctx, nest+1, tk->sub, 0, kArray_size(tk->sub));
-				dumpIndent(nest);
+				dumpIndent(_ctx, nest);
 				DUMP_P("%c\n", tk->closech);
 			}
 			else {
@@ -730,7 +742,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 {
 	if(verbose_sugar) {
 		if(nest == 0) DUMP_P("\n");
-		dumpIndent(nest);
+		dumpIndent(_ctx, nest);
 		if(expr == K_NULLEXPR) {
 			DUMP_P("[%d] ExprTerm: null", n);
 		}
@@ -759,7 +771,7 @@ static void dumpExpr(CTX, int n, int nest, kExpr *expr)
 					dumpExpr(_ctx, i, nest+1, (kExpr*)o);
 				}
 				else {
-					dumpIndent(nest+1);
+					dumpIndent(_ctx, nest+1);
 					if(O_ct(o) == CT_Token) {
 						kToken *tk = (kToken*)o;
 						DUMP_P("[%d] O: %s ", i, CT_t(o->h.ct));
@@ -870,11 +882,10 @@ static void dumpStmt(CTX, kStmt *stmt)
 			DUMP_P("STMT (DONE)\n");
 		}
 		else {
-			DUMP_P("STMT %s {\n", T_statement(stmt->syn->kw));
+			DUMP_P("STMT %s%s {\n", T_statement(stmt->syn->kw));
 			kObject_protoEach(stmt, NULL, _dumpToken);
 			DUMP_P("\n}\n");
 		}
-		fflush(stdout);
 	}
 }
 
@@ -968,7 +979,7 @@ static kBlock* Stmt_block(CTX, kStmt *stmt, synid_t kw, kBlock *def)
 static void Block_init(CTX, kObject *o, void *conf)
 {
 	struct _kBlock *bk = (struct _kBlock*)o;
-	kKonohaSpace *ks = (conf != NULL) ? (kKonohaSpace*)conf : kmodsugar->rootks;
+	kKonohaSpace *ks = (conf != NULL) ? (kKonohaSpace*)conf : KNULL(KonohaSpace);
 	bk->parentNULL = NULL;
 	KINITv(bk->ks, ks);
 	KINITv(bk->blocks, new_(StmtArray, 0));
