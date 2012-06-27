@@ -561,8 +561,8 @@ static void Kreportf(CTX, kinfotag_t level, kline_t pline, const char *fmt, ...)
 	if(level == DEBUG_ && !verbose_debug) return;
 	va_list ap;
 	va_start(ap , fmt);
-	const char *B = CTX_isInteractive() ? PLAT begin(level) : "";
-	const char *E = CTX_isInteractive() ? PLAT end(level) : "";
+	const char *B = PLAT begin(level);
+	const char *E = PLAT end(level);
 	if(pline != 0) {
 		const char *file = SS_t(pline);
 		PLAT printf_i("%s - %s(%s:%d) " , B, TAG_t(level), shortfilename(file), (kushort_t)pline);

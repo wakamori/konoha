@@ -560,13 +560,17 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 			printf ("\n");
 			break;
 
-		case 'c':
+		case 'c': {
 			compileonly_flag = 1;
-			break;
+			CTX_setCompileOnly(konoha);
+		}
+		break;
 
-		case 'i':
+		case 'i': {
 			interactive_flag = 1;
-			break;
+			CTX_setInteractive(konoha);
+		}
+		break;
 
 		case 'B':
 			return konoha_builtintest(konoha, optarg);
@@ -611,6 +615,7 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 	}
 	else {
 		interactive_flag = 1;
+		CTX_setInteractive(konoha);
 	}
 	if(ret && interactive_flag) {
 		konoha_import(konoha, "konoha.i");

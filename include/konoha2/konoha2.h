@@ -384,9 +384,14 @@ typedef struct kmodshare_t {
 	void (*free)(CTX, struct kmodshare_t *);
 } kmodshare_t;
 
-#define CTX_isInteractive()  1
-#define CTX_isCompileOnly()  0
-#define CTX_isDebug()        0
+#define kContext_Debug          ((kflag_t)(1<<0))
+#define kContext_Interactive    ((kflag_t)(1<<1))
+#define kContext_CompileOnly    ((kflag_t)(1<<1))
+
+#define CTX_isInteractive(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_Interactive))
+#define CTX_isCompileOnly(X)  (TFLAG_is(kflag_t,(X)->stack->flag, kContext_CompileOnly))
+#define CTX_setInteractive(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_Interactive)
+#define CTX_setCompileOnly(X)  TFLAG_set1(kflag_t, (X)->stack->flag, kContext_CompileOnly)
 
 typedef struct kcontext_t {
 	int						          safepoint; // set to 1
@@ -407,7 +412,7 @@ typedef struct kcontext_t {
 
 typedef struct kshare_t {
 	karray_t ca;
-	struct kmap_t         *lcnameMapNN;
+	struct kmap_t               *lcnameMapNN;
 	/* system shared const */
 	const struct _kObject       *constNull;
 	const struct _kBoolean      *constTrue;
@@ -493,6 +498,8 @@ typedef struct kstack_t {
 	struct ksfp_t*               stack_uplimit;
 	const struct _kArray        *gcstack;
 	karray_t                     cwb;
+	// local info
+	kflag_t                      flag;
 	CTX_t                        *rootctx;
 	void*                        cstack_bottom;  // for GC
 	karray_t                     ref;   // reftrace
@@ -562,7 +569,7 @@ struct _kclass {
 	kfield_t  *fields;
 	kushort_t  fsize;         kushort_t fallocsize;
 	const char               *DBG_NAME;
-	ksymbol_t                  nameid;
+	ksymbol_t                 nameid;
 	kushort_t                 optvalue;
 
 	const struct _kArray     *methods;
