@@ -315,7 +315,7 @@ static void KonohaSpace_mergeConstData(CTX, struct _kKonohaSpace *ks, kvs_t *kvs
 		kwb_free(&wb);
 	}
 	ks->cl.bytesize = (s + nitems) * sizeof(kvs_t);
-	qsort(ks->cl.kvs, s + nitems, sizeof(kvs_t), comprKeyVal);
+	PLAT qsort_i(ks->cl.kvs, s + nitems, sizeof(kvs_t), comprKeyVal);
 }
 
 static size_t strlen_alnum(const char *p)

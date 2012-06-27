@@ -588,7 +588,7 @@ static void Kraise(CTX, int param)
 		klongjmp(*base->evaljmpbuf, param+1);  // in setjmp 0 means good
 	}
 #endif
-	abort();
+	PLAT exit_i(EXIT_FAILURE);
 }
 
 // -------------------------------------------------------------------------

@@ -1404,11 +1404,11 @@ static kstatus_t Block_eval(CTX, kBlock *bk)
 	kstatus_t result = K_CONTINUE;
 	kstack_t *base = _ctx->stack;
 #ifndef __KERNEL__
-	kjmpbuf_t lbuf = {};
+	jmpbuf_i_t lbuf = {};
 	if(base->evaljmpbuf == NULL) {
-		base->evaljmpbuf = (kjmpbuf_t*)KCALLOC(sizeof(kjmpbuf_t), 1);
+		base->evaljmpbuf = (jmpbuf_i_t*)KCALLOC(sizeof(jmpbuf_i_t), 1);
 	}
-	memcpy(&lbuf, base->evaljmpbuf, sizeof(kjmpbuf_t));
+	memcpy(&lbuf, base->evaljmpbuf, sizeof(jmpbuf_i_t));
 	if((jmpresult = ksetjmp(*base->evaljmpbuf)) == 0) {
 #endif
 		for(i = 0; i < kArray_size(bk->blocks); i++) {
@@ -1425,7 +1425,7 @@ static kstatus_t Block_eval(CTX, kBlock *bk)
 		base->evalty = TY_void;
 		result = K_FAILED;
 	}
-	memcpy(base->evaljmpbuf, &lbuf, sizeof(kjmpbuf_t));
+	memcpy(base->evaljmpbuf, &lbuf, sizeof(jmpbuf_i_t));
 #endif
 	END_LOCAL();
 	RESET_GCSTACK();

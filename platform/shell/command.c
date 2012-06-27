@@ -325,6 +325,9 @@ kplatform_t* platform_shell(void)
 		.stacksize       = K_PAGESIZE * 4,
 		.malloc_i        = malloc,
 		.free_i          = free,
+		.setjmp_i        = (int   (*)(jmpbuf_i*))sigsetjmp,
+		.longjmp_i       = (void   (*)(jmpbuf_i*, int))siglongjmp,
+
 		.realpath_i      = realpath,
 		.fopen_i         = (FILE_i* (*)(const char*, const char*))fopen,
 		.fgetc_i         = (int     (*)(FILE_i *))fgetc,
@@ -334,8 +337,10 @@ kplatform_t* platform_shell(void)
 		.vsyslog_i       = vsyslog,
 		.printf_i        = printf,
 		.vprintf_i       = vprintf,
-		.snprintf_i      = snprintf,
+		.snprintf_i      = snprintf,  // avoid to use Xsnprintf
 		.vsnprintf_i     = vsnprintf, // retreating..
+		.qsort_i         = qsort,
+		.exit_i          = exit,
 		// high level
 		.packagepath     = packagepath,
 		.exportpath      = exportpath,
@@ -486,12 +491,12 @@ static void konoha_import(CTX, char *packagename)
 	char bufname[len];
 	memcpy(bufname, packagename, len);
 	if(!KREQUIRE_PACKAGE(bufname, 0)) {
-		exit(1);
+		PLAT exit_i(EXIT_FAILURE);
 	}
 	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
 }
 
-static void konoha_startup(konoha_t konoha, const char *startup_script)
+static void konoha_startup(CTX, const char *startup_script)
 {
 	char buf[256];
 	char *path = getenv("KONOHA_SCRIPTPATH"), *local = "";
@@ -504,8 +509,8 @@ static void konoha_startup(konoha_t konoha, const char *startup_script)
 		local = "/.konoha2/script";
 	}
 	snprintf(buf, sizeof(buf), "%s%s/%s.k", path, local, startup_script);
-	if(!konoha_load(konoha, (const char*)buf)) {
-		exit(1);
+	if(!konoha_load((konoha_t)_ctx, (const char*)buf)) {
+		PLAT exit_i(EXIT_FAILURE);
 	}
 }
 

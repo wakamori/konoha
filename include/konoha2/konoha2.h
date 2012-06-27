@@ -97,6 +97,7 @@ typedef enum {
 #define PRINT_ NoneTag
 
 typedef void FILE_i;
+typedef void jmpbuf_i;
 
 typedef struct {
 	// settings
@@ -105,6 +106,8 @@ typedef struct {
 	// low-level functions
 	void* (*malloc_i)(size_t);
 	void  (*free_i)(void *);
+	int   (*setjmp_i)(jmpbuf_i*);
+	void   (*longjmp_i)(jmpbuf_i*, int);
 
 	char* (*realpath_i)(const char*, char*);
 	FILE_i* (*fopen_i)(const char*, const char*);
@@ -118,6 +121,9 @@ typedef struct {
 	int   (*vprintf_i)(const char *fmt, va_list args);
 	int   (*snprintf_i)(char *str, size_t size, const char *fmt, ...);
 	int   (*vsnprintf_i)(char *str, size_t size, const char *fmt, va_list args);
+    void  (*qsort_i)(void *base, size_t nel, size_t width, int (*compar)(const void *, const void *));
+    // abort
+	void  (*exit_i)(int p);
 
 	// high-level functions
 	const char* (*packagepath)(char *buf, size_t bufsiz, const char *pkgname);
@@ -228,7 +234,7 @@ typedef uintptr_t                 kline_t;
 #define ULINE_fileid(line)            ((kfileid_t)(line >> (sizeof(kfileid_t) * 8)))
 #define ULINE_line(line)           (line & (kline_t)((kfileid_t)-1))
 
-#define kjmpbuf_t       sigjmp_buf
+#define jmpbuf_i_t       sigjmp_buf
 #define ksetjmp(B)      sigsetjmp(B, 0)
 #define klongjmp(B, N)  siglongjmp(B, N)
 
@@ -507,7 +513,7 @@ typedef struct kstack_t {
 	ktype_t   evalty;
 	kushort_t evalidx;
 #ifndef __KERNEL__
-	kjmpbuf_t* evaljmpbuf;
+	jmpbuf_i_t* evaljmpbuf;
 #endif
 } kstack_t;
 
@@ -1350,8 +1356,6 @@ typedef struct {
 
 // gc
 
-#define KTODO(MSG) do { fprintf(stderr, "TODO: %s\n", MSG);abort(); } while (0)
-
 #if defined(_MSC_VER)
 #define OBJECT_SET(var, val) do {\
 	kObject **var_ = (kObject**)&val; \
@@ -1428,7 +1432,7 @@ typedef struct {
 #define DBG_ASSERT(a)    assert(a)
 #define TODO_ASSERT(a)   assert(a)
 #define DBG_P(fmt, ...)     PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__)
-#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); abort()
+#define DBG_ABORT(fmt, ...) PLAT dbg_p(__FILE__, __FUNCTION__, __LINE__, fmt, ## __VA_ARGS__); PLAT exit_i(EXIT_FAILURE)
 #define DUMP_P(fmt, ...)    PLAT printf_i(fmt, ## __VA_ARGS__)
 //#else
 //#define KNH_ASSERT(a)
