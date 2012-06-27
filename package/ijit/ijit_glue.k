@@ -364,7 +364,7 @@ Value asm_oset(Object data, int cid, int a) {
 
 Value expr_asm(int a, Expr expr, int espidx) {
 	//System.p("build="+expr.getBuild()+":"+expr);
-	if (expr.getBuild() == /*TEXPR_CONST*/0) {
+	if (expr.getBuild() == TEXPR_CONST) {
 		Object v = expr.getData();
 		boolean isUnbox = ty_isUnbox(expr.getType());
 		if(isUnbox) {
@@ -378,13 +378,13 @@ Value expr_asm(int a, Expr expr, int espidx) {
 			return asm_oset(v, expr.getType(), a);
 		}
 	}
-	else if(expr.getBuild() == /*TEXPR_NEW*/1) {
+	else if(expr.getBuild() == TEXPR_NEW) {
 		int index = expr.getIndex();
 		int type  = expr.getType();
 		//ASM(NEW, oc(a), expr.index, CT_(expr.getType()));
 		return create_object(a, index, type);
 	}
-	else if(expr.getBuild() == /*TEXPR_NULL*/2) {
+	else if(expr.getBuild() == TEXPR_NULL) {
 		boolean isUnbox = ty_isUnbox(expr.getType());
 		if(isUnbox) {
 			return asm_nset(0, (expr.getType()), a);
@@ -393,18 +393,18 @@ Value expr_asm(int a, Expr expr, int espidx) {
 			return asm_oset(System.knull(expr.getType()), expr.getType(), a);
 		}
 	}
-	else if(expr.getBuild() == /*TEXPR_NCONST*/3) {
+	else if(expr.getBuild() == TEXPR_NCONST) {
 		return asm_nset(expr.getNdata(), expr.getType(), a);
 		//ASM(NSET, nc(a), expr.ndata, CT_(expr.getType()));
 	}
-	else if(expr.getBuild() == /*TEXPR_LOCAL*/4) {
+	else if(expr.getBuild() == TEXPR_LOCAL) {
 		//System.p("type="+expr.getType()+",index="+expr.getIndex());
 		return nmov_asm(a, expr.getType(), expr.getIndex());
 	}
-	else if(expr.getBuild() == /*TEXPR_BLOCK*/5) {
+	else if(expr.getBuild() == TEXPR_BLOCK) {
 		assert(false);
 	}
-	else if(expr.getBuild() == /*TEXPR_FIELD*/6) {
+	else if(expr.getBuild() == TEXPR_FIELD) {
 		assert(false);
 		//kshort_t index = (kshort_t)expr.index;
 		//kshort_t xindex = (kshort_t)(expr.index >> (sizeof(kshort_t)*8));
@@ -415,32 +415,32 @@ Value expr_asm(int a, Expr expr, int espidx) {
 		//	ASM(NMOVx, oc(a), oc(index), xindex, CT_(expr.getType()));
 		//}
 	}
-	else if(expr.getBuild() == /*TEXPR_BOX*/7) {
+	else if(expr.getBuild() == TEXPR_BOX) {
 		Expr single = expr.getSingle();
 		Value v = expr_asm(a, single, espidx);
 		return boxing(v);
 	}
-	else if(expr.getBuild() == /*TEXPR_UNBOX*/8) {
+	else if(expr.getBuild() == TEXPR_UNBOX) {
 		System.p("TODO");
 		assert(false);
 		//ASM(UNBOX, nc(a), oc(a), CT_(expr.getType()));
 	}
-	else if(expr.getBuild() == /*TEXPR_CALL*/9) {
+	else if(expr.getBuild() == TEXPR_CALL) {
 		Value v = call_asm(a, expr, espidx);
 		if(a != espidx) {
 			return nmov_asm(a, expr.getType(), espidx);
 		}
 		return v;
 	}
-	else if(expr.getBuild() == /*TEXPR_AND*/10) {
+	else if(expr.getBuild() == TEXPR_AND) {
 		Value v = and_asm(a, expr, espidx);
 		return v;
 	}
-	else if(expr.getBuild() == /*TEXPR_OR*/11) {
+	else if(expr.getBuild() == TEXPR_OR) {
 		Value v = or_asm(a, expr, espidx);
 		return v;
 	}
-	else if(expr.getBuild() == /*TEXPR_LET*/12) {
+	else if(expr.getBuild() == TEXPR_LET) {
 		return letexpr_asm(a, expr, espidx);
 	} else {
 		System.p("unknown expr="+ expr.getBuild());
@@ -756,7 +756,7 @@ Value and_asm(int a, Expr expr, int espidx) {
 Value letexpr_asm(int a, Expr expr, int espidx) {
 	Expr exprL = expr.at(1);
 	Expr exprR = expr.at(2);
-	if(exprL.getBuild() == /*TEXPR_LOCAL*/4) {
+	if(exprL.getBuild() == TEXPR_LOCAL) {
 		Value v = expr_asm(exprL.getIndex(), exprR, espidx);
 		if(a != espidx) {
 			return nmov_asm(a, exprL.getType(), espidx);
@@ -764,7 +764,7 @@ Value letexpr_asm(int a, Expr expr, int espidx) {
 		return v;
 	}
 	else{
-		assert(exprL.getBuild() == /*TEXPR_FIELD*/6);
+		assert(exprL.getBuild() == TEXPR_FIELD);
 		Value v = expr_asm(espidx, exprR, espidx);
 		System.p("TODO");
 		//abort();
@@ -812,7 +812,7 @@ Expr Stmt.getExpr(int id, Expr def) {
 }
 
 void exprstmt_asm(Stmt stmt, int espidx) {
-	Expr expr = stmt.getObjectNULL(1);
+	Expr expr = stmt.getObjectNULL(KW_ExprPattern);
 	if(isExpr(expr)) {
 		expr_asm(espidx, expr, espidx);
 	}
@@ -856,7 +856,7 @@ void ifstmt_asm(Stmt stmt, int espidx) {
 }
 
 void returnstmt_asm(Stmt stmt, int espidx) {
-	Expr expr = stmt.getObjectNULL(1);
+	Expr expr = stmt.getObjectNULL(KW_ExprPattern);
 	IRBuilder builder = System.getBuilder();
 	if(isExpr(expr) && expr.getType() != /*TY_void*/0) {
 		Value retval = expr_asm(/*K_RTNIDX*/-4, expr, espidx);
@@ -889,19 +889,19 @@ int block_asm2(Block bk, int i, int espidx) {
 		Stmt stmt = blockS.get(i);
 		System.setUline(stmt.getUline());
 		if(stmt.hasSyntax()) {
-			if (stmt.getBuild() == /*TSTMT_ERR*/1) {
+			if (stmt.getBuild() == TSTMT_ERR) {
 				errstmt_asm(stmt, espidx);
 				return 0;
-			} else if (stmt.getBuild() == /*TSTMT_EXPR*/2) {
+			} else if (stmt.getBuild() == TSTMT_EXPR) {
 				exprstmt_asm(stmt, espidx);
-			} else if (stmt.getBuild() == /*TSTMT_BLOCK*/3) {
+			} else if (stmt.getBuild() == TSTMT_BLOCK) {
 				blockstmt_asm(stmt, espidx);
-			} else if (stmt.getBuild() == /*TSTMT_RETURN*/4) {
+			} else if (stmt.getBuild() == TSTMT_RETURN) {
 				returnstmt_asm(stmt, espidx);
 				return 0;
-			} else if (stmt.getBuild() == /*TSTMT_IF*/5) {
+			} else if (stmt.getBuild() == TSTMT_IF) {
 				ifstmt_asm(stmt, espidx);
-			} else if (stmt.getBuild() == /*TSTMT_LOOP*/6) {
+			} else if (stmt.getBuild() == TSTMT_LOOP) {
 				loopstmt_asm(stmt, espidx);
 			} else {
 				undefinedstmt_asm(stmt, espidx);
@@ -1037,61 +1037,111 @@ Function create_function(Module m, Method mtd) {
 	return f;
 }
 
-int jit_init() {
+Type getLongTy() {
+	return Type.getInt64Ty();
+	//if (POINTER_SIZE == 8) {
+	//	return Type.getInt64Ty();
+	//}
+	//return Type.getInt32Ty();
+}
+Type getShortTy() {
+	return Type.getInt32Ty();
+	//if (POINTER_SIZE == 8) {
+	//	return Type.getInt64Ty();
+	//}
+	//return Type.getInt32Ty();
+}
+
+void jit_init() {
 	Module m = Module.new("test");
 	ExecutionEngine ee = m.createExecutionEngine(2);
-	Array objectHeaderTy = Array.newN(4);
-	objectHeaderTy.set(0, ctype2Type(/*TY_LONG*/2),  /*magicflag*/);
-	objectHeaderTy.set(1, ctype2Type(/*TY_CLASS*/10), /*ct*/);
-	objectHeaderTy.set(2, ctype2Type(/*TY_LONG*/2),  /*hash*/);
-	objectHeaderTy.set(3, ctype2Type(/*TY_PTR*/6),   /*kvproto*/);
-	System.setTyHObject(createStructType(m, "ObjectHeader", objectHeaderTy, true));
 
-	Array objectTy = Array.newN(5);
-	objectTy.set(0, ctype2Type(/*TY_HOBJECT*/13),  /*h*/);
-	objectTy.set(1, ctype2Type(/*TY_PTR*/6),   /*field0*/);
-	objectTy.set(2, ctype2Type(/*TY_PTR*/6),   /*field1*/);
-	objectTy.set(3, ctype2Type(/*TY_PTR*/6),   /*field2*/);
-	objectTy.set(4, ctype2Type(/*TY_PTR*/6),   /*field3*/);
-	System.setTyObject(createStructType(m, "Object", objectTy, false));
+	Array a0 = Array.newN(0);
+	Type klib2 = StructType.create(a0, "klib2", false);
+	Type kclass = StructType.create(a0, "kclass", false);
+	Type karray_t = StructType.create(a0, "karray_t", false);
+	Type kplatform_t = StructType.create(a0, "kplatform_t", false);
+	Type kshare_t = StructType.create(a0, "kshare_t", false);
+	Type klocal_t = StructType.create(a0, "klocal_t", false);
+	Type kmemshare_t = StructType.create(a0, "kmemshare_t", false);
+	Type kmemlocal_t = StructType.create(a0, "kmemlocal_t", false);
+	Type kmodshare_t = StructType.create(a0, "kmodshare_t", false);
+	Type kmodlocal_t = StructType.create(a0, "kmodlocal_t", false);
+	Type kstack_t = StructType.create(a0, "kstack_t", false);
+	Type klogger_t = StructType.create(a0, "klogger_t", false);
+	Type kopl_t = StructType.create(a0, "kopl_t", false);
+	/*------- kObjectHeader ------*/
+	Array kObjectHeaderTy = Array.newN(4);
+	kObjectHeaderTy.set(0, getLongTy() /* magicflag */ );
+	kObjectHeaderTy.set(1, PointerType.get(kclass) /* ct */ );
+	kObjectHeaderTy.set(2, getLongTy() /* refc */ /*union*/);
+	kObjectHeaderTy.set(3, PointerType.get(karray_t) /* kvproto */ );
+	Type kObjectHeader = StructType.create(kObjectHeaderTy, "kObjectHeader", false)
+	System.setTyHObject(kObjectHeader);
 
-	Array sfpTy = Array.newN(2);
-	sfpTy.set(0, ctype2Type(/*TY_OBJECT*/12),/*o*/);
-	sfpTy.set(1, ctype2Type(/*TY_LONG*/2),  /*ndata*/);
-	System.setTyStack(createStructType(m, "sfp", sfpTy, false));
+	/*------- _kObject ------*/
+	Array kObjectTy = Array.newN(2);
+	kObjectTy.set(0, kObjectHeader /* h */ );
+	kObjectTy.set(1, PointerType.get(getLongTy()) /* fields */ /*union*/);
+	Type kObject = StructType.create(kObjectTy, "kObject", false)
+	System.setTyObject(PointerType.get(kObject));
 
-	Array contextTy = Array.newN(10);
-	contextTy.set(0, ctype2Type(/*TY_INT*/3),   /*safepoint*/);
-	contextTy.set(1, ctype2Type(/*TY_STACK*/17), /*esp*/);
-	contextTy.set(2, ctype2Type(/*TY_PTR*/6),   /*lib2*/);
-	contextTy.set(3, ctype2Type(/*TY_PTR*/6),   /*memshare*/);
-	contextTy.set(4, ctype2Type(/*TY_PTR*/6),   /*memlocal*/);
-	contextTy.set(5, ctype2Type(/*TY_PTR*/6),   /*share*/);
-	contextTy.set(6, ctype2Type(/*TY_PTR*/6),   /*local*/);
-	contextTy.set(7, ctype2Type(/*TY_PTR*/6),   /*logger*/);
-	contextTy.set(8, ctype2Type(/*TY_PTR*/6),   /*modshare*/);
-	contextTy.set(9, ctype2Type(/*TY_PTR*/6),   /*modlocal*/);
-	System.setTyContext(createStructType(m, "context", contextTy, false));
+	/*------- ksfp_t ------*/
+	Array ksfp_tTy = Array.newN(2);
+	ksfp_tTy.set(0, PointerType.get(kObject) /* o */ /*union*/);
+	ksfp_tTy.set(1, getLongTy() /* ndata */ /*union*/);
+	Type ksfp_t = StructType.create(ksfp_tTy, "ksfp_t", false)
+	System.setTyStack(PointerType.get(ksfp_t));
 
-	Array argsTy = Array.new3(System.getTyContext(), System.getTyStack(), ctype2Type(/*TY_LONG*/2));
-	System.setTyFunction(createFunctionType(ctype2Type(/*TY_VOID*/1), argsTy));
-	System.setTyFunctionP(PointerType.get(System.getTyFunction()));
+	/*------- kcontext_t ------*/
+	Array kcontext_tTy = Array.newN(12);
+	kcontext_tTy.set(0, Type.getInt32Ty() /* safepoint */ );
+	kcontext_tTy.set(1, PointerType.get(ksfp_t) /* esp */ );
+	kcontext_tTy.set(2, PointerType.get(klib2) /* lib2 */ );
+	kcontext_tTy.set(3, PointerType.get(kplatform_t) /* plat */ );
+	kcontext_tTy.set(4, PointerType.get(kmemshare_t) /* memshare */ );
+	kcontext_tTy.set(5, PointerType.get(kmemlocal_t) /* memlocal */ );
+	kcontext_tTy.set(6, PointerType.get(kshare_t) /* share */ );
+	kcontext_tTy.set(7, PointerType.get(klocal_t) /* local */ );
+	kcontext_tTy.set(8, PointerType.get(kstack_t) /* stack */ );
+	kcontext_tTy.set(9, PointerType.get(klogger_t) /* logger */ );
+	kcontext_tTy.set(10, PointerType.get(PointerType.get(kmodshare_t)) /* modshare */ );
+	kcontext_tTy.set(11, PointerType.get(PointerType.get(kmodlocal_t)) /* modlocal */ );
+	Type kcontext_t = StructType.create(kcontext_tTy, "kcontext_t", false)
 
-	// Method
-	Array mtdTy = Array.newN(12);
-	mtdTy.set( 0, ctype2Type(/*TY_HOBJECT*/13),  /*h*/);
-	mtdTy.set( 1, ctype2Type(/*TY_FPTR*/15),    /*fcall_1*/);
-	mtdTy.set( 2, ctype2Type(/*TY_PTR*/6),     /*pc_start*/);
-	mtdTy.set( 3, ctype2Type(/*TY_LONG*/2),    /*flag*/);
-	mtdTy.set( 4, ctype2Type(/*TY_SHORT*/4),   /*cid*/);
-	mtdTy.set( 5, ctype2Type(/*TY_SHORT*/4),   /*mn*/);
-	mtdTy.set( 6, ctype2Type(/*TY_SHORT*/4),   /*delta*/);
-	mtdTy.set( 7, ctype2Type(/*TY_SHORT*/4),   /*packid*/);
-	mtdTy.set( 8, ctype2Type(/*TY_OBJECT*/12),  /*pa*/);
-	mtdTy.set( 9, ctype2Type(/*TY_OBJECT*/12),  /*tcode*/);
-	mtdTy.set(10, ctype2Type(/*TY_OBJECT*/12),  /*objdata*/);
-	mtdTy.set(11, ctype2Type(/*TY_OBJECT*/12),  /*proceedNUL*/);
-	System.setTyMethod(createStructType(m, "mtd", mtdTy, false));
+	/*------- _kArray ------*/
+	Array kArrayTy = Array.newN(4);
+	kArrayTy.set(0, kObjectHeader /* h */ );
+	kArrayTy.set(1, getLongTy() /* bytesize */ );
+	kArrayTy.set(2, PointerType.get(getLongTy()) /* ndata */ /*union*/);
+	kArrayTy.set(3, getLongTy() /* bytemax */ );
+	Type kArray = StructType.create(kArrayTy, "kArray", false)
+
+
+	Array argsTy = Array.new3(PointerType.get(kcontext_t), PointerType.get(ksfp_t), getLongTy());
+	FunctionType funcTy = FunctionType.get(Type.getVoidTy(), argsTy, false);
+
+	/*------- _kMethod ------*/
+	Array kMethodTy = Array.newN(13);
+	kMethodTy.set(0, kObjectHeader /* h */ );
+	kMethodTy.set(1, PointerType.get(funcTy) /* fcall_1 */ /*union*/);
+	kMethodTy.set(2, PointerType.get(kopl_t) /* pc_start */ /*union*/);
+	kMethodTy.set(3, getLongTy() /* flag */ );
+	kMethodTy.set(4, Type.getInt32Ty() /* cid */ );
+	kMethodTy.set(5, Type.getInt32Ty() /* mn */ );
+	kMethodTy.set(6, Type.getInt32Ty() /* paramid */ );
+	kMethodTy.set(7, Type.getInt32Ty() /* paramdom */ );
+	kMethodTy.set(8, Type.getInt32Ty() /* delta */ );
+	kMethodTy.set(9, Type.getInt32Ty() /* packid */ );
+	kMethodTy.set(10, PointerType.get(kObject) /* tcode */ );
+	kMethodTy.set(11, PointerType.get(kObject) /* objdata */ /*union*/);
+	kMethodTy.set(12, PointerType.get(kObject) /* proceedNUL */ );
+	Type kMethod = StructType.create(kMethodTy, "kMethod", false)
+
+	System.setTyContext(PointerType.get(kcontext_t));
+	System.setTyFunction(funcTy);
+	System.setTyFunctionP(PointerType.get(funcTy));
+	System.setTyMethod(PointerType.get(kMethod));
 
 	System.setModule(m);
 	System.setExecutionEngine(ee);

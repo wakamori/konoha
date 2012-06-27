@@ -695,6 +695,12 @@ static void KMethod_genCode(CTX, kMethod *mtd, kBlock *bk)
 
 static kbool_t ijit_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
 {
+	KREQUIRE_PACKAGE("sugar", pline);
+	KREQUIRE_PACKAGE("konoha.float", pline);
+	KREQUIRE_PACKAGE("llvm", pline);
+	KREQUIRE_PACKAGE("konoha.assignment", pline);
+	KREQUIRE_PACKAGE("konoha.null", pline);
+	KREQUIRE_PACKAGE("konoha.string", pline);
 	kmodjit_t *base  = (kmodjit_t*)KCALLOC(sizeof(kmodjit_t), 1);
 	base->h.name     = "ijit";
 	base->h.setup    = kmodjit_setup;
@@ -712,6 +718,13 @@ static kbool_t ijit_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		STRUCTNAME(Pointer)
 	};
 	base->cPointer = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &PointerDef, pline);
+
+	//FIXME
+	//KDEFINE_INT_CONST IntData[] = {
+	//	{"PTRSIZE", TY_Int, sizeof(void*)},
+	//	{NULL},
+	//};
+	//kKonohaSpace_loadConstData(ks, IntData, pline);
 
 	Konoha_setModule(MOD_jit, &base->h, pline);
 	return true;
