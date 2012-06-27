@@ -99,10 +99,9 @@ static inline long long int strtoll(const char *nptr, char **endptr, int base)
 
 #define bzero(x,y) memset(x,0x00,y)
 //#define fopen(a,b) NULL
-static inline FILE *fopen(const char *a,const char *b)
+static inline void *fopen(const char *a,const char *b)
 {
 	(void)a;(void)b;
-	return NULL;
 }
 
 //#define fclose(fp)

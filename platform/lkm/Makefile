@@ -2,11 +2,12 @@ obj-m:= konohadev.o
 konohadev-objs := \
 	../../src/konoha/konoha2.o\
 	../../module/msgc/msgc.o\
-	../../src/logger/logger.o\
 	../../src/sugar/sugar.o\
 	../../src/vm/asm.o\
 	qsort.o\
 	lkm.o
+
+#	../../src/logger/logger.o\
 
 KDIR  := /lib/modules/$(shell uname -r)/build
 PWD   := $(shell pwd)

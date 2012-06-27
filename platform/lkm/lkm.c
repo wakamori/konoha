@@ -103,13 +103,13 @@ const kplatform_t* platform_kernel(void)
 	static kplatform_t plat = {
 		.name = "lkm",
 		.stacksize = K_PAGESIZE * 4,
-		.malloc    = malloc,
-		.free      = kfree,
-		.realpath  = NULL,
-		.fopen     = fopen,
-		.fgetc     = fgetc,
-		.feof      = NULL,
-		.fclose    = fclose,
+		.malloc_i    = malloc,
+		.free_i      = free,
+		.realpath_i  = NULL,
+		.fopen_i     = fopen,
+		.fgetc_i     = fgetc,
+		.feof_i      = NULL,
+		.fclose_i    = fclose,
 		.packagepath = NULL,
 		.exportpath  = NULL
 	};
