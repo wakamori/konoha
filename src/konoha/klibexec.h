@@ -367,7 +367,7 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 		mask = KW_PATTERN; // Pattern
 	}
 	uintptr_t hcode = strhash(name, len);
-	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->unameMapNN, _ctx->share->unameList, name, len, hcode, spol | SPOL_ASCII, def);
+	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->symbolMapNN, _ctx->share->symbolList, name, len, hcode, spol | SPOL_ASCII, def);
 	return (sym == def) ? def : (sym | mask);
 }
 

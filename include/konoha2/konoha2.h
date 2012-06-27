@@ -400,7 +400,6 @@ typedef struct kcontext_t {
 	struct kmemshare_t                *memshare;
 	struct kmemlocal_t                *memlocal;
 	struct kshare_t                   *share;
-	struct klocal_t                   *local;
 	struct kstack_t                   *stack;
 	struct kmodshare_t               **modshare;
 	struct kmodlocal_t               **modlocal;
@@ -417,17 +416,15 @@ typedef struct kshare_t {
 	const struct _kArray        *emptyArray;
 
 	const struct _kArray         *fileidList;    // file, http://
-	struct kmap_t         *fileidMapNN;   //
-	const struct _kArray         *packList;   // are you using this?
-	struct kmap_t         *packMapNN;
-	const struct _kArray         *unameList;  // NAME, Name, INT_MAX Int_MAX
-	struct kmap_t         *unameMapNN;
-//	const struct _kArray         *symbolList;   // name, f,
-//	struct kmap_t         *symbolMapNN;
+	struct kmap_t                *fileidMapNN;   //
+	const struct _kArray         *packList;
+	struct kmap_t                *packMapNN;
+	const struct _kArray         *symbolList;  // NAME, Name, INT_MAX Int_MAX
+	struct kmap_t                *symbolMapNN;
 	const struct _kArray         *paramList;
-	struct kmap_t         *paramMapNN;
+	struct kmap_t                *paramMapNN;
 	const struct _kArray         *paramdomList;
-	struct kmap_t         *paramdomMapNN;
+	struct kmap_t                *paramdomMapNN;
 } kshare_t ;
 
 #define K_FRAME_NCMEMBER \
