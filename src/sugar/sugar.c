@@ -190,8 +190,7 @@ static void kmodsugar_reftrace(CTX, struct kmodshare_t *baseh)
 {
 	kmodsugar_t *base = (kmodsugar_t*)baseh;
 	kmap_reftrace(base->packageMapNO, pack_reftrace);
-	BEGIN_REFTRACE(8);
-//	KREFTRACEv(base->rootks);
+	BEGIN_REFTRACE(6);
 	KREFTRACEv(base->packageList);
 	KREFTRACEv(base->UndefinedParseExpr);
 	KREFTRACEv(base->UndefinedStmtTyCheck);
@@ -265,7 +264,6 @@ void MODSUGAR_init(CTX, kcontext_t *ctx)
 	base->cGamma = Konoha_addClassDef(PN_sugar, PN_sugar, NULL, &defGamma, 0);
 	base->cTokenArray = CT_p0(_ctx, CT_Array, base->cToken->cid);
 
-	//KINITv(base->rootks, new_(KonohaSpace, NULL));
 	knull(base->cKonohaSpace);
 	knull(base->cToken);
 	knull(base->cExpr);

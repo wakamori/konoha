@@ -90,6 +90,9 @@ static kinline kString* TY_s_(CTX, ktype_t ty)
 static kinline kString* SYM_s_(CTX, ksymbol_t sym)
 {
 	size_t index = (size_t) SYM_UNMASK(sym);
+	if((index < kArray_size(_ctx->share->unameList))) {
+		DBG_P("index=%d, size=%d", index, kArray_size(_ctx->share->unameList));
+	}
 	DBG_ASSERT(index < kArray_size(_ctx->share->unameList));
 	return _ctx->share->unameList->strings[index];
 }
