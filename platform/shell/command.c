@@ -405,6 +405,8 @@ static int check_result(FILE *fp0, FILE *fp1)
 	return 0; //OK
 }
 
+extern int konoha_AssertResult;
+
 static int konoha_test(CTX, const char *testname)
 {
 	int ret = 1; //FAILED
@@ -428,6 +430,10 @@ static int konoha_test(CTX, const char *testname)
 		ret = check_result(fp, fp2);
 		if(ret == 0) {
 			fprintf(stdout, "[PASS]: %s\n", testname);
+		}
+		else {
+			fprintf(stdout, "[FAIL]: %s\n", testname);
+			konoha_AssertResult = 1;
 		}
 		fclose(fp);
 		fclose(fp2);
@@ -632,8 +638,6 @@ static int konoha_parseopt(konoha_t konoha, kplatform_t *plat, int argc, char **
 
 // -------------------------------------------------------------------------
 // ** main **
-
-extern int konoha_AssertResult;
 
 int main(int argc, char *argv[])
 {
