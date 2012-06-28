@@ -399,6 +399,15 @@ static KMETHOD JsonArray_get(CTX, ksfp_t *sfp _RIX)
 	json->obj = json_array_get(ja, sfp[1].ivalue);
 	RETURN_(json);
 }
+
+static KMETHOD JsonArray_append(CTX, ksfp_t *sfp _RIX)
+{
+	kArray *a = sfp[0].a;
+	json_t *ja = (json_t*)a->list;
+	kJson *json = (kJson*)sfp[1].o;
+	json_array_append(ja, json->obj);
+	RETURNvoid_();
+}
 ////## void Json[].set(Json json);
 //static KMETHOD Json_set(CTX, ksfp_t *sfp _RIX)
 //{
@@ -438,7 +447,7 @@ static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 	intptr_t MethodData[] = {
 		_Public|_Const|_Im, _F(Json_dump),      TY_String,    TY_Json, MN_("dump"),         0,
 		_Public|_Const|_Im, _F(Json_get),       TY_Json,      TY_Json, MN_("get"),          1, TY_String, FN_("key"),
-		_Public|_Const|_Im, _F(Json_getArray),  TY_JsonArray, TY_Json, MN_("getArray"), 1, TY_String, FN_("key"),
+		_Public|_Const|_Im, _F(Json_getArray),  TY_JsonArray, TY_Json, MN_("getArray"),     1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_getBool),   TY_Boolean,   TY_Json, MN_("getBool"),      1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_getFloat),  TY_Float,     TY_Json, MN_("getFloat"),     1, TY_String, FN_("key"),
 		_Public|_Const|_Im, _F(Json_getInt),    TY_Int,       TY_Json, MN_("getInt"),       1, TY_String, FN_("key"),
@@ -451,12 +460,13 @@ static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public|_Const|_Im, _F(Json_setFloat),  TY_void,      TY_Json, MN_("setFloat"),     2, TY_String, FN_("key"), TY_Float, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setInt),    TY_void,      TY_Json, MN_("setInt"),       2, TY_String, FN_("key"), TY_Int, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setString), TY_void,      TY_Json, MN_("setString"),    2, TY_String, FN_("key"), TY_String, FN_("value"),
-		_Public|_Const|_Im, _F(Json_dump),      TY_String,    TY_JsonArray, MN_("dump"),         0,
+		_Public|_Const|_Im, _F(Json_dump),      TY_String,    TY_JsonArray, MN_("dump"),    0,
 
 		_Public|_Const|_Im, _F(JsonArray_newArray),  TY_JsonArray,      TY_JsonArray, MN_("newArray"), 1, TY_Int, FN_("size"),
-		_Public|_Const|_Im, _F(JsonArray_get),       TY_Json,           TY_JsonArray, MN_("get"), 1, TY_Int, FN_("index"),
-		_Public|_Const|_Im, _F(JsonArray_add),       TY_void,      TY_JsonArray, MN_("add"),     1, TY_Json, FN_("value"),
-		_Public|_Const|_Im, _F(JsonArray_getSize),   TY_Int,      TY_JsonArray, MN_("getSize"),     0,
+		_Public|_Const|_Im, _F(JsonArray_get),       TY_Json,           TY_JsonArray, MN_("get"),      1, TY_Int, FN_("index"),
+		_Public|_Const|_Im, _F(JsonArray_add),       TY_void,           TY_JsonArray, MN_("add"),      1, TY_Json, FN_("value"),
+		_Public|_Const|_Im, _F(JsonArray_getSize),   TY_Int,            TY_JsonArray, MN_("getSize"),  0,
+		_Public|_Const|_Im, _F(JsonArray_append),    TY_void,           TY_JsonArray, MN_("append"),   1, TY_Json, FN_("data"),
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
