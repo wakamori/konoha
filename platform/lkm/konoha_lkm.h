@@ -15,6 +15,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/ctype.h>
+#include <linux/syslog.h>
 #include <asm/uaccess.h>
 
 #define KNH_EXT_QSORT  1
@@ -37,7 +38,7 @@ typedef intptr_t FILE;
 #define stdin  ((FILE*)NULL)
 #define stdout KERN_INFO
 #define stderr KERN_ALERT
-
+#define EXIT_FAILURE   1
 //#define malloc(x) kmalloc(x,GFP_KERNEL)
 
 #define calloc(x,y) kcalloc(x,y,GFP_KERNEL)
@@ -102,10 +103,11 @@ static inline long long int strtoll(const char *nptr, char **endptr, int base)
 static inline void *fopen(const char *a,const char *b)
 {
 	(void)a;(void)b;
+	return NULL;
 }
 
 //#define fclose(fp)
-static inline int fclose(FILE *fp)
+static inline int fclose(void *fp)
 {
 	return 0;
 }
@@ -117,17 +119,39 @@ static inline char *realpath(const char *a,char *b)
 	(void)a;(void)b;
 	return NULL;
 }
+#define LOG_INFO 0
+static inline void syslog(int i,const char *msg, ...)
+{
+}
+
+static inline void kdbg_p(const char *file, const char *func, int line, const char *fmt, ...)
+{
+}
+static inline int kvprintf_i(const char *fmt, va_list args)
+{
+	vprintk(fmt,args);
+	return 0;
+}
+
+static inline int printf_(const char *fmt, ...)
+{
+	return 0;
+}
+
 #define fprintf(out,fmt, arg...) printk(KERN_ALERT fmt , ##arg )
-#define vfprintf(out,fmt, arg...) vprintk(fmt , arg )
+//#define vfprintf(out,fmt, arg...) vprintk(fmt , arg )
 #define fputs(prompt, fp) 
 //#define fgetc(fp) (-1)
-static inline int fgetc(FILE *fp)
+static inline int fgetc(void *fp)
 {
 	return -1;
 }
 #define EOF -1
 #define fflush(x)
-#define exit(i)  printk(KERN_EMERG "KONOHA_exit!!!")
+static inline void kexit(int i)
+{
+	printk(KERN_EMERG "KONOHA_exit!!!");
+}
 #define assert(x) BUG_ON(!(x))
 #define abort() BUG_ON(1)
 
@@ -143,17 +167,23 @@ static inline int fgetc(FILE *fp)
 
 typedef struct {
 	unsigned long __jmp_buf[JMP_BUFFSIZE];
-} jmp_buf[1];
+} jmp_buf;
+#define jmpbuf_i jmp_buf
 
-//int setjmp(jmp_buf env);
-//int longjmp(jmp_buf env, int val);
+static inline int setjmp(jmp_buf env)
+{
+	(void)env;
+	return 0;
+}
+static inline void longjmp(jmp_buf env, int val)
+{
+	(void)env;(void)val;
+}
 
 /* ../../src/ext/qsort.c */
 void qsort (void *const pbase, size_t total_elems, size_t size,
 				int (*cmp)(const void*,const void*));
 
-/* ../../src/ext/strerror.c */
-//char* strerror(int errno);
 /* ------------------------------------------------------------------------ */
 
 #endif /* KONOHA_LKM_H_ */

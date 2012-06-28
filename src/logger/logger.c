@@ -27,8 +27,9 @@
 #include <konoha2/konoha2.h>
 #include <konoha2/logger.h>
 #include <konoha2/konoha2_local.h>
+#ifndef PLATFORM_KERNEL
 #include <syslog.h>
-
+#endif /* PLATFORM_KERNEL */
 /* ------------------------------------------------------------------------ */
 /* [logger] */
 

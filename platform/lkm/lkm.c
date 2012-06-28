@@ -24,8 +24,7 @@
 
 /* ************************************************************************ */
 
-#include <linux/string.h>
-#include <linux/kernel.h>
+#include "konoha_lkm.h"
 #include "konoha2/konoha2.h"
 #include "konoha2/klib.h"
 
@@ -45,7 +44,16 @@ struct konohadev_t {
 	struct semaphore sem;
 #endif
 };
-
+/*
+void MODLOGGER_init(CTX, kcontext_t *ctx)
+{
+	(void)ctx;(void)_ctx;
+}
+void MODLOGGER_free(CTX, kcontext_t *ctx)
+{
+	(void)ctx;(void)_ctx;
+}
+*/
 static const char *msg = "konohadev";
 static struct konohadev_t *konohadev_p;
 
@@ -105,13 +113,26 @@ const kplatform_t* platform_kernel(void)
 		.stacksize = K_PAGESIZE * 4,
 		.malloc_i    = malloc,
 		.free_i      = free,
+		.setjmp_i    = setjmp,
+		.longjmp_i   = longjmp,
 		.realpath_i  = NULL,
 		.fopen_i     = fopen,
 		.fgetc_i     = fgetc,
 		.feof_i      = NULL,
 		.fclose_i    = fclose,
+		.syslog_i    = syslog,
+		.vsyslog_i   = NULL,
+		.printf_i    = printf_,
+		.vprintf_i   = kvprintf_i,
+		.snprintf_i  = NULL,
+		.vsnprintf_i = NULL,
+		.qsort_i     = qsort,
+		.exit_i      = kexit,
 		.packagepath = NULL,
-		.exportpath  = NULL
+		.exportpath  = NULL,
+		.begin       = NULL,
+		.end         = NULL,
+		.dbg_p       = kdbg_p
 	};
 	return (const kplatform_t*)(&plat);
 }
@@ -167,8 +188,6 @@ void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
 	char vbuffer[LKM_BUFFER_SIZE];
 	va_list ap;
 	va_start(ap , fmt);
-	fflush(stdout);
-	fputs(T_BEGIN(_ctx, level), stdout);
 	if(pline != 0) {
 		const char *file = SS_t(pline);
 		snprintf(buffer,LKM_BUFFER_SIZE," - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));

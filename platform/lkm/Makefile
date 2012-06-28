@@ -3,16 +3,16 @@ konohadev-objs := \
 	../../src/konoha/konoha2.o\
 	../../module/msgc/msgc.o\
 	../../src/sugar/sugar.o\
+	../../src/logger/logger.o\
 	../../src/vm/asm.o\
 	qsort.o\
 	lkm.o
 
-#	../../src/logger/logger.o\
 
 KDIR  := /lib/modules/$(shell uname -r)/build
 PWD   := $(shell pwd)
 VERBOSE=0
-EXTRA_CFLAGS :=
+EXTRA_CFLAGS := -DPLATFORM_KERNEL
 EXTRA_CFLAGS += -Wno-declaration-after-statement
 EXTRA_CFLAGS += -I$(SRCDIR)/include -I$(SRCDIR)/platform/lkm/
 
