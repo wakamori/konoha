@@ -39,7 +39,6 @@ typedef intptr_t FILE;
 #define stdout KERN_INFO
 #define stderr KERN_ALERT
 #define EXIT_FAILURE   1
-//#define malloc(x) kmalloc(x,GFP_KERNEL)
 
 #define calloc(x,y) kcalloc(x,y,GFP_KERNEL)
 #define realloc(x,y) krealloc(x,y,GFP_KERNEL)
@@ -99,53 +98,51 @@ static inline long long int strtoll(const char *nptr, char **endptr, int base)
 }
 
 #define bzero(x,y) memset(x,0x00,y)
-//#define fopen(a,b) NULL
+
 static inline void *fopen(const char *a,const char *b)
 {
 	(void)a;(void)b;
 	return NULL;
 }
 
-//#define fclose(fp)
 static inline int fclose(void *fp)
 {
 	return 0;
 }
+
+static inline int feof(void *fp)
+{
+	return -1;
+}
+
 #define dlopen(a,b) NULL
 #define dlsym(a,b) NULL
-//#define realpath(path,buf) NULL
+
 static inline char *realpath(const char *a,char *b)
 {
 	(void)a;(void)b;
 	return NULL;
 }
+
 #define LOG_INFO 0
 static inline void syslog(int i,const char *msg, ...)
 {
+	(void)i;(void)msg;
 }
 
 static inline void kdbg_p(const char *file, const char *func, int line, const char *fmt, ...)
 {
-}
-static inline int kvprintf_i(const char *fmt, va_list args)
-{
-	vprintk(fmt,args);
-	return 0;
-}
-
-static inline int printf_(const char *fmt, ...)
-{
-	return 0;
+	(void)file;(void)func;
 }
 
 #define fprintf(out,fmt, arg...) printk(KERN_ALERT fmt , ##arg )
-//#define vfprintf(out,fmt, arg...) vprintk(fmt , arg )
 #define fputs(prompt, fp) 
-//#define fgetc(fp) (-1)
+
 static inline int fgetc(void *fp)
 {
 	return -1;
 }
+
 #define EOF -1
 #define fflush(x)
 static inline void kexit(int i)
