@@ -119,7 +119,7 @@ typedef struct tenv_t {
 		int E = (int)sfp[5].ivalue;\
 		(void)syn; (void)STMT; (void)TLS; (void)S; (void)C; (void)E;\
 
-// Expr StmtTyCheck(Stmt stmt, Gamma gma)
+// boolean StmtTyCheck(Stmt stmt, Gamma gma)
 #define VAR_StmtTyCheck(STMT, GMA) \
 		kStmt *STMT = (kStmt*)sfp[1].o;\
 		kGamma *GMA = (kGamma*)sfp[2].o;\
@@ -465,12 +465,9 @@ typedef struct {
 	kclass_t *cKonohaSpace;
 	kclass_t *cGamma;
 	kclass_t *cTokenArray;
-	//
-//	kArray         *keywordList;
-//	struct kmap_t         *keywordMapNN;
+
 	kArray         *packageList;
 	struct kmap_t         *packageMapNO;
-//	kKonohaSpace         *rootks;
 
 	kFunc *UndefinedParseExpr;
 	kFunc *UndefinedStmtTyCheck;

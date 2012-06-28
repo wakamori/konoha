@@ -26,8 +26,6 @@
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
 
-#define KW_s(s) SUGAR keyword(_ctx, S_text(s), S_size(s), SYM_NONAME)
-
 //## boolean Token.isTypeName();
 static KMETHOD Token_isTypeName(CTX, ksfp_t *sfp _RIX)
 {
@@ -50,15 +48,16 @@ static KMETHOD Stmt_setBuild(CTX, ksfp_t *sfp _RIX)
 static KMETHOD Stmt_getBlock(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	RETURN_(kStmt_block(sfp[0].stmt, KW_s(sfp[1].s), sfp[2].bk));
+	kString *key = sfp[1].s;
+	RETURN_(kStmt_block(sfp[0].stmt, ksymbolA(S_text(key), S_size(key), _NEWID), sfp[2].bk));
 }
-
 
 //## boolean Stmt.tyCheckExpr(String key, Gamma gma, int typeid, int pol);
 static KMETHOD Stmt_tyCheckExpr(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
-	RETURNb_(SUGAR Stmt_tyCheckExpr(_ctx, sfp[0].stmt, KW_s(sfp[1].s), sfp[2].gma, (ktype_t)sfp[3].ivalue, (int)sfp[4].ivalue));
+	kString *key = sfp[1].s;
+	RETURNb_(SUGAR Stmt_tyCheckExpr(_ctx, sfp[0].stmt, ksymbolA(S_text(key), S_size(key), _NEWID), sfp[2].gma, (ktype_t)sfp[3].ivalue, (int)sfp[4].ivalue));
 }
 
 //## boolean Blook.tyCheckAll(Gamma gma);
@@ -75,7 +74,7 @@ static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
-	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_PatternMatch, sfp[2].fo);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_PatternMatch, sfp[2].fo);
 }
 
 //## void KonohaSpace.addParseExpr(String keyword, String name);
@@ -83,7 +82,7 @@ static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
-	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_ParseExpr, sfp[2].fo);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_ParseExpr, sfp[2].fo);
 }
 
 //## void KonohaSpace.addStmtTyCheck(String keyword, String name);
@@ -91,7 +90,7 @@ static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
-	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_StmtTyCheck, sfp[2].fo);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_StmtTyCheck, sfp[2].fo);
 }
 
 
@@ -100,7 +99,7 @@ static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
-	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_TopStmtTyCheck, sfp[2].fo);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_TopStmtTyCheck, sfp[2].fo);
 }
 
 //## void KonohaSpace.addExprTyCheck(String keyword, Func f);
@@ -108,8 +107,7 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
-	DBG_P("func=%p", SUGAR SYN_addSugarFunc);
-	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, KW_s(key), SYNIDX_ExprTyCheck, sfp[2].fo);
+	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_ExprTyCheck, sfp[2].fo);
 }
 
 // --------------------------------------------------------------------------
@@ -229,7 +227,7 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	kparam_t P_FuncParseExpr[] = {{TY_Stmt}, {TY_TokenArray}, {TY_Int}, {TY_Int}, {TY_Int}};
 	int TY_FuncParseExpr = (kClassTable_Generics(CT_Func, TY_Expr, 5, P_FuncParseExpr))->cid;
 	kparam_t P_FuncStmtTyCheck[] = {{TY_Stmt}, {TY_Gamma}};
-	int TY_FuncStmtTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 2, P_FuncStmtTyCheck))->cid;
+	int TY_FuncStmtTyCheck = (kClassTable_Generics(CT_Func, TY_Boolean, 2, P_FuncStmtTyCheck))->cid;
 	kparam_t P_FuncExprTyCheck[] = {{TY_Stmt}, {TY_Expr}, {TY_Gamma}, {TY_Int}};
 	int TY_FuncExprTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 4, P_FuncExprTyCheck))->cid;
 	//DBG_P("func=%s", TY_t(TY_FuncExprTyCheck));
@@ -325,6 +323,47 @@ static KMETHOD StmtTyCheck_sugar(CTX, ksfp_t *sfp _RIX)
 static kbool_t sugar_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
+	KDEFINE_INT_CONST IntData[] = {
+#define DEFINE_KEYWORD(KW) {#KW, TY_Int, KW}
+		DEFINE_KEYWORD(KW_ExprPattern),
+		DEFINE_KEYWORD(KW_SymbolPattern),
+		DEFINE_KEYWORD(KW_UsymbolPattern),
+		DEFINE_KEYWORD(KW_TextPattern),
+		DEFINE_KEYWORD(KW_IntPattern),
+		DEFINE_KEYWORD(KW_FloatPattern),
+		DEFINE_KEYWORD(KW_TypePattern),
+		DEFINE_KEYWORD(KW_ParenthesisPattern),
+		DEFINE_KEYWORD(KW_BracketPattern),
+		DEFINE_KEYWORD(KW_BracePattern),
+		DEFINE_KEYWORD(KW_BlockPattern),
+		DEFINE_KEYWORD(KW_ParamsPattern),
+		DEFINE_KEYWORD(KW_ToksPattern),
+		DEFINE_KEYWORD(TSTMT_UNDEFINED),
+		DEFINE_KEYWORD(TSTMT_ERR),
+		DEFINE_KEYWORD(TSTMT_EXPR),
+		DEFINE_KEYWORD(TSTMT_BLOCK),
+		DEFINE_KEYWORD(TSTMT_RETURN),
+		DEFINE_KEYWORD(TSTMT_IF),
+		DEFINE_KEYWORD(TSTMT_LOOP),
+		DEFINE_KEYWORD(TSTMT_JUMP),
+		DEFINE_KEYWORD(TEXPR_CONST),
+		DEFINE_KEYWORD(TEXPR_NEW),
+		DEFINE_KEYWORD(TEXPR_NULL),
+		DEFINE_KEYWORD(TEXPR_NCONST),
+		DEFINE_KEYWORD(TEXPR_LOCAL),
+		DEFINE_KEYWORD(TEXPR_BLOCK),
+		DEFINE_KEYWORD(TEXPR_FIELD),
+		DEFINE_KEYWORD(TEXPR_BOX),
+		DEFINE_KEYWORD(TEXPR_UNBOX),
+		DEFINE_KEYWORD(TEXPR_CALL),
+		DEFINE_KEYWORD(TEXPR_AND),
+		DEFINE_KEYWORD(TEXPR_OR),
+		DEFINE_KEYWORD(TEXPR_LET),
+		DEFINE_KEYWORD(TEXPR_STACKTOP),
+#undef DEFINE_KEYWORD
+		{NULL},
+	};
+	kKonohaSpace_loadConstData(ks, IntData, pline);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("sugar"), .rule ="\"sugar\" $toks", TopStmtTyCheck_(sugar), },
 		{ .kw = KW_END, },

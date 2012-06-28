@@ -39,7 +39,7 @@ extern "C" {
 int verbose_sugar = 0;
 
 #include "perror.h"
-#include "struct.h"
+#include "sugarclass.h"
 #include "token.h"
 #include "ast.h"
 #include "tycheck.h"

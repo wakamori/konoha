@@ -43,8 +43,8 @@
 /* - 2012/06/14 */
 //#define K_CODENAME "Miyajima"
 /*2012/06/14 -  */
-#define K_CODENAME "The Summer Palace, Beijing"
 
+#define K_CODENAME "The Summer Palace, Beijing"
 #ifndef K_REVISION
 #define K_REVISION  1
 #endif
@@ -104,7 +104,7 @@ typedef enum {
 
 typedef void FILE_i;
 
-typedef struct {
+typedef struct kplatform_t {
 	// settings
 	const char *name;
 	size_t stacksize;
@@ -253,7 +253,7 @@ typedef uintptr_t                 kline_t;
 
 #define KARRAYSIZE(BS, T)   ((BS)/sizeof(T##_t))
 
-typedef struct {
+typedef struct karray_t {
 	size_t bytesize;
 	union {
 		char  *bytebuf;
