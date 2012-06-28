@@ -25,7 +25,7 @@
 #include "konoha2/konoha2.h"
 #include "konoha2/logger.h"
 #include "konoha2/konoha2_local.h"
-#include <logpool.h>
+#include <logpool/logpool.h>
 
 /* ************************************************************************ */
 
@@ -42,7 +42,7 @@ typedef struct kmodlogpool_t {
 #define kmodlogpool ((kmodlogpool_t*)_ctx->modshare[MOD_logger])
 #define ctxlogpool  ((ctxlogpool_t*)_ctx->modlocal[MOD_logger])
 
-static uintptr_t Ktrace(CTX, klogconf_t *logconf, ...)
+static uintptr_t logpool_Ktrace(CTX, klogconf_t *logconf, ...)
 {
 	if(TFLAG_is(int, logconf->policy, LOGPOL_INIT)) {
 		TFLAG_set(int,logconf->policy,LOGPOL_INIT,0);
@@ -96,14 +96,16 @@ static void kmodlogpool_reftrace(CTX, struct kmodshare_t *baseh)
 void MODLOGGER_free(CTX, kcontext_t *ctx)
 {
 	if(IS_ROOTCTX(ctx)) {
+		logpool_close(ctxlogpool->logpool);
+		free(ctxlogpool/*, sizeof(ctxlogpool_t)*/);
 		free(kmodlogpool/*, sizeof(kmodshare_t)*/);
-		logpool_exit();
+		logpool_global_exit();
 	}
 }
 
 void MODLOGGER_init(CTX, kcontext_t *ctx)
 {
-	logpool_init(LOGPOOL_TRACE);
+	logpool_global_init(LOGPOOL_TRACE);
 	kmodlogpool_t *base = (kmodlogpool_t*)calloc(sizeof(kmodlogpool_t), 1);
 	base->h.name     = "verbose";
 	base->h.setup    = kmodlogpool_setup;
@@ -123,6 +125,6 @@ void MODLOGGER_init(CTX, kcontext_t *ctx)
 		kmodlogpool_setup(_ctx, (kmodshare_t*)base, 1);
 	}
 	Konoha_setModule(MOD_logger, (kmodshare_t*)base, 0);
-	KSET_KLIB(trace, 0);
+	((struct _klib2*)_ctx->lib2)->Ktrace = logpool_Ktrace;
 }
 
