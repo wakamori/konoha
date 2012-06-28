@@ -110,18 +110,20 @@ static const char* kend(kinfotag_t t)
 #define LKM_BUFFER_SIZE 256
 static int kvprintf_i(const char *fmt, va_list args)
 {
-	vsnprintf(konohadev_p->buffer,LKM_BUFFER_SIZE, fmt, args);
+	char buffer[LKM_BUFFER_SIZE] = {0};
+	vsnprintf(buffer,LKM_BUFFER_SIZE, fmt, args);
+	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
 	return 0;
 }
 
 static int printf_(const char *fmt, ...)
 {
-	/*
+	char buffer[LKM_BUFFER_SIZE] = {0};
 	va_list ap;
 	va_start(ap, fmt);
-	vsnprintf(konohadev_p->buffer,LKM_BUFFER_SIZE, fmt, ap);
+	vsnprintf(buffer,LKM_BUFFER_SIZE, fmt, ap);
 	va_end(ap);
-	*/
+	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
 	return 0;
 }
 
