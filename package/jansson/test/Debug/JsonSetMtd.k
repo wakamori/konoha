@@ -29,7 +29,6 @@ void main() {
 	parsed.set("json", json);
 
 	// Json[] -> json
-	Json ja = new Json();
 	Json[] ja = new Json[0];
 	json = new Json();
 	json.setString("foo", "bar");
@@ -48,10 +47,10 @@ void main() {
 	Json[] a = parsed.getArray("array");
 	int i = 0;
 	p(a.getSize());
-	//while (i < a.getSize()) {
-	//	p(a[i].dump());
-	//	i += 1;
-	//}
+	while (i < a.getSize()) {
+		p(a[i].dump());
+		i += 1;
+	}
 }
 
 main();

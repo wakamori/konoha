@@ -117,7 +117,6 @@ static KMETHOD Json_get(CTX, ksfp_t *sfp _RIX)
 		RETURN_(K_NULL);
 	}
 	ret = json_incref(ret);
-	//fprintf(stderr, "key = '%s'\n", key);
 	struct _kJson *json = (struct _kJson*)new_kObject(O_ct(sfp[K_RTNIDX].o), NULL);
 	json->obj = ret;
 	RETURN_(json);
@@ -139,17 +138,8 @@ static KMETHOD Json_getArray(CTX, ksfp_t *sfp _RIX)
 	if (!json_is_array(ja)) {
 		RETURN_(K_NULL);
 	}
-	int i;
 	struct _kArray* a = (struct _kArray*)new_kObject(CT_Array, NULL);
-	size_t size = json_array_size(ja);
-	for (i = 0; i < size; i++) {
-		struct _kJson* json = (struct _kJson*)new_kObject(O_ct(sfp[0].o), NULL);
-		json->obj = json_array_get(ja, i);
-		json_incref(json->obj);
-		kArray_add(a, json);
-	}
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%s'\n", str);
+	a->list = (kObject**)ja;
 	RETURN_(a);
 }
 
@@ -163,13 +153,10 @@ static KMETHOD Json_getBool(CTX, ksfp_t *sfp _RIX)
 	const char *key = S_text(sfp[1].s);
 	json_t* ret = json_object_get(obj, key);
 	ret = json_incref(ret);
-	//fprintf(stderr, "key = '%s'\n", key);
 	if (json_is_true(ret)) {
-		//fprintf(stderr, "ret='true'\n");
 		RETURNb_(K_TRUE);
 	}
 	else if (json_is_false(ret)) {
-		//fprintf(stderr, "ret='false'\n");
 		RETURNb_(K_FALSE);
 	}
 	else {
@@ -191,8 +178,6 @@ static KMETHOD Json_getFloat(CTX, ksfp_t *sfp _RIX)
 	}
 	ret = json_incref(ret);
 	double val = json_real_value(ret);
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%lf'\n", val);
 	RETURNf_(val);
 }
 
@@ -209,8 +194,6 @@ static KMETHOD Json_getInt(CTX, ksfp_t *sfp _RIX)
 		RETURN_(K_NULL);
 	}
 	json_int_t val = json_integer_value(ret);
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%lld'\n", val);
 	RETURNi_((kint_t)val);
 }
 
@@ -228,8 +211,6 @@ static KMETHOD Json_getString(CTX, ksfp_t *sfp _RIX)
 	}
 	ret = json_incref(ret);
 	const char* str = json_string_value(ret);
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%s'\n", str);
 	RETURN_(new_kString(str, strlen(str), 0));
 }
 
@@ -263,17 +244,8 @@ static KMETHOD Json_setArray(CTX, ksfp_t *sfp _RIX)
 	}
 	const char *key = S_text(sfp[1].s);
 	struct _kArray* a = (struct _kArray*)sfp[2].a;
-	json_t* val = json_array();
-	int i;
-	size_t size = kArray_size(a);
-	for (i = 0; i < size; i++) {
-		struct _kJson* json = (struct _kJson*)a->list[i];
-		json_array_append(val, json->obj);
-		json_incref(val);
-	}
-	json_object_set(obj, key, val);
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%s'\n", str);
+	json_t *ja = (json_t*)a->list;
+	json_object_set(obj, key, ja);
 	RETURNvoid_();
 }
 
@@ -384,25 +356,30 @@ static KMETHOD Json_dump(CTX, ksfp_t *sfp _RIX)
 
 /* ------------------------------------------------------------------------ */
 
+static KMETHOD JsonArray_newArray(CTX, ksfp_t *sfp _RIX)
+{
+	struct _kArray *a = (struct _kArray *)sfp[0].o;
+	size_t asize = (size_t)sfp[1].ivalue;
+	a->bytemax = asize * sizeof(void*);
+	kArray_setsize((kArray*)a, asize);
+	//a->list = (kObject**)KCALLOC(a->bytemax, 1);
+	a->list = (kObject**)json_array();
+	RETURN_(a);
+}
+
 //## void Json[].add(Json json);
 static KMETHOD JsonArray_add(CTX, ksfp_t *sfp _RIX)
 {
-	json_t* ja = ((struct _kJson*)sfp[0].o)->obj;
+	struct _kArray *a = (struct _kArray *)sfp[0].o;
+	json_t* ja = (json_t*)a->list;
+
 	if (!json_is_array(ja)) {
-		json_t* jsons = json_array();
-		json_incref(jsons);
-		if (!json_is_null(ja)) {
-			json_array_append(jsons, ja);
-		}
-		ja = jsons;
+		// error
+		fprintf(stderr, "error!\n");
 	}
 	struct _kJson *json = (struct _kJson*)sfp[1].o;
 	json_array_append(ja, json->obj);
 	json_incref(json->obj);
-	kArray* a = (kArray*)sfp[0].a;
-	kArray_add(a, json);
-	//fprintf(stderr, "key = '%s'\n", key);
-	//fprintf(stderr, "ret='%s'\n", str);
 	RETURNvoid_();
 }
 
@@ -410,9 +387,18 @@ static KMETHOD JsonArray_add(CTX, ksfp_t *sfp _RIX)
 static KMETHOD JsonArray_getSize(CTX, ksfp_t *sfp _RIX)
 {
 	kArray *a = sfp[0].a;
-	RETURNi_(kArray_size(a));
+	const json_t *ja = (json_t*)a->list;
+	RETURNi_(json_array_size(ja));
 }
 
+static KMETHOD JsonArray_get(CTX, ksfp_t *sfp _RIX)
+{
+	kArray *a = sfp[0].a;
+	json_t *ja = (json_t*)a->list;
+	struct _kJson *json = (struct _kJson*)new_kObject(O_ct(sfp[K_RTNIDX].o), NULL);
+	json->obj = json_array_get(ja, sfp[1].ivalue);
+	RETURN_(json);
+}
 ////## void Json[].set(Json json);
 //static KMETHOD Json_set(CTX, ksfp_t *sfp _RIX)
 //{
@@ -446,8 +432,8 @@ static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 	//ct->p0 = TY_String; // default
 
 	kparam_t ps = {TY_Json, FN_("json")};
-	kclass_t *CT_JsonArray2 = kClassTable_Generics(CT_Array, TY_Json, 1, &ps);
-	kcid_t TY_JsonArray = CT_JsonArray2->cid;
+	kclass_t *CT_JsonArray = kClassTable_Generics(CT_Array, TY_Json, 1, &ps);
+	kcid_t TY_JsonArray = CT_JsonArray->cid;
 
 	intptr_t MethodData[] = {
 		_Public|_Const|_Im, _F(Json_dump),      TY_String,    TY_Json, MN_("dump"),         0,
@@ -465,9 +451,10 @@ static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public|_Const|_Im, _F(Json_setFloat),  TY_void,      TY_Json, MN_("setFloat"),     2, TY_String, FN_("key"), TY_Float, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setInt),    TY_void,      TY_Json, MN_("setInt"),       2, TY_String, FN_("key"), TY_Int, FN_("value"),
 		_Public|_Const|_Im, _F(Json_setString), TY_void,      TY_Json, MN_("setString"),    2, TY_String, FN_("key"), TY_String, FN_("value"),
-
-
 		_Public|_Const|_Im, _F(Json_dump),      TY_String,    TY_JsonArray, MN_("dump"),         0,
+
+		_Public|_Const|_Im, _F(JsonArray_newArray),  TY_JsonArray,      TY_JsonArray, MN_("newArray"), 1, TY_Int, FN_("size"),
+		_Public|_Const|_Im, _F(JsonArray_get),       TY_Json,           TY_JsonArray, MN_("get"), 1, TY_Int, FN_("index"),
 		_Public|_Const|_Im, _F(JsonArray_add),       TY_void,      TY_JsonArray, MN_("add"),     1, TY_Json, FN_("value"),
 		_Public|_Const|_Im, _F(JsonArray_getSize),   TY_Int,      TY_JsonArray, MN_("getSize"),     0,
 		DEND,
