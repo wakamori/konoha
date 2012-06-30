@@ -6,12 +6,16 @@ set(PACKAGE_SOURCE_CODE llvm.cpp)
 set(PACKAGE_SCRIPT_CODE llvm_glue.k)
 
 set(LLVM_INSTALL_DIR "" CACHE STRING "Install dir which llvm installed")
-set(LLVM_CONFIG_BIN "llvm-config")
-if(LLVM_INSTALL_DIR)
-set(LLVM_CONFIG_BIN "${LLVM_INSTALL_DIR}/bin/${LLVM_CONFIG_BIN}")
-endif(LLVM_INSTALL_DIR)
-
-find_program(LLVM_CONFIG NAMES ${LLVM_CONFIG_BIN} DOC "llvm-config")
+find_program(LLVM_CONFIG
+   NAMES llvm-config-3.1
+         llvm-config
+         llvm-config-3.0
+         llvm-config-2.9
+         llvm-config-2.8
+   PATH  ${LLVM_INSTALL_DIR}
+         /usr/local/bin/
+         /usr/bin/
+   DOC "llvm-config")
 if(LLVM_CONFIG)
 execute_process(
 		COMMAND ${LLVM_CONFIG} --version
