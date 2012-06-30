@@ -130,6 +130,7 @@ set(PACKAGES
 	ijit
 ##	jansson
 	python
+	apache
 )
 
 find_library(HAVE_LIBDL NAMES dl)
