@@ -2,16 +2,17 @@ obj-m:= konohadev.o
 konohadev-objs := \
 	../../src/konoha/konoha2.o\
 	../../module/msgc/msgc.o\
-	../../src/logger/logger.o\
 	../../src/sugar/sugar.o\
+	../../src/logger/logger.o\
 	../../src/vm/asm.o\
 	qsort.o\
 	lkm.o
 
+
 KDIR  := /lib/modules/$(shell uname -r)/build
 PWD   := $(shell pwd)
 VERBOSE=0
-EXTRA_CFLAGS :=
+EXTRA_CFLAGS := -DPLATFORM_KERNEL
 EXTRA_CFLAGS += -Wno-declaration-after-statement
 EXTRA_CFLAGS += -I$(SRCDIR)/include -I$(SRCDIR)/platform/lkm/
 
@@ -32,7 +33,7 @@ uninstall:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f ../../src/.*.o.cmd  ../../src/*.o
 	rm -f ../../src/*/.*.o.cmd ../../src/*/*.o
+	rm -f ../../module/*/.*.o.cmd ../../module/*/*.o
 
 

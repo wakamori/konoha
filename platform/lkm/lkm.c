@@ -24,8 +24,7 @@
 
 /* ************************************************************************ */
 
-#include <linux/string.h>
-#include <linux/kernel.h>
+#include "konoha_lkm.h"
 #include "konoha2/konoha2.h"
 #include "konoha2/klib.h"
 
@@ -98,20 +97,63 @@ static ssize_t knh_dev_read (struct file* filp, char __user *user_buf,
 	return len;
 }
 
+static const char* kbegin(kinfotag_t t)
+{
+	return "";
+}
+
+static const char* kend(kinfotag_t t)
+{
+	return "";
+}
+
+#define LKM_BUFFER_SIZE 256
+static int kvprintf_i(const char *fmt, va_list args)
+{
+	char buffer[LKM_BUFFER_SIZE] = {0};
+	vsnprintf(buffer,LKM_BUFFER_SIZE, fmt, args);
+	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
+	return 0;
+}
+
+static int printf_(const char *fmt, ...)
+{
+	char buffer[LKM_BUFFER_SIZE] = {0};
+	va_list ap;
+	va_start(ap, fmt);
+	vsnprintf(buffer,LKM_BUFFER_SIZE, fmt, ap);
+	va_end(ap);
+	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
+	return 0;
+}
+
 const kplatform_t* platform_kernel(void)
 {
 	static kplatform_t plat = {
 		.name = "lkm",
 		.stacksize = K_PAGESIZE * 4,
-		.malloc    = malloc,
-		.free      = kfree,
-		.realpath  = NULL,
-		.fopen     = fopen,
-		.fgetc     = fgetc,
-		.feof      = NULL,
-		.fclose    = fclose,
+		.malloc_i    = malloc,
+		.free_i      = free,
+		.setjmp_i    = setjmp,
+		.longjmp_i   = longjmp,
+		.realpath_i  = realpath,
+		.fopen_i     = fopen,
+		.fgetc_i     = fgetc,
+		.feof_i      = feof,
+		.fclose_i    = fclose,
+		.syslog_i    = syslog,
+		.vsyslog_i   = NULL,
+		.printf_i    = printf_,
+		.vprintf_i   = kvprintf_i,
+		.snprintf_i  = snprintf,
+		.vsnprintf_i = vsnprintf,
+		.qsort_i     = qsort,
+		.exit_i      = kexit,
 		.packagepath = NULL,
-		.exportpath  = NULL
+		.exportpath  = NULL,
+		.begin       = kbegin,
+		.end         = kend,
+		.dbg_p       = kdbg_p
 	};
 	return (const kplatform_t*)(&plat);
 }
@@ -146,45 +188,6 @@ static ssize_t knh_dev_write(struct file *filp,const char __user *user_buf,
 	return count;
 }
 
-static const char *T_ERR(int level)
-{
-	switch(level) {
-	case CRIT_:
-	case ERR_/*ERROR*/: return "(error) ";
-	case WARN_/*WARNING*/: return "(warning) ";
-	case INFO_/*INFO, NOTICE*/: return "(info) ";
-	case PRINT_: return "";
-	default/*DEBUG*/: return "(debug) ";
-	}
-}
-
-#define LKM_BUFFER_SIZE 256
-
-void lkm_Kreportf(CTX, int level, kline_t pline, const char *fmt, ...)
-{
-	if(level == DEBUG_) return;
-	char buffer[LKM_BUFFER_SIZE];
-	char vbuffer[LKM_BUFFER_SIZE];
-	va_list ap;
-	va_start(ap , fmt);
-	fflush(stdout);
-	fputs(T_BEGIN(_ctx, level), stdout);
-	if(pline != 0) {
-		const char *file = SS_t(pline);
-		snprintf(buffer,LKM_BUFFER_SIZE," - (%s:%d) %s" , shortfilename(file), (kushort_t)pline, T_ERR(level));
-	}
-	else {
-		snprintf(buffer, LKM_BUFFER_SIZE," - %s" , T_ERR(level));
-	}
-	vsnprintf(vbuffer, LKM_BUFFER_SIZE, fmt, ap);
-	strncat(vbuffer, "\n",1);
-	strncat(buffer, vbuffer, LKM_BUFFER_SIZE);
-	strncat(konohadev_p->buffer,buffer,LKM_BUFFER_SIZE);
-	va_end(ap);
-	if(level == CRIT_) {
-		kraise(0);
-	}
-}
 
 static void knh_dev_setup(struct konohadev_t *dev)
 {

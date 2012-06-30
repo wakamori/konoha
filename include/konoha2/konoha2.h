@@ -53,10 +53,14 @@
 
 #define USE_BUILTINTEST  1
 
+#ifndef PLATFORM_KERNEL
 #include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <string.h>
+#else
+#include "konoha_lkm.h"
+#endif /* PLATFORM_KERNEL */
 
 #ifndef jmpbuf_i
 #include <setjmp.h>
