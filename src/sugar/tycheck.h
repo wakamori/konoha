@@ -1277,9 +1277,11 @@ static void Gamma_shiftBlockIndex(CTX, gmabuf_t *genv)
 	for(i = genv->lvarlst_top; i < size; i++) {
 		struct _kExpr *expr = a->Wexprs[i];
 		if(expr->build == TEXPR_STACKTOP) continue;
-		DBG_ASSERT(expr->build < TEXPR_UNTYPED);
-		expr->index += shift;
-		expr->build += TEXPR_shift;
+		//DBG_ASSERT(expr->build < TEXPR_UNTYPED);
+		if(expr->build < TEXPR_UNTYPED) {
+			expr->index += shift;
+			expr->build += TEXPR_shift;
+		}
 	}
 }
 
