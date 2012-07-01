@@ -24,74 +24,62 @@
 
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
-#include<konoha2/float.h>
+//#include<konoha2/float.h>
 
 // operator only
-#include"assignment_glue.h"
-#include"while_glue.h"
+//#include"assignment_glue.h"
+//#include"while_glue.h"
 
 // class and operator
-#include"class_glue.h"
-#include"global_glue.h"
+//#include"class_glue.h"
+//#include"global_glue.h"
 
 // method and operator
-#include"array_glue.h"
+//#include"array_glue.h"
 
 
 // --------------------------------------------------------------------------
 
 static	kbool_t konoha_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
 {
-	assignment_initPackage(_ctx, ks, argc, args, pline);
-	while_initPackage(_ctx, ks, argc, args, pline);
-	class_initPackage(_ctx, ks, argc, args, pline);
-	global_initPackage(_ctx, ks, argc, args, pline);
+	KREQUIRE_PACKAGE("konoha.assignment", pline);
+	KREQUIRE_PACKAGE("konoha.while", pline);
+
+	KREQUIRE_PACKAGE("konoha.class", pline);
+	KREQUIRE_PACKAGE("konoha.global", pline);
 
 	KREQUIRE_PACKAGE("konoha.null", pline);
 	KREQUIRE_PACKAGE("konoha.int", pline);
 #ifndef K_USING_NOFLOAT
 	KREQUIRE_PACKAGE("konoha.float", pline);
 #endif
-
-	array_initPackage(_ctx, ks, argc, args, pline);
+	KREQUIRE_PACKAGE("konoha.array", pline);
 	return true;
 }
 
 static kbool_t konoha_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 {
-	assignment_setupPackage(_ctx, ks, pline);
-	while_setupPackage(_ctx, ks, pline);
-	class_setupPackage(_ctx, ks, pline);
-	global_setupPackage(_ctx, ks, pline);
-
-	array_setupPackage(_ctx, ks, pline);
 	return true;
 }
 
 static kbool_t konoha_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 {
-	assignment_initKonohaSpace(_ctx, ks, pline);
-	while_initKonohaSpace(_ctx, ks, pline);
-	class_initKonohaSpace(_ctx, ks, pline);
-	global_initKonohaSpace(_ctx, ks, pline);
+	KEXPORT_PACKAGE("konoha.assignment", ks, pline);
+	KEXPORT_PACKAGE("konoha.while", ks, pline);
+	KEXPORT_PACKAGE("konoha.class", ks, pline);
+	KEXPORT_PACKAGE("konoha.global", ks, pline);
 
 	KEXPORT_PACKAGE("konoha.null", ks, pline);
 	KEXPORT_PACKAGE("konoha.int", ks, pline);
 	if(_ctx->modshare[MOD_float] != NULL) {
 		KEXPORT_PACKAGE("konoha.float", ks, pline);
 	}
-	array_initKonohaSpace(_ctx, ks, pline);
+	KEXPORT_PACKAGE("konoha.array", ks, pline);
 	return true;
 }
 
 static kbool_t konoha_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 {
-	assignment_setupKonohaSpace(_ctx, ks, pline);
-	while_setupKonohaSpace(_ctx, ks, pline);
-	class_setupKonohaSpace(_ctx, ks, pline);
-	global_setupKonohaSpace(_ctx, ks, pline);
-
-	array_setupKonohaSpace(_ctx, ks, pline);
 	return true;
 }
 

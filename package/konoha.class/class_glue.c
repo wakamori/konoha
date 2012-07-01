@@ -27,7 +27,7 @@
 
 // --------------------------------------------------------------------------
 
-#include"../konoha/class_glue.h"
+#include"class_glue.h"
 
 KDEFINE_PACKAGE* class_init(void)
 {

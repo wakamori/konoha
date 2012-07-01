@@ -25,7 +25,7 @@
 #include<konoha2/konoha2.h>
 #include<konoha2/sugar.h>
 
-#include"../konoha/assignment_glue.h"
+#include"assignment_glue.h"
 
 KDEFINE_PACKAGE* assignment_init(void)
 {

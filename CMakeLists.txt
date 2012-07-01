@@ -109,23 +109,25 @@ set(PACKAGES
 	konoha.float
 	konoha.math
 	konoha.string
-	llvm
-	konoha.pcre
+	konoha.bytes
+	konoha.array
 	konoha.hashmap
-##	konoha.io
+	konoha.assignment
 	konoha.while
 	konoha.class
-	konoha.assignment
+	konoha.global
+	llvm
+	konoha.pcre
+##	konoha.io
 	konoha.i
 ##	konoha.assert
 	posix.process
 	posix.file
 	posix.fd
-	konoha.socket
+##	konoha.socket
 	konoha.rope
 ##	konoha.subproc
 ##	konoha.mpi
-	konoha.bytes
 ##	konoha.curl
 	ijit
 ##	jansson

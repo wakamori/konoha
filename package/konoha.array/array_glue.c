@@ -27,7 +27,7 @@
 #include<konoha2/float.h>
 
 //#include"array_glue.h"
-#include "../konoha/array_glue.h"
+#include "array_glue.h"
 
 KDEFINE_PACKAGE* array_init(void)
 {

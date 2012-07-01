@@ -28,7 +28,7 @@
 #include<konoha2/sugar.h>
 #include<konoha2/float.h>
 
-#include "../konoha/while_glue.h"
+#include "while_glue.h"
 
 #ifdef __cplusplus
 extern "C" {
