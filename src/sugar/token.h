@@ -539,7 +539,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 		}
 		if(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL) {
 			if(i > 0 && tls->toks[i-1]->topch == '$') {
-				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID) | KW_PATTERN;
+				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW) | KW_PATTERN;
 				tk->tt = TK_METANAME;
 				if(nameid == 0) nameid = tk->kw;
 				tk->nameid = nameid;
@@ -548,7 +548,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			}
 			if(i + 1 < e && tls->toks[i+1]->topch == ':') {
 				kToken *tk = tls->toks[i];
-				nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
+				nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
 				i++;
 				continue;
 			}

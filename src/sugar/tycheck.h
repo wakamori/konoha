@@ -218,7 +218,7 @@ static kExpr* Expr_tyCheckAt(CTX, kStmt *stmt, kExpr *exprP, size_t pos, kGamma 
 	return K_NULLEXPR;
 }
 
-static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, synid_t nameid, kGamma *gma, ktype_t reqty, int pol)
+static kbool_t Stmt_tyCheckExpr(CTX, kStmt *stmt, ksymbol_t nameid, kGamma *gma, ktype_t reqty, int pol)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, nameid);
 	if(expr != NULL && IS_Expr(expr)) {
@@ -1090,7 +1090,7 @@ static flagop_t MethodDeclFlag[] = {
 	{NULL},
 };
 
-static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, synid_t kw, kcid_t defcid)
+static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, ksymbol_t kw, kcid_t defcid)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk == NULL || !IS_Token(tk)) {
@@ -1102,7 +1102,7 @@ static kcid_t Stmt_getcid(CTX, kStmt *stmt, kKonohaSpace *ns, synid_t kw, kcid_t
 	}
 }
 
-static kcid_t Stmt_getmn(CTX, kStmt *stmt, kKonohaSpace *ns, synid_t kw, kmethodn_t defmn)
+static kcid_t Stmt_getmn(CTX, kStmt *stmt, kKonohaSpace *ns, ksymbol_t kw, kmethodn_t defmn)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk == NULL || !IS_Token(tk) || !IS_String(tk->text)) {

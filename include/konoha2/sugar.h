@@ -38,8 +38,6 @@
 extern "C" {
 #endif
 
-typedef ksymbol_t synid_t;
-
 #define KW_t(X)   SYM_PRE(X),SYM_t(X)
 
 #define kflag_clear(flag)  (flag) = 0
@@ -476,7 +474,6 @@ typedef struct {
 	kFunc *ParseExpr_Op;
 
 	// export
-	synid_t  (*keyword)(CTX, const char*, size_t, ksymbol_t);
 	void (*KonohaSpace_setTokenizer)(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo);
 	void (*KonohaSpace_tokenize)(CTX, kKonohaSpace *, const char *, kline_t, kArray *);
 
@@ -484,10 +481,10 @@ typedef struct {
 	kExpr* (*Expr_setNConstValue)(CTX, kExpr *expr, ktype_t ty, uintptr_t ndata);
 	kExpr* (*Expr_setVariable)(CTX, kExpr *expr, kexpr_t build, ktype_t ty, intptr_t index, kGamma *gma);
 
-	kToken* (*Stmt_token)(CTX, kStmt *stmt, synid_t kw, kToken *def);
-	kExpr* (*Stmt_expr)(CTX, kStmt *stmt, synid_t kw, kExpr *def);
-	const char* (*Stmt_text)(CTX, kStmt *stmt, synid_t kw, const char *def);
-	kBlock* (*Stmt_block)(CTX, kStmt *stmt, synid_t kw, kBlock *def);
+	kToken* (*Stmt_token)(CTX, kStmt *stmt, ksymbol_t kw, kToken *def);
+	kExpr* (*Stmt_expr)(CTX, kStmt *stmt, ksymbol_t kw, kExpr *def);
+	const char* (*Stmt_text)(CTX, kStmt *stmt, ksymbol_t kw, const char *def);
+	kBlock* (*Stmt_block)(CTX, kStmt *stmt, ksymbol_t kw, kBlock *def);
 
 	kExpr*     (*Expr_tyCheckAt)(CTX, kStmt *, kExpr *, size_t, kGamma *, ktype_t, int);
 	kbool_t    (*Stmt_tyCheckExpr)(CTX, kStmt*, ksymbol_t, kGamma *, ktype_t, int);
@@ -498,8 +495,8 @@ typedef struct {
 
 	ksyntax_t* (*KonohaSpace_syn)(CTX, kKonohaSpace *, ksymbol_t, int);
 	void       (*KonohaSpace_defineSyntax)(CTX, kKonohaSpace *, KDEFINE_SYNTAX *);
-	void       (*SYN_setSugarFunc)(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo);
-	void       (*SYN_addSugarFunc)(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo);
+	void       (*SYN_setSugarFunc)(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
+	void       (*SYN_addSugarFunc)(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
 
 	kbool_t    (*makeSyntaxRule)(CTX, kArray*, int, int, kArray *);
 	kBlock*    (*new_Block)(CTX, kKonohaSpace *, kStmt *, kArray *, int, int, int);

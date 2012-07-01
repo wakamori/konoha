@@ -60,7 +60,7 @@ static kBlock *new_Block(CTX, kKonohaSpace *ks, kStmt *parent, kArray *tls, int 
 
 static kbool_t Token_resolved(CTX, kKonohaSpace *ks, struct _kToken *tk)
 {
-	synid_t kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NONAME);
+	ksymbol_t kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NONAME);
 	if(kw != SYM_NONAME) {
 		ksyntax_t *syn = SYN_(ks, kw);
 		if(syn != NULL) {
@@ -296,7 +296,7 @@ static int Stmt_addAnnotation(CTX, kStmt *stmt, kArray *tls, int s, int e)
 		kToken *tk = tls->toks[i];
 		if(tk->tt != TK_METANAME) break;
 		if(i+1 < e) {
-			synid_t kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID) | MN_Annotation;
+			ksymbol_t kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID) | MN_Annotation;
 			kToken *tk1 = tls->toks[i+1];
 			kObject *value = UPCAST(K_TRUE);
 			if(tk1->tt == AST_PARENTHESIS) {

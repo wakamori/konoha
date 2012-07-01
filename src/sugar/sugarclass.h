@@ -155,7 +155,7 @@ static void checkFuncArray(CTX, kFunc **synp)
 	}
 }
 
-static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo)
+static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo)
 {
 	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
 	kFunc **synp = &(syn->PatternMatch);
@@ -163,7 +163,7 @@ static void SYN_setSugarFunc(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFun
 	KSETv(synp[idx], fo);
 }
 
-static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, synid_t kw, size_t idx, kFunc *fo)
+static void SYN_addSugarFunc(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo)
 {
 	struct _ksyntax *syn = (struct _ksyntax *)KonohaSpace_syn(_ctx, ks, kw, 1/*new*/);
 	kFunc **synp = &(syn->PatternMatch);
@@ -865,7 +865,7 @@ static void Stmt_reftrace(CTX, kObject *o)
 static void _dumpToken(CTX, void *arg, kvs_t *d)
 {
 	if((d->key & SYMKEY_BOXED) == SYMKEY_BOXED) {
-		synid_t key = ~SYMKEY_BOXED & d->key;
+		ksymbol_t key = ~SYMKEY_BOXED & d->key;
 		DUMP_P("key='%s%s': ", KW_t(key));
 		if(IS_Token(d->oval)) {
 			dumpToken(_ctx, (kToken*)d->oval);
@@ -900,7 +900,7 @@ typedef struct flagop_t {
 static uintptr_t Stmt_flag(CTX, kStmt *stmt, flagop_t *fop, uintptr_t flag)
 {
 	while(fop->key != NULL) {
-		synid_t kw = ksymbolA(fop->key, fop->keysize, SYM_NONAME);
+		ksymbol_t kw = ksymbolA(fop->key, fop->keysize, SYM_NONAME);
 		if(kw != SYM_NONAME) {
 			kObject *op = kObject_getObjectNULL(stmt, kw);
 			if(op != NULL) {
@@ -914,12 +914,12 @@ static uintptr_t Stmt_flag(CTX, kStmt *stmt, flagop_t *fop, uintptr_t flag)
 
 #define kStmt_is(STMT, KW) Stmt_is(_ctx, STMT, KW)
 
-static inline kbool_t Stmt_is(CTX, kStmt *stmt, synid_t kw)
+static inline kbool_t Stmt_is(CTX, kStmt *stmt, ksymbol_t kw)
 {
 	return (kObject_getObjectNULL(stmt, kw) != NULL);
 }
 
-static kToken* Stmt_token(CTX, kStmt *stmt, synid_t kw, kToken *def)
+static kToken* Stmt_token(CTX, kStmt *stmt, ksymbol_t kw, kToken *def)
 {
 	kToken *tk = (kToken*)kObject_getObjectNULL(stmt, kw);
 	if(tk != NULL && IS_Token(tk)) {
@@ -928,7 +928,7 @@ static kToken* Stmt_token(CTX, kStmt *stmt, synid_t kw, kToken *def)
 	return def;
 }
 
-static kExpr* Stmt_expr(CTX, kStmt *stmt, synid_t kw, kExpr *def)
+static kExpr* Stmt_expr(CTX, kStmt *stmt, ksymbol_t kw, kExpr *def)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, kw);
 	if(expr != NULL && IS_Expr(expr)) {
@@ -937,7 +937,7 @@ static kExpr* Stmt_expr(CTX, kStmt *stmt, synid_t kw, kExpr *def)
 	return def;
 }
 
-static const char* Stmt_text(CTX, kStmt *stmt, synid_t kw, const char *def)
+static const char* Stmt_text(CTX, kStmt *stmt, ksymbol_t kw, const char *def)
 {
 	kExpr *expr = (kExpr*)kObject_getObjectNULL(stmt, kw);
 	if(expr != NULL) {
@@ -954,7 +954,7 @@ static const char* Stmt_text(CTX, kStmt *stmt, synid_t kw, const char *def)
 
 static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kKonohaSpace *ks);
 static kBlock *new_Block(CTX, kKonohaSpace* ks, kStmt *stmt, kArray *tls, int s, int e, int delim);
-static kBlock* Stmt_block(CTX, kStmt *stmt, synid_t kw, kBlock *def)
+static kBlock* Stmt_block(CTX, kStmt *stmt, ksymbol_t kw, kBlock *def)
 {
 	kBlock *bk = (kBlock*)kObject_getObjectNULL(stmt, kw);
 	if(bk != NULL) {

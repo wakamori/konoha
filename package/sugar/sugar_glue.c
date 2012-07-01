@@ -117,13 +117,24 @@ static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_ExprTyCheck, sfp[2].fo);
 }
 
+
+//## Expr Stmt.printError(String msg);
+static KMETHOD Stmt_printError(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	kStmt   *stmt  = sfp[0].stmt;
+	kString *msg   = sfp[1].s;
+	SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s", S_text(msg));
+	RETURN_(K_NULLEXPR);
+}
+
 // --------------------------------------------------------------------------
 // AST Method
 
 //static ksyntax_t* get_syntax(CTX, kKonohaSpace *ks, kString *key)
 //{
 //	USING_SUGAR;
-//	synid_t kw = KW_s(key);
+//	symbol_t kw = KW_s(key);
 //	if(kw == SYM_NONAME) {
 //		kreportf(CRIT_, "undefined keyword: %s", S_text(key));
 //	}
@@ -227,7 +238,7 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	USING_SUGAR;
 	int FN_buildid = FN_("buildid"), FN_key = FN_("key"), FN_defval = FN_("defval");
 	int FN_typeid = FN_("typeid"), FN_gma = FN_("gma"), FN_pol = FN_("pol");
-	int FN_func = FN_("func");
+	int FN_func = FN_("func"), FN_msg = FN_("msg");
 //	int FN_tls = FN_("tokens"), FN_s = FN_("s"), FN_e = FN_("e");
 	/* Func[Int, Stmt, Int, Token[], Int, Int] */
 	kparam_t P_FuncPatternMatch[] = {{TY_Stmt}, {TY_Int}, {TY_TokenArray}, {TY_Int}, {TY_Int}};
@@ -259,6 +270,8 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public, _F(KonohaSpace_addStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
 		_Public, _F(KonohaSpace_addExprTyCheck), TY_void, TY_KonohaSpace, MN_("addExprTyCheck"), 2, TY_String, FN_key, TY_FuncExprTyCheck, FN_func,
 
+		_Public, _F(Stmt_printError), TY_Expr, TY_Stmt, MN_("printError"), 1, TY_String, FN_msg,
+
 		_Public, _F(Stmt_newExpr), TY_Expr, TY_Stmt, MN_("newExpr"), 1, TY_String, FN_key,
 //		_Public, _F(Stmt_parsedExpr), TY_Expr, TY_Stmt, MN_("parseExpr"), 3, TY_TokenArray, FN_tls, TY_Int, FN_s, TY_Int, FN_e,
 		DEND,
@@ -289,14 +302,14 @@ static struct _ksyntax *toks_syntax(CTX, kKonohaSpace *ks, kArray *tls)
 	int s = 0, e = kArray_size(tls);
 	if(s < e) {
 		if(tls->toks[s]->tt == TK_TEXT) {
-			synid_t kw;
+			ksymbol_t kw;
 			if(isSubKeyword(_ctx, tls, s, e)) {
 				char buf[256];
 				snprintf(buf, sizeof(buf), "%s %s", S_text(tls->toks[s]->text), S_text(tls->toks[s+1]->text));
-				kw = SUGAR keyword(_ctx, (const char*)buf, strlen(buf), SYM_NEWID);
+				kw = ksymbolA((const char*)buf, strlen(buf), SYM_NEWID);
 			}
 			else {
-				kw = SUGAR keyword(_ctx, S_text(tls->toks[s]->text), S_size(tls->toks[s]->text), SYM_NEWID);
+				kw = ksymbolA(S_text(tls->toks[s]->text), S_size(tls->toks[s]->text), SYM_NEWID);
 			}
 			return (struct _ksyntax*)NEWSYN_(ks, kw);
 		}

@@ -322,7 +322,9 @@ typedef kushort_t       kparamid_t;
 
 #define SYM_NONAME          ((ksymbol_t)-1)
 #define SYM_NEWID           ((ksymbol_t)-2)
+#define SYM_NEWRAW          ((ksymbol_t)-3)
 #define _NEWID              SYM_NEWID
+#define _NEWRAW             SYM_NEWRAW
 
 #define SYMKEY_BOXED            KFLAG_H3
 #define SYMKEY_unbox(sym)       (sym & ~(SYMKEY_BOXED))

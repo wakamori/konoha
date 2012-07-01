@@ -340,31 +340,33 @@ static ksymbol_t Ksymbol2(CTX, const char *name, size_t len, int spol, ksymbol_t
 {
 	ksymbol_t mask = 0;
 	int ch0 = name[0], ch1 = name[1];
-	if(ch1 == 'e' && name[2] == 't') {
-		if(ch0 == 'g'/* || ch0 == 'G'*/) {
-			len -= 3; name += 3;
-			mask = MN_GETTER;
+	if(def != SYM_NEWRAW) {
+		if(ch1 == 'e' && name[2] == 't') {
+			if(ch0 == 'g'/* || ch0 == 'G'*/) {
+				len -= 3; name += 3;
+				mask = MN_GETTER;
+			}
+			else if(ch0 == 's'/* || ch0 == 'S'*/) {
+				len -= 3; name += 3;
+				mask = MN_SETTER;
+			}
 		}
-		else if(ch0 == 's'/* || ch0 == 'S'*/) {
-			len -= 3; name += 3;
-			mask = MN_SETTER;
+		else if(ch1 == 's' && (ch0 == 'i'/* || ch0 == 'I'*/)) {
+			len -= 2; name += 2;
+			mask = MN_ISBOOL;
 		}
-	}
-	else if(ch1 == 's' && (ch0 == 'i'/* || ch0 == 'I'*/)) {
-		len -= 2; name += 2;
-		mask = MN_ISBOOL;
-	}
-	else if(ch1 == 'o' && (ch0 == 't'/* || ch0 == 'T'*/)) {
-		len -= 2; name += 2;
-		mask = MN_TOCID;
-	}
-	else if(ch0 == '@') {
-		len -= 1; name += 1;
-		mask = MN_Annotation;
-	}
-	else if(ch0 == '$') {
-		len -= 1; name += 1;
-		mask = KW_PATTERN; // Pattern
+		else if(ch1 == 'o' && (ch0 == 't'/* || ch0 == 'T'*/)) {
+			len -= 2; name += 2;
+			mask = MN_TOCID;
+		}
+		else if(ch0 == '@') {
+			len -= 1; name += 1;
+			mask = MN_Annotation;
+		}
+		else if(ch0 == '$') {
+			len -= 1; name += 1;
+			mask = KW_PATTERN; // Pattern
+		}
 	}
 	uintptr_t hcode = strhash(name, len);
 	ksymbol_t sym = Kmap_getcode(_ctx, _ctx->share->symbolMapNN, _ctx->share->symbolList, name, len, hcode, spol | SPOL_ASCII, def);
