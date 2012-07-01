@@ -421,12 +421,6 @@ static KMETHOD Stmt_getUline(CTX, ksfp_t *sfp _RIX)
 	kStmt *stmt = (kStmt*) sfp[0].o;
 	RETURNi_(stmt->uline);
 }
-//## int Stmt.getBuild();
-static KMETHOD Stmt_getBuild(CTX, ksfp_t *sfp _RIX)
-{
-	kStmt *stmt = (kStmt*) sfp[0].o;
-	RETURNi_(stmt->build);
-}
 //## boolean Stmt.hasSyntax();
 static KMETHOD Stmt_hasSyntax(CTX, ksfp_t *sfp _RIX)
 {
@@ -787,7 +781,6 @@ static kbool_t ijit_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 		_Public, _F(Block_getBlocks), TY_Array, TY_Block, MN_("getBlocks"), 0,
 		_Public, _F(Array_getSize), TY_Int, TY_Array, MN_("getSize"), 0,
 		_Public, _F(Stmt_getUline), TY_Int, TY_Stmt,  MN_("getUline"), 0,
-		_Public, _F(Stmt_getBuild),  TY_Int, TY_Stmt,  MN_("getBuild"), 0,
 		_Public, _F(Stmt_hasSyntax), TY_Boolean, TY_Stmt,  MN_("hasSyntax"), 0,
 		_Public, _F(Stmt_getObjectNULL), TY_O, TY_Stmt, MN_("getObjectNULL"), 1, TY_Int, FN_x,
 		_Public, _F(System_addConstPool), TY_void, TY_System, MN_("addConstPool"), 1, TY_O, FN_x,

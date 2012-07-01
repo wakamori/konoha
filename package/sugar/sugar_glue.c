@@ -22,9 +22,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ***************************************************************************/
 
-#include<stdio.h>
-#include<konoha2/konoha2.h>
-#include<konoha2/sugar.h>
+#include <konoha2/konoha2.h>
+#include <konoha2/sugar.h>
+#include <stdio.h>
 
 //## boolean Token.isTypeName();
 static KMETHOD Token_isTypeName(CTX, ksfp_t *sfp _RIX)
@@ -38,10 +38,17 @@ static KMETHOD Token_isParenthesis(CTX, ksfp_t *sfp _RIX)
 	RETURNb_(sfp[0].tk->tt == AST_PARENTHESIS);
 }
 
+//## int Stmt.getBuild();
+static KMETHOD Stmt_getBuild(CTX, ksfp_t *sfp _RIX)
+{
+	RETURNi_(sfp[0].stmt->build);
+}
+
 //## void Stmt.setBuild(int buildid);
 static KMETHOD Stmt_setBuild(CTX, ksfp_t *sfp _RIX)
 {
-	//sfp[0].stmt->build = sfp[1].ivalue;
+	struct _kStmt *stmt = (struct _kStmt *) sfp[0].stmt;
+	stmt->build = sfp[1].ivalue;
 }
 
 //## Block Stmt.getBlock(String key, Block def);
@@ -69,7 +76,7 @@ static KMETHOD Block_tyCheckAll(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
-//## void KonohaSpace.addPatternMatch(String keyword, String name);
+//## void KonohaSpace.addPatternMatch(String keyword, Func f);
 static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
@@ -77,7 +84,7 @@ static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_PatternMatch, sfp[2].fo);
 }
 
-//## void KonohaSpace.addParseExpr(String keyword, String name);
+//## void KonohaSpace.addParseExpr(String keyword, Func f);
 static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
@@ -85,7 +92,7 @@ static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_ParseExpr, sfp[2].fo);
 }
 
-//## void KonohaSpace.addStmtTyCheck(String keyword, String name);
+//## void KonohaSpace.addStmtTyCheck(String keyword, Func f);
 static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
@@ -94,7 +101,7 @@ static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 }
 
 
-//## void KonohaSpace.addTopStmtTyCheck(String keyword, String name);
+//## void KonohaSpace.addTopStmtTyCheck(String keyword, Func f);
 static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
@@ -222,12 +229,16 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 	int FN_typeid = FN_("typeid"), FN_gma = FN_("gma"), FN_pol = FN_("pol");
 	int FN_func = FN_("func");
 //	int FN_tls = FN_("tokens"), FN_s = FN_("s"), FN_e = FN_("e");
+	/* Func[Int, Stmt, Int, Token[], Int, Int] */
 	kparam_t P_FuncPatternMatch[] = {{TY_Stmt}, {TY_Int}, {TY_TokenArray}, {TY_Int}, {TY_Int}};
 	int TY_FuncPatternMatch = (kClassTable_Generics(CT_Func, TY_Int, 5, P_FuncPatternMatch))->cid;
+	/* Func[Expr, Stmt, Token[], Int, Int, Int] */
 	kparam_t P_FuncParseExpr[] = {{TY_Stmt}, {TY_TokenArray}, {TY_Int}, {TY_Int}, {TY_Int}};
 	int TY_FuncParseExpr = (kClassTable_Generics(CT_Func, TY_Expr, 5, P_FuncParseExpr))->cid;
+	/* Func[Boolean, Stmt, Gamma] */
 	kparam_t P_FuncStmtTyCheck[] = {{TY_Stmt}, {TY_Gamma}};
 	int TY_FuncStmtTyCheck = (kClassTable_Generics(CT_Func, TY_Boolean, 2, P_FuncStmtTyCheck))->cid;
+	/* Func[Expr, Stmt, Expr, Gamma, Int] */
 	kparam_t P_FuncExprTyCheck[] = {{TY_Stmt}, {TY_Expr}, {TY_Gamma}, {TY_Int}};
 	int TY_FuncExprTyCheck = (kClassTable_Generics(CT_Func, TY_Expr, 4, P_FuncExprTyCheck))->cid;
 	//DBG_P("func=%s", TY_t(TY_FuncExprTyCheck));
@@ -236,6 +247,7 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public, _F(Token_isTypeName), TY_Boolean, TY_Token, MN_("isTypeName"), 0,
 		_Public, _F(Token_isParenthesis), TY_Boolean, TY_Token, MN_("isParenthesis"), 0,
 
+		_Public, _F(Stmt_getBuild), TY_Int, TY_Stmt,  MN_("getBuild"), 0,
 		_Public, _F(Stmt_setBuild), TY_void, TY_Stmt, MN_("setBuild"), 1, TY_Int, FN_buildid,
 		_Public, _F(Stmt_getBlock), TY_Block, TY_Stmt, MN_("getBlock"), 2, TY_String, FN_key, TY_Object, FN_defval,
 		_Public, _F(Stmt_tyCheckExpr), TY_Boolean, TY_Stmt, MN_("tyCheckExpr"), 4, TY_String, FN_key, TY_Gamma, FN_gma, TY_Int, FN_typeid, TY_Int, FN_pol,
