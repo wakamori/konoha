@@ -334,7 +334,7 @@ static int PatternMatch(CTX, ksyntax_t *syn, kStmt *stmt, ksymbol_t name, kArray
 	if(IS_Array(fo)) {
 		int i;
 		kArray *a = (kArray*)fo;
-		for(i = kArray_size(a) - 1; i > 0; i++) {
+		for(i = kArray_size(a) - 1; i > 0; i--) {
 			next = PatternMatchFunc(_ctx, fo, stmt, name, tls, s, e);
 			if(kStmt_isERR(stmt)) return -1;
 			if(next > s) return next;
@@ -542,7 +542,7 @@ static kExpr *ParseExpr(CTX, ksyntax_t *syn, kStmt *stmt, kArray *tls, int s, in
 	if(IS_Array(fo)) {
 		int i;
 		kArray *a = (kArray*)fo;
-		for(i = kArray_size(a) - 1; i > 0; i++) {
+		for(i = kArray_size(a) - 1; i > 0; i--) {
 			texpr = ParseExprFunc(_ctx, syn, fo, stmt, tls, s, c, e);
 			if(kStmt_isERR(stmt)) return K_NULLEXPR;
 			if(texpr != K_NULLEXPR) return texpr;
