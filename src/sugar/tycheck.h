@@ -92,7 +92,7 @@ static kExpr *ExprTyCheck(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, int reqty)
 	if(IS_Array(fo)) {
 		int i;
 		kArray *a = (kArray*)fo;
-		for(i = kArray_size(a) - 1; i > 0; i++) {
+		for(i = kArray_size(a) - 1; i > 0; i--) {
 			texpr = ExprTyCheckFunc(_ctx, a->funcs[i], stmt, expr, gma, reqty);
 			if(kStmt_isERR(stmt)) return K_NULLEXPR;
 			if(texpr->ty != TY_var) return texpr;
@@ -830,7 +830,7 @@ static kbool_t Stmt_TyCheck(CTX, ksyntax_t *syn, kStmt *stmt, kGamma *gma)
 	if(IS_Array(fo)) { // @Future
 		int i;
 		kArray *a = (kArray*)fo;
-		for(i = kArray_size(a) - 1; i > 0; i++) {
+		for(i = kArray_size(a) - 1; i > 0; i--) {
 			result = Stmt_TyCheckFunc(_ctx, a->funcs[i], stmt, gma);
 			if(stmt->syn == NULL) return true;
 			if(stmt->build != TSTMT_UNDEFINED) return result;
