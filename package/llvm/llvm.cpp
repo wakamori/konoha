@@ -5057,6 +5057,7 @@ static kbool_t llvm_initPackage(CTX, kKonohaSpace *ks, int argc, const char **ar
 		_Public, _F(Method_setFunction), TY_void, TY_Method, MN_("setFunction"), 1, TY_NativeFunction, FN_("nf"),
 		_Public|_Static, _F(ConstantInt_get),         TY_Constant, TY_ConstantInt, MN_("getValue"), 2, TY_Type, FN_("type"),TY_Int, FN_("v"),
 		_Public|_Static, _F(ConstantFP_get),          TY_Constant, TY_ConstantFP, MN_("getValue"), 2, TY_Type, FN_("type"),TY_Float, FN_("v"),
+		_Public|_Static, _F(ConstantFP_get),          TY_Constant, TY_ConstantFP, MN_("getValueFromBits"), 2, TY_Type, FN_("type"),TY_Int, FN_("v"),
 		_Public|_Static, _F(ConstantPointerNull_get), TY_Constant, TY_ConstantPointerNull, MN_("getValue"), 1, TY_Type, FN_("type"),
 		_Public|_Static, _F(ConstantStruct_get),      TY_Constant, TY_ConstantStruct, MN_("getValue"), 2, TY_Type, FN_("type"),TY_Array_Constant, FN_("v"),
 		_Public|_Static, _F(DynamicLibrary_loadLibraryPermanently),   TY_Boolean, TY_DynamicLibrary, MN_("loadLibraryPermanently"), 1, TY_String, FN_("libname"),
