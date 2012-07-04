@@ -155,12 +155,15 @@ static KMETHOD Request_getMethod(CTX, ksfp_t *sfp _RIX)
 	kRequest *self = (kRequest *) sfp[0].o;
 	RETURN_(new_kString(self->r->method, strlen(self->r->method), 0));
 }
+// ## String Request.getArgs();
+static KMETHOD Request_getArgs(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->args, strlen(self->r->args), 0));
+}
 
 // /* getter */
-// // r->method
-// String Request.getMethod();
 // // r->args
-// String Request.getArgs();
 // // r->uri
 // String Request.getUri();
 // // r->path_info
@@ -195,6 +198,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 	intptr_t MethodData[] = {
 		_P, _F(Request_puts), TY_void, TY_R, MN_("puts"), 1, TY_String, FN_x,
 		_P, _F(Request_getMethod), TY_String, TY_R, MN_("getMethod"), 0,
+		_P, _F(Request_getArgs), TY_String, TY_R, MN_("getArgs"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
