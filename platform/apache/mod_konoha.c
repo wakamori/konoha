@@ -161,13 +161,20 @@ static KMETHOD Request_getArgs(CTX, ksfp_t *sfp _RIX)
 	kRequest *self = (kRequest *) sfp[0].o;
 	RETURN_(new_kString(self->r->args, strlen(self->r->args), 0));
 }
+// ## String Request.getUri();
+static KMETHOD Request_getUri(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->uri, strlen(self->r->uri), 0));
+}
+// ## String Request.getPathInfo();
+static KMETHOD Request_getPathInfo(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->path_info, strlen(self->r->path_info), 0));
+}
 
 // /* getter */
-// // r->args
-// // r->uri
-// String Request.getUri();
-// // r->path_info
-// String Request.getPathInfo();
 // //// r->headers_in
 // // AprTable Request.getHeadersIn();
 // //// r->headers_out
@@ -199,6 +206,8 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_puts), TY_void, TY_R, MN_("puts"), 1, TY_String, FN_x,
 		_P, _F(Request_getMethod), TY_String, TY_R, MN_("getMethod"), 0,
 		_P, _F(Request_getArgs), TY_String, TY_R, MN_("getArgs"), 0,
+		_P, _F(Request_getUri), TY_String, TY_R, MN_("getUri"), 0,
+		_P, _F(Request_getPathInfo), TY_String, TY_R, MN_("getPathInfo"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
