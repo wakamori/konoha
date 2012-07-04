@@ -195,16 +195,23 @@ static KMETHOD Request_setContentEncoding(CTX, ksfp_t *sfp _RIX)
 	self->r->content_encoding = apr_pstrdup(self->r->pool, S_text(enc));
 	RETURNvoid_();
 }
+// ## void Request.logRerror(int level, int status, String msg);
+static KMETHOD Request_logError(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	int level = sfp[1].ivalue;
+	apr_status_t status = (apr_status_t)sfp[2].ivalue;
+	const char *msg = S_text(sfp[3].s);
+	ap_log_rerror(APLOG_MARK, level, status, self->r, msg);
+	RETURNvoid_();
+}
 
 // /* getter */
 // //// r->headers_in
 // // AprTable Request.getHeadersIn();
 // //// r->headers_out
 // // AprTable Request.getHeadersOut();
-// /* setter */
 // /* method */
-// // ap_log_rerror
-// // void Request.logRerror(int level, int status, String msg);
 // class Request end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
@@ -227,6 +234,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_getHandler), TY_String, TY_R, MN_("getHandler"), 0,
 		_P, _F(Request_setContentType), TY_void, TY_R, MN_("setContentType"), 1, TY_String, FN_("type"),
 		_P, _F(Request_setContentEncoding), TY_void, TY_R, MN_("setContentEncoding"), 1, TY_String, FN_("enc"),
+		_P, _F(Request_logError), TY_void, TY_R, MN_("logError"), 3, TY_Int, FN_("level"), TY_Int, FN_("status"), TY_String, FN_("msg"),
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
