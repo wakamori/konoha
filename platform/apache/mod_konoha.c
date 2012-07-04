@@ -179,18 +179,24 @@ static KMETHOD Request_getHandler(CTX, ksfp_t *sfp _RIX)
 	kRequest *self = (kRequest *) sfp[0].o;
 	RETURN_(new_kString(self->r->handler, strlen(self->r->handler), 0));
 }
+// ## void Request.setContentType(String type);
+static KMETHOD Request_setContentType(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	kString *type = sfp[1].s;
+	self->r->content_type = apr_pstrdup(self->r->pool, S_text(type));
+	RETURNvoid_();
+}
 
 // /* getter */
 // //// r->headers_in
 // // AprTable Request.getHeadersIn();
 // //// r->headers_out
 // // AprTable Request.getHeadersOut();
-// // r->handler
 // /* setter */
 // // r->content_encoding
 // void Request.setContentEncoding(String enc);
 // // r->content_type
-// void Request.setContentType(String type);
 // /* method */
 // // ap_log_rerror
 // // void Request.logRerror(int level, int status, String msg);
@@ -214,6 +220,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_getUri), TY_String, TY_R, MN_("getUri"), 0,
 		_P, _F(Request_getPathInfo), TY_String, TY_R, MN_("getPathInfo"), 0,
 		_P, _F(Request_getHandler), TY_String, TY_R, MN_("getHandler"), 0,
+		_P, _F(Request_setContentType), TY_void, TY_R, MN_("setContentType"), 1, TY_String, FN_("type"),
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
