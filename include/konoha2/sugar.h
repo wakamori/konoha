@@ -211,7 +211,7 @@ typedef enum {
 	TK_FLOAT,         // KW_FloatPattern
 	TK_TYPE,          // KW_TypePattern
 	AST_PARENTHESIS,  // KW_ParenthesisPattern
-	AST_BRACKET,      // KW_Brancet
+	AST_BRACKET,      // KW_Bracket
 	AST_BRACE,        // KW_BracePattern
 
 	TK_OPERATOR,
