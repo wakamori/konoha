@@ -139,6 +139,8 @@ static const kplatform_t apache_platform = {
 	.dbg_p       = dbg_p,
 };
 
+// class Request start ==============================================================================================
+// ## void Request.puts(String s)
 static KMETHOD Request_puts(CTX, ksfp_t *sfp _RIX)
 {
 	kRequest *self = (kRequest *) sfp[0].o;
@@ -147,6 +149,37 @@ static KMETHOD Request_puts(CTX, ksfp_t *sfp _RIX)
 	RETURNvoid_();
 }
 
+// ## String Request.getMethod()
+static KMETHOD Request_getMethod(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->method, strlen(self->r->method), 0));
+}
+
+// /* getter */
+// // r->method
+// String Request.getMethod();
+// // r->args
+// String Request.getArgs();
+// // r->uri
+// String Request.getUri();
+// // r->path_info
+// String Request.getPathInfo();
+// //// r->headers_in
+// // AprTable Request.getHeadersIn();
+// //// r->headers_out
+// // AprTable Request.getHeadersOut();
+// // r->handler
+// String Request.getHandler();
+// /* setter */
+// // r->content_encoding
+// void Request.setContentEncoding(String enc);
+// // r->content_type
+// void Request.setContentType(String type);
+// /* method */
+// // ap_log_rerror
+// // void Request.logRerror(int level, int status, String msg);
+// class Request end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
 {
@@ -161,6 +194,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
 		_P, _F(Request_puts), TY_void, TY_R, MN_("puts"), 1, TY_String, FN_x,
+		_P, _F(Request_getMethod), TY_String, TY_R, MN_("getMethod"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
