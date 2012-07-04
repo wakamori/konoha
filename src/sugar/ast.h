@@ -89,7 +89,8 @@ static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _
 				psize++;
 				continue;
 			}
-			if(tkT->topch == ',') continue;
+			int topch = kToken_topch(tkT);
+			if(topch == ',') continue;
 			return NULL; // new int[10];  // not generics
 		}
 		kclass_t *ct = NULL;
@@ -148,7 +149,8 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 		kArray_add(dst, tk);
 		while(next + 1 < e) {
 			kToken *tkB = tls->toks[next + 1];
-			if(tkB->topch != '[') break;
+			int topch = kToken_topch(tkB);
+			if(topch != '[') break;
 			kArray *abuf = ctxsugar->tokens;
 			size_t atop = kArray_size(abuf);
 			next = makeTree(_ctx, ks, AST_BRACKET, tls,  next+1, e, ']', abuf, tkERR);
@@ -178,7 +180,7 @@ static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kKonohaSpace *ks)
 		kArray *a = new_(TokenArray, 0);
 		PUSH_GCSTACK(a);
 		KonohaSpace_tokenize(_ctx, ks, S_text(tk->text), tk->uline, a);
-		tk->tt = AST_BRACE; tk->topch = '{'; tk->closech = '}';
+		tk->tt = AST_BRACE;
 		KSETv(tk->sub, a);
 		RESET_GCSTACK();
 		return 1;
@@ -193,7 +195,7 @@ static int makeTree(CTX, kKonohaSpace *ks, ktoken_t tt, kArray *tls, int s, int 
 	DBG_ASSERT(tk->kw == 0);
 	struct _kToken *tkP = new_W(Token, 0);
 	kArray_add(tlsdst, tkP);
-	tkP->tt = tt; tkP->kw = (tt | KW_PATTERN); tkP->uline = tk->uline; tkP->topch = tk->topch; tkP->closech = closech;
+	tkP->tt = tt; tkP->kw = (tt | KW_PATTERN); tkP->uline = tk->uline;
 	KSETv(tkP->sub, new_(TokenArray, 0));
 	for(i = s + 1; i < e; i++) {
 		tk = tls->toks[i];
@@ -202,16 +204,17 @@ static int makeTree(CTX, kKonohaSpace *ks, ktoken_t tt, kArray *tls, int s, int 
 			continue;
 		}
 		if(tk->tt == TK_ERR) break;  // ERR
-		DBG_ASSERT(tk->topch != '{');
-		if(tk->topch == '(') {
+		int topch = kToken_topch(tk);
+		DBG_ASSERT(topch != '{');
+		if(topch == '(') {
 			i = makeTree(_ctx, ks, AST_PARENTHESIS, tls, i, e, ')', tkP->sub, tkERRRef);
 			continue;
 		}
-		if(tk->topch == '[') {
+		if(topch == '[') {
 			i = makeTree(_ctx, ks, AST_BRACKET, tls, i, e, ']', tkP->sub, tkERRRef);
 			continue;
 		}
-		if(tk->topch == closech) {
+		if(topch == closech) {
 			return i;
 		}
 		if((closech == ')' || closech == ']') && tk->tt == TK_CODE) probablyCloseBefore = i;
@@ -237,10 +240,13 @@ static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s
 		kToken *tk = tls->toks[i];
 		struct _kToken *tk1 = tls->Wtoks[i+1];
 		if(tk->kw > 0) break;  // already parsed
-		if(tk->topch == '@' && (tk1->tt == TK_SYMBOL || tk1->tt == TK_USYMBOL)) {
+		int topch = kToken_topch(tk);
+		if(topch == '@' && (tk1->tt == TK_SYMBOL || tk1->tt == TK_USYMBOL)) {
 			tk1->tt = TK_METANAME;  tk1->kw = 0;
 			kArray_add(tlsdst, tk1); i++;
-			if(i + 1 < e && tls->toks[i+1]->topch == '(') {
+			tk1 = tls->Wtoks[i+1];
+			topch = kToken_topch(tk1);
+			if(i + 1 < e && topch == '(') {
 				i = makeTree(_ctx, ks, AST_PARENTHESIS, tls, i+1, e, ')', tlsdst, tkERRRef);
 			}
 			continue;
@@ -258,18 +264,19 @@ static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s
 	}
 	for(; i < e ; i++) {
 		kToken *tk = tls->toks[i];
-		if(tk->topch == delim && tk->tt == TK_OPERATOR) {
+		int topch = kToken_topch(tk);
+		if(topch == delim && tk->tt == TK_OPERATOR) {
 			return i+1;
 		}
 		if(tk->kw > 0) {
 			kArray_add(tlsdst, tk);
 			continue;
 		}
-		else if(tk->topch == '(') {
+		else if(topch == '(') {
 			i = makeTree(_ctx, ks, AST_PARENTHESIS, tls,  i, e, ')', tlsdst, tkERRRef);
 			continue;
 		}
-		else if(tk->topch == '[') {
+		else if(topch == '[') {
 			i = makeTree(_ctx, ks, AST_BRACKET, tls, i, e, ']', tlsdst, tkERRRef);
 			continue;
 		}
@@ -411,14 +418,14 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kline_t /*parent*/ul
 			continue;
 		}
 		else if(rule->tt == AST_PARENTHESIS || rule->tt == AST_BRACE || rule->tt == AST_BRACKET) {
-			if(tk->tt == rule->tt && rule->topch == tk->topch) {
+			if(tk->tt == rule->tt /* FIXME: && rule->topch == tk->topch*/ ) {
 				int next = matchSyntaxRule(_ctx, stmt, rule->sub, uline, tk->sub, 0, kArray_size(tk->sub), 0);
 				if(next == -1) return -1;
 				ti++;
 			}
 			else {
 				if(optional) return s;
-				kToken_p(stmt, tk, ERR_, "%s%s needs '%c'", T_statement(stmt->syn->kw), rule->topch);
+				kToken_p(stmt, tk, ERR_, "%s%s needs '%c'", T_statement(stmt->syn->kw), kToken_topch(rule));
 				return -1;
 			}
 		}

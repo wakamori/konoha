@@ -128,7 +128,6 @@ static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc 
 		const char *s = tenv->source + tok_start;
 		KSETv(tk->text, new_kString(s, 1, SPOL_ASCII|SPOL_POOL));
 		tk->tt = TK_OPERATOR;
-		tk->topch = s[0];
 	}
 	return tok_start+1;
 }
@@ -151,9 +150,6 @@ static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *
 		const char *s = tenv->source + tok_start;
 		KSETv(tk->text, new_kString(s, (pos-1)-tok_start, SPOL_ASCII|SPOL_POOL));
 		tk->tt = TK_OPERATOR;
-		if(S_size(tk->text) == 1) {
-			tk->topch = S_text(tk->text)[0];
-		}
 	}
 	return pos-1;
 }
@@ -501,7 +497,6 @@ static kbool_t checkNestedSyntax(CTX, kArray *tls, int *s, int e, ktoken_t tt, i
 		int ne = findTopCh(_ctx, tls, i+1, e, tk->tt, closech);
 		tk->tt = tt; tk->kw = tt;
 		KSETv(tk->sub, new_(TokenArray, 0));
-		tk->topch = opench; tk->closech = closech;
 		makeSyntaxRule(_ctx, tls, i+1, ne, tk->sub);
 		*s = ne;
 		return 1;
@@ -530,7 +525,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			continue;
 		}
 		if(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL) {
-			if(i > 0 && tls->toks[i-1]->topch == '$') {
+			if(i > 0 && kToken_topch(tls->toks[i-1]) == '$') {
 				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW) | KW_PATTERN;
 				tk->tt = TK_METANAME;
 				if(nameid == 0) nameid = tk->kw;
@@ -538,7 +533,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 				nameid = 0;
 				kArray_add(adst, tk); continue;
 			}
-			if(i + 1 < e && tls->toks[i+1]->topch == ':') {
+			if(i + 1 < e && kToken_topch(tls->toks[i+1]) == ':') {
 				kToken *tk = tls->toks[i];
 				nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
 				i++;
@@ -550,7 +545,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 				kArray_add(adst, tk);
 				continue;
 			}
-			if(tls->toks[i]->topch == '$') continue;
+			if(kToken_topch(tls->toks[i]) == '$') continue;
 		}
 		Token_pERR(_ctx, tk, "illegal sugar syntax: %s", kToken_s(tk));
 		return false;

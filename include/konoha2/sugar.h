@@ -236,16 +236,16 @@ struct _kToken {
 	kline_t     uline;
 	union {
 		kushort_t indent;   // indent
-		kshort_t  closech;  // ast
 		ksymbol_t nameid;   // sugar rule    in sugar
 		kshort_t  mn_type;  // method type   if tt == TK_MN
 	};
 	union {
-		kshort_t   topch;
 		ktype_t    ty;       // if kw == KW_TypePattern
 		kmethodn_t mn;	     // if tt == TK_MN
 	};
 };
+
+#define kToken_topch(tk) ((S_size(tk->text) == 1) ? S_text(tk->text)[0] : 0)
 
 typedef enum {
 	MNTYPE_method, MNTYPE_unary, MNTYPE_binary

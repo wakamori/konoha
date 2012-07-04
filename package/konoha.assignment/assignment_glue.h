@@ -76,10 +76,9 @@ static KMETHOD StmtTyCheck_DefaultAssignment(CTX, ksfp_t *sfp _RIX)
 {
 }
 
-#define setToken(tk, str, size, t, c, k) {\
+#define setToken(tk, str, size, t, k) {\
 		KSETv(tk->text, new_kString(str, size, 0));\
 		tk->tt = t;\
-		tk->topch = c;\
 		tk->kw = k;\
 	}
 
@@ -93,7 +92,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 	while (i < c) {
 		tkNew = new_W(Token, 0);
 		tmp = tls->toks[i];
-		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->topch, tmp->kw);
+		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->kw);
 		kArray_add(tls, tkNew);
 		i++;
 	}
@@ -109,10 +108,10 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 		newopr[j] = opr[j];
 	}
 	newopr[osize-1] = '\0';
-	setToken(tkNewOp, newopr, osize, tmp->tt, tmp->topch, SYM_(newopr));
+	setToken(tkNewOp, newopr, osize, tmp->tt, SYM_(newopr));
 
 	tkNew = new_W(Token, 0);
-	setToken(tkNew, "=", 1, TK_OPERATOR, '=', KW_LET);
+	setToken(tkNew, "=", 1, TK_OPERATOR, KW_LET);
 	kArray_add(tls, tkNew);
 	newc = kArray_size(tls)-1;
 
@@ -128,7 +127,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 	while (i < newc) {
 		tkNew = new_W(Token, 0);
 		tmp = tls->toks[i];
-		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->topch, tmp->kw);
+		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->kw);
 		kArray_add(newtk->sub, tkNew);
 		i++;
 	}
@@ -141,7 +140,7 @@ static int transform_oprAssignment(CTX, kArray* tls, int s, int c, int e)
 	while (i < news) {
 		tkNew = new_W(Token, 0);
 		tmp = tls->toks[i];
-		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->topch, tmp->kw);
+		setToken(tkNew, S_text(tmp->text), S_size(tmp->text), tmp->tt, tmp->kw);
 		kArray_add(tls, tkNew);
 		i++;
 	}

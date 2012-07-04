@@ -561,7 +561,6 @@ static void Token_init(CTX, kObject *o, void *conf)
 	tk->uline     =   0;
 	tk->tt        =   (ktoken_t)conf;
 	tk->kw        =   0;
-	tk->topch     =   0;
 	KINITv(tk->text, TS_EMPTY);
 }
 
@@ -623,6 +622,26 @@ static void dumpIndent(CTX, int nest)
 	}
 }
 
+static int kTokenList_beginChar(kToken *tk)
+{
+	switch(tk->tt) {
+	case AST_PARENTHESIS: return '(';
+	case AST_BRACE: return '{';
+	case AST_BRACKET: return '[';
+	}
+	return '<';
+}
+
+static int kTokenList_endChar(kToken *tk)
+{
+	switch(tk->tt) {
+	case AST_PARENTHESIS: return ')';
+	case AST_BRACE: return '}';
+	case AST_BRACKET: return ']';
+	}
+	return '>';
+}
+
 static void dumpTokenArray(CTX, int nest, kArray *a, int s, int e)
 {
 	if(verbose_sugar) {
@@ -631,10 +650,10 @@ static void dumpTokenArray(CTX, int nest, kArray *a, int s, int e)
 			kToken *tk = a->toks[s];
 			dumpIndent(_ctx, nest);
 			if(IS_Array(tk->sub)) {
-				DUMP_P("%c\n", tk->topch);
+				DUMP_P("%c\n", kTokenList_beginChar(tk));
 				dumpTokenArray(_ctx, nest+1, tk->sub, 0, kArray_size(tk->sub));
 				dumpIndent(_ctx, nest);
-				DUMP_P("%c\n", tk->closech);
+				DUMP_P("%c\n", kTokenList_endChar(tk));
 			}
 			else {
 				DUMP_P("TK(%d) ", s);

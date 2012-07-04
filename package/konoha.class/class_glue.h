@@ -313,8 +313,9 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 		const char *cname = S_text(tkC->text);
 		for(i = atop; i < s; i++) {
 			kToken *tk = a->toks[i];
+			int topch = kToken_topch(tk);
 			DBG_P("cname='%s'", cname);
-			if(tk->topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
+			if(topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
 				tkNEW->tt = TK_SYMBOL;
 				KSETv(tkNEW->text, SYM_s(MN_new));
