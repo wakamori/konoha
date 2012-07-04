@@ -173,6 +173,12 @@ static KMETHOD Request_getPathInfo(CTX, ksfp_t *sfp _RIX)
 	kRequest *self = (kRequest *) sfp[0].o;
 	RETURN_(new_kString(self->r->path_info, strlen(self->r->path_info), 0));
 }
+// ## String Request.getHandler();
+static KMETHOD Request_getHandler(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->handler, strlen(self->r->handler), 0));
+}
 
 // /* getter */
 // //// r->headers_in
@@ -180,7 +186,6 @@ static KMETHOD Request_getPathInfo(CTX, ksfp_t *sfp _RIX)
 // //// r->headers_out
 // // AprTable Request.getHeadersOut();
 // // r->handler
-// String Request.getHandler();
 // /* setter */
 // // r->content_encoding
 // void Request.setContentEncoding(String enc);
@@ -208,6 +213,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_getArgs), TY_String, TY_R, MN_("getArgs"), 0,
 		_P, _F(Request_getUri), TY_String, TY_R, MN_("getUri"), 0,
 		_P, _F(Request_getPathInfo), TY_String, TY_R, MN_("getPathInfo"), 0,
+		_P, _F(Request_getHandler), TY_String, TY_R, MN_("getHandler"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
