@@ -562,7 +562,6 @@ static void Token_init(CTX, kObject *o, void *conf)
 	tk->tt        =   (ktoken_t)conf;
 	tk->kw        =   0;
 	tk->topch     =   0;
-	tk->lpos      =   -1;
 	KINITv(tk->text, TS_EMPTY);
 }
 
@@ -608,10 +607,10 @@ static void dumpToken(CTX, kToken *tk)
 {
 	if(verbose_sugar) {
 		if(tk->tt == TK_MN) {
-			DUMP_P("%s %d+%d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, T_mn(tk->mn), kToken_s(tk));
+			DUMP_P("%s %d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, T_mn(tk->mn), kToken_s(tk));
 		}
 		else {
-			DUMP_P("%s %d+%d: kw=%s%s '%s'\n", T_tt(tk->tt), (short)tk->uline, tk->lpos, KW_t(tk->kw), kToken_s(tk));
+			DUMP_P("%s %d: kw=%s%s '%s'\n", T_tt(tk->tt), (short)tk->uline, KW_t(tk->kw), kToken_s(tk));
 		}
 	}
 }

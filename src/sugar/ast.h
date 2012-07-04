@@ -193,7 +193,7 @@ static int makeTree(CTX, kKonohaSpace *ks, ktoken_t tt, kArray *tls, int s, int 
 	DBG_ASSERT(tk->kw == 0);
 	struct _kToken *tkP = new_W(Token, 0);
 	kArray_add(tlsdst, tkP);
-	tkP->tt = tt; tkP->kw = (tt | KW_PATTERN); tkP->uline = tk->uline; tkP->topch = tk->topch; tkP->lpos = closech;
+	tkP->tt = tt; tkP->kw = (tt | KW_PATTERN); tkP->uline = tk->uline; tkP->topch = tk->topch; tkP->closech = closech;
 	KSETv(tkP->sub, new_(TokenArray, 0));
 	for(i = s + 1; i < e; i++) {
 		tk = tls->toks[i];
@@ -254,7 +254,7 @@ static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s
 			continue;
 		}
 		if(tk->tt != TK_INDENT) break;
-		if(*indent == 0) *indent = tk->lpos;
+		if(*indent == 0) *indent = tk->indent;
 	}
 	for(; i < e ; i++) {
 		kToken *tk = tls->toks[i];
@@ -277,7 +277,7 @@ static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s
 			tkERRRef[0] = tk;
 		}
 		if(tk->tt == TK_INDENT) {
-			if(tk->lpos <= *indent) {
+			if(tk->indent <= *indent) {
 				return i+1;
 			}
 			continue;

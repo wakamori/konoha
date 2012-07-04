@@ -30,22 +30,17 @@ extern "C" {
 
 /* ------------------------------------------------------------------------ */
 
-static inline int lpos(tenv_t *tenv, const char *s)
-{
-	return (tenv->bol == NULL) ? -1 : s - tenv->bol;
-}
-
 static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *thunk)
 {
-	int ch, c = 0;
+	int ch, indent = 0;
 	while((ch = tenv->source[pos++]) != 0) {
-		if(ch == '\t') { c += tenv->indent_tab; }
-		else if(ch == ' ') { c += 1; }
+		if(ch == '\t') { indent += tenv->indent_tab; }
+		else if(ch == ' ') { indent += 1; }
 		break;
 	}
 	if(IS_NOTNULL(tk)) {
 		tk->tt = TK_INDENT;
-		tk->lpos = 0;
+		tk->indent = indent;  /* 0 FIXME: Debug/Parser/LineNumber.k (Failed) */
 	}
 	return pos-1;
 }
@@ -392,7 +387,6 @@ static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 {
 	int ch, level = 1, pos = tok_start + 1;
 	const Ftokenizer *fmat = tenv->fmat;
-	tk->lpos += 1;
 	while((ch = kchar(tenv->source, pos)) != 0) {
 		if(ch == _RBR/*}*/) {
 			level--;
@@ -425,14 +419,12 @@ static void tokenize(CTX, tenv_t *tenv)
 	struct _kToken *tk = new_W(Token, 0);
 	assert(tk->tt == 0);
 	tk->uline = tenv->uline;
-	tk->lpos  = lpos(tenv, tenv->source);
 	pos = parseINDENT(_ctx, tk, tenv, pos, NULL);
 	while((ch = kchar(tenv->source, pos)) != 0) {
 		if(tk->tt != 0) {
 			kArray_add(tenv->list, tk);
 			tk = new_W(Token, 0);
 			tk->uline = tenv->uline;
-			tk->lpos  = lpos(tenv, (tenv->source + pos));
 		}
 		int pos2 = fmat[ch](_ctx, tk, tenv, pos, NULL);
 		assert(pos2 > pos);

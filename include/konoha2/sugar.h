@@ -227,14 +227,15 @@ typedef enum {
 typedef const struct _kToken kToken;
 struct _kToken {
 	kObjectHeader h;
-	kushort_t tt;   ksymbol_t kw;
+	kushort_t tt;
+	ksymbol_t kw;
 	union {
 		kString *text;
 		kArray  *sub;
 	};
 	kline_t     uline;
 	union {
-		kushort_t lpos;
+		kushort_t indent;   // indent
 		kshort_t  closech;  // ast
 		ksymbol_t nameid;   // sugar rule    in sugar
 		kshort_t  mn_type;  // method type   if tt == TK_MN
