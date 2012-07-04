@@ -205,13 +205,6 @@ static KMETHOD Request_logError(CTX, ksfp_t *sfp _RIX)
 	ap_log_rerror(APLOG_MARK, level, status, self->r, msg);
 	RETURNvoid_();
 }
-
-// /* getter */
-// //// r->headers_in
-// // AprTable Request.getHeadersIn();
-// //// r->headers_out
-// // AprTable Request.getHeadersOut();
-// /* method */
 // class Request end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
