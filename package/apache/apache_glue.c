@@ -71,6 +71,14 @@ static kbool_t apache_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 	KDEFINE_INT_CONST IntData[] = {
 #define DEFINE_KEYWORD(KW) {#KW, TY_Int, KW}
 		{"APACHE_OK", TY_Int, OK},
+		{"APLOG_EMERG", TY_Int, APLOG_EMERG},
+		{"APLOG_ALERT", TY_Int, APLOG_ALERT},
+		{"APLOG_CRIT", TY_Int, APLOG_CRIT},
+		{"APLOG_ERR", TY_Int, APLOG_ERR},
+		{"APLOG_WARNING", TY_Int, APLOG_WARNING},
+		{"APLOG_NOTICE", TY_Int, APLOG_NOTICE},
+		{"APLOG_INFO", TY_Int, APLOG_INFO},
+		{"APLOG_DEBUG", TY_Int, APLOG_DEBUG},
 		{NULL, 0, 0}
 	};
 	kKonohaSpace_loadConstData(ks, IntData, 0);
