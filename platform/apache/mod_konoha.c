@@ -202,7 +202,7 @@ static KMETHOD Request_logError(CTX, ksfp_t *sfp _RIX)
 	int level = sfp[1].ivalue;
 	apr_status_t status = (apr_status_t)sfp[2].ivalue;
 	const char *msg = S_text(sfp[3].s);
-	ap_log_rerror(APLOG_MARK, level, status, self->r, msg);
+	ap_log_rerror(APLOG_MARK, level, status, self->r, msg, NULL);
 	RETURNvoid_();
 }
 // class Request end ==============================================================================================
@@ -216,18 +216,18 @@ konoha_t konoha_create(kclass_t **cRequest)
 	*cRequest = CT_Request;
 #define _P    kMethod_Public
 #define _F(F) (intptr_t)(F)
-#define TY_R  (CT_Request->cid)
+#define TY_Req  (CT_Request->cid)
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_P, _F(Request_puts), TY_void, TY_R, MN_("puts"), 1, TY_String, FN_x,
-		_P, _F(Request_getMethod), TY_String, TY_R, MN_("getMethod"), 0,
-		_P, _F(Request_getArgs), TY_String, TY_R, MN_("getArgs"), 0,
-		_P, _F(Request_getUri), TY_String, TY_R, MN_("getUri"), 0,
-		_P, _F(Request_getPathInfo), TY_String, TY_R, MN_("getPathInfo"), 0,
-		_P, _F(Request_getHandler), TY_String, TY_R, MN_("getHandler"), 0,
-		_P, _F(Request_setContentType), TY_void, TY_R, MN_("setContentType"), 1, TY_String, FN_("type"),
-		_P, _F(Request_setContentEncoding), TY_void, TY_R, MN_("setContentEncoding"), 1, TY_String, FN_("enc"),
-		_P, _F(Request_logError), TY_void, TY_R, MN_("logError"), 3, TY_Int, FN_("level"), TY_Int, FN_("status"), TY_String, FN_("msg"),
+		_P, _F(Request_puts), TY_void, TY_Req, MN_("puts"), 1, TY_String, FN_x,
+		_P, _F(Request_getMethod), TY_String, TY_Req, MN_("getMethod"), 0,
+		_P, _F(Request_getArgs), TY_String, TY_Req, MN_("getArgs"), 0,
+		_P, _F(Request_getUri), TY_String, TY_Req, MN_("getUri"), 0,
+		_P, _F(Request_getPathInfo), TY_String, TY_Req, MN_("getPathInfo"), 0,
+		_P, _F(Request_getHandler), TY_String, TY_Req, MN_("getHandler"), 0,
+		_P, _F(Request_setContentType), TY_void, TY_Req, MN_("setContentType"), 1, TY_String, FN_("type"),
+		_P, _F(Request_setContentEncoding), TY_void, TY_Req, MN_("setContentEncoding"), 1, TY_String, FN_("enc"),
+		_P, _F(Request_logError), TY_void, TY_Req, MN_("logError"), 3, TY_Int, FN_("level"), TY_Int, FN_("status"), TY_String, FN_("msg"),
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
