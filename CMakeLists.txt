@@ -133,6 +133,7 @@ set(PACKAGES
 ##	jansson
 	python
 	apache
+#	openssl
 )
 
 find_library(HAVE_LIBDL NAMES dl)
