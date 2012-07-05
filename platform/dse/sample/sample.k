@@ -1,5 +1,5 @@
-K.import("konoha.json");
-K.import("konoha.curl");
+K.import("jansson");
+K.import("curl");
 K.import("konoha");
 
 class Task {
@@ -19,7 +19,7 @@ class Task {
 		this.script = script;
 	}
 
-	void sendTo(String host, String port) {
+	void sendTo(String host, int port) {
 		Json sdata = new Json();
 		sdata.setString("taskid", this.taskid + ""); // TODO setInt();
 		sdata.setString("type", this.type);
@@ -32,7 +32,7 @@ class Task {
 		String res = "";
 
 		Curl c = new Curl();
-		String url = "http://" + host + port;
+		String url = "http://" + host + ":" + port;
 		c.setOpt(CURLOPT_URL, url);
 		c.appendHeader("Content-Type: application/json");
 		c.setOpt(CURLOPT_POSTFIELDS, req);
@@ -41,8 +41,19 @@ class Task {
 		return;
 	}
 
-	void sync(int context) {
+	void sync() {
 		// syncronize
 		return;
 	}
 }
+
+void main() {
+	String host = "localhost";
+	int port = 8080;
+	String logpoolip = "0.0.0.0";
+	Task t = new Task(1, "test", 1, "eval", logpoolip, "p(1);");
+	t.sendTo(host, port);
+	return;
+}
+
+main();

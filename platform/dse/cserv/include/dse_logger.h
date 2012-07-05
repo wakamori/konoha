@@ -24,14 +24,18 @@
 
 /* ************************************************************************ */
 
+#ifndef DSE_LOGGER_H_
+#define DSE_LOGGER_H_
+
 #include <sys/time.h>
-#include <logpool.h>
+#include <logpool/logpool.h>
 
 int getTime(void)
 {
 	struct timeval t;
 	gettimeofday(&t, NULL);
-	return (int)((int)t.tv_sec * 1000 * 1000 + (int)t.tv_usec);
+	D_("%d[s] %d[us]", (int)t.tv_sec % 1000, (int)t.tv_usec);
+	return (int)(((int)t.tv_sec % 1000) * 1000 * 1000 + (int)t.tv_usec);
 }
 
 #define LOG_END 0
@@ -65,3 +69,7 @@ static void dse_logpool_exit()
 	logpool_record(lp, args, LOG_NOTICE, trace_id, \
 			KEYVALUE_u("time", getTime()), \
 			__VA_ARGS__)
+
+
+
+#endif /* DSE_LOGGER_H_ */
