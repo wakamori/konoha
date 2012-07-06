@@ -205,6 +205,37 @@ static KMETHOD Request_logError(CTX, ksfp_t *sfp _RIX)
 	ap_log_rerror(APLOG_MARK, level, status, self->r, msg, NULL);
 	RETURNvoid_();
 }
+// ## AprTable Request.getHeadersIn();
+static KMETHOD Request_getHeadersIn(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kObject(CT_AprTable, (void*)self->r->headers_in));
+}
+// ## AprTable Request.getHeadersOut();
+static KMETHOD Request_getHeadersOut(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kObject(CT_AprTable, (void*)self->r->headers_out));
+}
+
+// ## void AprTable.add(String key, String val)
+static KMETHOD AprTable_add(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	const char *key = S_text(sfp[1].s);
+	const char *val = S_text(sfp[2].s);
+	apr_table_add(self->tbl, key, val);
+	RETURNvoid_();
+}
+// ## void AprTable.set(String key, String val)
+static KMETHOD AprTable_set(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	const char *key = S_text(sfp[1].s);
+	const char *val = S_text(sfp[2].s);
+	apr_table_set(self->tbl, key, val);
+	RETURNvoid_();
+}
 // class Request end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
@@ -217,6 +248,7 @@ konoha_t konoha_create(kclass_t **cRequest)
 #define _P    kMethod_Public
 #define _F(F) (intptr_t)(F)
 #define TY_Req  (CT_Request->cid)
+#define TY_Tbl  (CT_AprTable->cid)
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
 		_P, _F(Request_puts), TY_void, TY_Req, MN_("puts"), 1, TY_String, FN_x,
@@ -228,6 +260,10 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_setContentType), TY_void, TY_Req, MN_("setContentType"), 1, TY_String, FN_("type"),
 		_P, _F(Request_setContentEncoding), TY_void, TY_Req, MN_("setContentEncoding"), 1, TY_String, FN_("enc"),
 		_P, _F(Request_logError), TY_void, TY_Req, MN_("logError"), 3, TY_Int, FN_("level"), TY_Int, FN_("status"), TY_String, FN_("msg"),
+		_P, _F(Request_getHeadersIn), TY_Tbl, TY_Req, MN_("getHeadersIn"), 0,
+		_P, _F(Request_getHeadersOut), TY_Tbl, TY_Req, MN_("getHeadersOut"), 0,
+		_P, _F(AprTable_add), TY_void, TY_Tbl, MN_("add"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
+		_P, _F(AprTable_set), TY_void, TY_Tbl, MN_("set"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
