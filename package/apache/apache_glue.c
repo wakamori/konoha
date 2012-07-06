@@ -57,6 +57,18 @@ static void AprTable_free(CTX, kObject *po)
 	((kAprTable*)po)->tbl = NULL;
 }
 
+static void AprTableEntry_init(CTX, kObject *po, void *conf)
+{
+	(void)_ctx;
+	((kAprTableEntry*)po)->entry = (apr_table_t *) conf;
+}
+
+static void AprTableEntry_free(CTX, kObject *po)
+{
+	(void)_ctx;
+	((kAprTableEntry*)po)->entry = NULL;
+}
+
 static void kapacheshare_setup(CTX, struct kmodshare_t *def, int newctx) {}
 static void kapacheshare_reftrace(CTX, struct kmodshare_t *baseh) {}
 static void kapacheshare_free(CTX, struct kmodshare_t *baseh)
@@ -79,6 +91,12 @@ static kbool_t apache_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 		.free = AprTable_free,
 	};
 
+	static KDEFINE_CLASS aprTableEntryDef = {
+		STRUCTNAME(AprTableEntry),
+		.init = AprTableEntry_init,
+		.free = AprTableEntry_free,
+	};
+
 	kapacheshare_t *base = (kapacheshare_t*)KCALLOC(sizeof(kapacheshare_t), 1);
 	base->h.name     = "apache";
 	base->h.setup    = kapacheshare_setup;
@@ -87,6 +105,7 @@ static kbool_t apache_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 	Konoha_setModule(MOD_APACHE, &base->h, pline);
 	base->cRequest = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &Def, 0);
 	base->cAprTable = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &aprTableDef, 0);
+	base->cAprTableEntry = Konoha_addClassDef(ks->packid, ks->packdom, NULL, &aprTableEntryDef, 0);
 	KDEFINE_INT_CONST IntData[] = {
 #define DEFINE_KEYWORD(KW) {#KW, TY_Int, KW}
 		{"APACHE_OK", TY_Int, OK},

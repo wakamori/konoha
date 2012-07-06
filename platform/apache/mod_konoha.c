@@ -236,6 +236,36 @@ static KMETHOD AprTable_set(CTX, ksfp_t *sfp _RIX)
 	apr_table_set(self->tbl, key, val);
 	RETURNvoid_();
 }
+// ## Array[AprTableEntry] AprTable.getElts()
+static KMETHOD AprTable_getElts(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	kArray *arr = (kArray*)new_kObject(CT_Array, NULL);
+	const apr_array_header_t *apr_arr = apr_table_elts(self->tbl);
+	const apr_table_entry_t *entries = (apr_table_entry_t *)apr_arr->elts;
+	int i=0;
+	for (i=0; i<apr_arr->nelts; i++) {
+		const char *key = entries->key;
+		const char *val = entries->val;
+		DBG_P("ELTS: %s=>%s", key, val);
+		// kAprTableEntry *e = (kAprTableEntry *)new_kObject(CT_AprTableEntry, entries);
+		kArray_add(arr, (kAprTableEntry *)new_kObject(CT_AprTableEntry, entries));
+		entries++;
+	}
+	RETURN_(arr);
+}
+// ## void AprTableEntry.getKey()
+static KMETHOD AprTableEntry_getKey(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTableEntry *self = (kAprTableEntry *) sfp[0].o;
+	RETURN_(new_kString(self->entry->key, strlen(self->entry->key), 0));
+}
+// ## void AprTableEntry.getVal()
+static KMETHOD AprTableEntry_getVal(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTableEntry *self = (kAprTableEntry *) sfp[0].o;
+	RETURN_(new_kString(self->entry->val, strlen(self->entry->val), 0));
+}
 // class Request end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
@@ -249,6 +279,12 @@ konoha_t konoha_create(kclass_t **cRequest)
 #define _F(F) (intptr_t)(F)
 #define TY_Req  (CT_Request->cid)
 #define TY_Tbl  (CT_AprTable->cid)
+#define TY_TblEntry  (CT_AprTableEntry->cid)
+
+	kparam_t ps = {TY_TblEntry, FN_("aprTableEntry")};
+	kclass_t *CT_TblEntryArray = kClassTable_Generics(CT_Array, TY_TblEntry, 1, &ps);
+	kcid_t TY_TblEntryArray = CT_TblEntryArray->cid;
+
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
 		_P, _F(Request_puts), TY_void, TY_Req, MN_("puts"), 1, TY_String, FN_x,
@@ -264,6 +300,9 @@ konoha_t konoha_create(kclass_t **cRequest)
 		_P, _F(Request_getHeadersOut), TY_Tbl, TY_Req, MN_("getHeadersOut"), 0,
 		_P, _F(AprTable_add), TY_void, TY_Tbl, MN_("add"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
 		_P, _F(AprTable_set), TY_void, TY_Tbl, MN_("set"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
+		_P, _F(AprTable_getElts), TY_TblEntryArray, TY_Tbl, MN_("getElts"), 0,
+		_P, _F(AprTableEntry_getKey), TY_String, TY_TblEntry, MN_("getKey"), 0,
+		_P, _F(AprTableEntry_getVal), TY_String, TY_TblEntry, MN_("getVal"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
