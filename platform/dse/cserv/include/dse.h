@@ -35,11 +35,12 @@
 #include <konoha2/konoha2.h>
 #include "dse_util.h"
 #include "dse_logger.h"
+#include "dse_platform.h"
+
 struct dDserv {
 	struct event_base *base;
 	struct evhttp *httpd;
 };
-
 
 struct dReq {
 	int method;
@@ -100,16 +101,7 @@ static void deleteDRes (struct dRes *res)
 	dse_free(res, sizeof(struct dRes));
 }
 
-
 /* ************************************************************************ */
-//void addLoggerScript(FILE *fp, const char *taskid)
-//{
-//	char logger_script[] =
-//		"\nvoid logger() {\nSubproc s = Subproc.new(\"\", false);\ns.enableShellmode(false);\nString str = s.exec(\"logger TaskDone\");\n}\nlogger();";
-//	fwrite(logger_script, strlen(logger_script), 1, fp);
-//	return;
-//}
-
 
 #define JSON_INITGET(O, K) \
 	json_t *K = json_object_get(O, #K)
@@ -168,7 +160,6 @@ static struct dReq *dse_parseJson(const char *input)
 
 	}
 	fwrite(str_script, script_len, 1, fp);
-//	addLoggerScript(fp, json_string_value(taskid));
 	fflush(fp);
 	fclose(fp);
 	json_decref(root);
@@ -208,71 +199,15 @@ static struct dReq *dse_parseJson(const char *input)
 //	Actor_send(a, JSONString_new(req->scriptfilepath, strlen(req->scriptfilepath)));
 //}
 
-static const char* _packname(const char *str)
-{
-	char *p = strrchr(str, '.');
-	return (p == NULL) ? str : (const char*)p+1;
-}
-
-static const char* _packagepath(char *buf, size_t bufsiz, const char *fname)
-{
-	char *path = getenv("KONOHA_PACKAGEPATH"), *local = "";
-	if(path == NULL) {
-		path = getenv("KONOHA_HOME");
-		local = "/package";
-	}
-	if(path == NULL) {
-		path = getenv("HOME");
-		local = "/.konoha2/package";
-	}
-	snprintf(buf, bufsiz, "%s%s/%s/%s_glue.k", path, local, fname, _packname(fname));
-#ifdef K_PREFIX
-	FILE *fp = fopen(buf, "r");
-	if(fp != NULL) {
-		fclose(fp);
-	}
-	else {
-		snprintf(buf, bufsiz, K_PREFIX "/konoha2/package" "/%s/%s_glue.k", fname, _packname(fname));
-	}
-#endif
-	return (const char*)buf;
-}
-
-static const char* _exportpath(char *pathbuf, size_t bufsiz, const char *pname)
-{
-	char *p = strrchr(pathbuf, '/');
-	snprintf(p, bufsiz - (p  - pathbuf), "/%s_exports.k", _packname(pname));
-	FILE *fp = fopen(pathbuf, "r");
-	if(fp != NULL) {
-		fclose(fp);
-		return (const char*)pathbuf;
-	}
-	return NULL;
-}
-
 #define LOGSIZE 256
 
 static struct dRes *dse_dispatch(struct dReq *req)
 {
-	kplatform_t dse = {
-		.name = "dse",
-		.stacksize = 4096, 
-		.malloc = malloc,
-		.free = free,
-		.realpath = realpath,
-		.fopen = fopen,
-		.fgetc = fgetc,
-		.feof = feof,
-		.fclose = fclose,
-		.packagepath = _packagepath,
-		.exportpath = _exportpath,
-	};
-	konoha_t konoha = konoha_open(&dse);
+	kplatform_t *dse = platform_dse();
+	konoha_t konoha = konoha_open((const kplatform_t *)dse);
 	logpool_t *lp;
 	void *logpool_args;
 	int ret;
-	int startlog[LOGSIZE];
-	int endlog[LOGSIZE];
 	D_("scriptpath:%s", req->scriptfilepath);
 	struct dRes *dres = newDRes();
 	switch (req->method){
@@ -304,7 +239,6 @@ static struct dRes *dse_dispatch(struct dReq *req)
 	konoha_close(konoha);
 	return dres;
 }
-
 
 static void dse_send_reply(struct evhttp_request *req, struct dRes *dres)
 {
@@ -362,6 +296,7 @@ void dse_req_handler (struct evhttp_request *req, void *arg)
 	deleteDReq(dreq);
 	deleteDRes(dres);
 }
+
 static struct dDserv *dserv_new(void)
 {
 	struct dDserv *dserv = dse_malloc(sizeof(struct dDserv));
