@@ -312,10 +312,10 @@ static int konoha_handler(request_rec *r)
 	if (strcmp(r->handler, "konoha-script")) {
 		return DECLINED;
 	}
-	if (r->method_number != M_GET) {
-		/* TODO */
-		return HTTP_METHOD_NOT_ALLOWED;
-	}
+	// if (r->method_number != M_GET) {
+	// 	 TODO 
+	// 	return HTTP_METHOD_NOT_ALLOWED;
+	// }
 	kclass_t *cRequest;
 	konoha_t konoha = konoha_create(&cRequest);
 	//assert(cRequest != NULL);
