@@ -139,6 +139,8 @@ static const kplatform_t apache_platform = {
 	.dbg_p       = dbg_p,
 };
 
+// class methods start ==============================================================================================
+// ## void Request.puts(String s)
 static KMETHOD Request_puts(CTX, ksfp_t *sfp _RIX)
 {
 	kRequest *self = (kRequest *) sfp[0].o;
@@ -147,6 +149,120 @@ static KMETHOD Request_puts(CTX, ksfp_t *sfp _RIX)
 	RETURNvoid_();
 }
 
+// ## String Request.getMethod()
+static KMETHOD Request_getMethod(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->method, strlen(self->r->method), 0));
+}
+// ## String Request.getArgs();
+static KMETHOD Request_getArgs(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->args, strlen(self->r->args), 0));
+}
+// ## String Request.getUri();
+static KMETHOD Request_getUri(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->uri, strlen(self->r->uri), 0));
+}
+// ## String Request.getPathInfo();
+static KMETHOD Request_getPathInfo(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->path_info, strlen(self->r->path_info), 0));
+}
+// ## String Request.getHandler();
+static KMETHOD Request_getHandler(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kString(self->r->handler, strlen(self->r->handler), 0));
+}
+// ## void Request.setContentType(String type);
+static KMETHOD Request_setContentType(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	kString *type = sfp[1].s;
+	self->r->content_type = apr_pstrdup(self->r->pool, S_text(type));
+	RETURNvoid_();
+}
+// ##void Request.setContentEncoding(String enc);
+static KMETHOD Request_setContentEncoding(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	kString *enc = sfp[1].s;
+	self->r->content_encoding = apr_pstrdup(self->r->pool, S_text(enc));
+	RETURNvoid_();
+}
+// ## void Request.logRerror(int level, int status, String msg);
+static KMETHOD Request_logError(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	int level = sfp[1].ivalue;
+	apr_status_t status = (apr_status_t)sfp[2].ivalue;
+	const char *msg = S_text(sfp[3].s);
+	ap_log_rerror(APLOG_MARK, level, status, self->r, msg, NULL);
+	RETURNvoid_();
+}
+// ## AprTable Request.getHeadersIn();
+static KMETHOD Request_getHeadersIn(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kObject(CT_AprTable, (void*)self->r->headers_in));
+}
+// ## AprTable Request.getHeadersOut();
+static KMETHOD Request_getHeadersOut(CTX, ksfp_t *sfp _RIX)
+{
+	kRequest *self = (kRequest *) sfp[0].o;
+	RETURN_(new_kObject(CT_AprTable, (void*)self->r->headers_out));
+}
+
+// ## void AprTable.add(String key, String val)
+static KMETHOD AprTable_add(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	const char *key = S_text(sfp[1].s);
+	const char *val = S_text(sfp[2].s);
+	apr_table_add(self->tbl, key, val);
+	RETURNvoid_();
+}
+// ## void AprTable.set(String key, String val)
+static KMETHOD AprTable_set(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	const char *key = S_text(sfp[1].s);
+	const char *val = S_text(sfp[2].s);
+	apr_table_set(self->tbl, key, val);
+	RETURNvoid_();
+}
+// ## Array[AprTableEntry] AprTable.getElts()
+static KMETHOD AprTable_getElts(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTable *self = (kAprTable *) sfp[0].o;
+	kArray *arr = (kArray*)new_kObject(CT_Array, NULL);
+	const apr_array_header_t *apr_arr = apr_table_elts(self->tbl);
+	const apr_table_entry_t *entries = (apr_table_entry_t *)apr_arr->elts;
+	int i=0;
+	for (i=0; i<apr_arr->nelts; i++) {
+		kArray_add(arr, (kAprTableEntry *)new_kObject(CT_AprTableEntry, entries));
+		entries++;
+	}
+	RETURN_(arr);
+}
+// ## void AprTableEntry.getKey()
+static KMETHOD AprTableEntry_getKey(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTableEntry *self = (kAprTableEntry *) sfp[0].o;
+	RETURN_(new_kString(self->entry->key, strlen(self->entry->key), 0));
+}
+// ## void AprTableEntry.getVal()
+static KMETHOD AprTableEntry_getVal(CTX, ksfp_t *sfp _RIX)
+{
+	kAprTableEntry *self = (kAprTableEntry *) sfp[0].o;
+	RETURN_(new_kString(self->entry->val, strlen(self->entry->val), 0));
+}
+// class methods end ==============================================================================================
 
 konoha_t konoha_create(kclass_t **cRequest)
 {
@@ -157,10 +273,32 @@ konoha_t konoha_create(kclass_t **cRequest)
 	*cRequest = CT_Request;
 #define _P    kMethod_Public
 #define _F(F) (intptr_t)(F)
-#define TY_R  (CT_Request->cid)
+#define TY_Req  (CT_Request->cid)
+#define TY_Tbl  (CT_AprTable->cid)
+#define TY_TblEntry  (CT_AprTableEntry->cid)
+
+	kparam_t ps = {TY_TblEntry, FN_("aprTableEntry")};
+	kclass_t *CT_TblEntryArray = kClassTable_Generics(CT_Array, TY_TblEntry, 1, &ps);
+	kcid_t TY_TblEntryArray = CT_TblEntryArray->cid;
+
 	int FN_x = FN_("x");
 	intptr_t MethodData[] = {
-		_P, _F(Request_puts), TY_void, TY_R, MN_("puts"), 1, TY_String, FN_x,
+		_P, _F(Request_puts), TY_void, TY_Req, MN_("puts"), 1, TY_String, FN_x,
+		_P, _F(Request_getMethod), TY_String, TY_Req, MN_("getMethod"), 0,
+		_P, _F(Request_getArgs), TY_String, TY_Req, MN_("getArgs"), 0,
+		_P, _F(Request_getUri), TY_String, TY_Req, MN_("getUri"), 0,
+		_P, _F(Request_getPathInfo), TY_String, TY_Req, MN_("getPathInfo"), 0,
+		_P, _F(Request_getHandler), TY_String, TY_Req, MN_("getHandler"), 0,
+		_P, _F(Request_setContentType), TY_void, TY_Req, MN_("setContentType"), 1, TY_String, FN_("type"),
+		_P, _F(Request_setContentEncoding), TY_void, TY_Req, MN_("setContentEncoding"), 1, TY_String, FN_("enc"),
+		_P, _F(Request_logError), TY_void, TY_Req, MN_("logError"), 3, TY_Int, FN_("level"), TY_Int, FN_("status"), TY_String, FN_("msg"),
+		_P, _F(Request_getHeadersIn), TY_Tbl, TY_Req, MN_("getHeadersIn"), 0,
+		_P, _F(Request_getHeadersOut), TY_Tbl, TY_Req, MN_("getHeadersOut"), 0,
+		_P, _F(AprTable_add), TY_void, TY_Tbl, MN_("add"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
+		_P, _F(AprTable_set), TY_void, TY_Tbl, MN_("set"), 2, TY_String, FN_("key"), TY_String, FN_("val"),
+		_P, _F(AprTable_getElts), TY_TblEntryArray, TY_Tbl, MN_("getElts"), 0,
+		_P, _F(AprTableEntry_getKey), TY_String, TY_TblEntry, MN_("getKey"), 0,
+		_P, _F(AprTableEntry_getVal), TY_String, TY_TblEntry, MN_("getVal"), 0,
 		DEND,
 	};
 	kKonohaSpace_loadMethodData(ks, MethodData);
