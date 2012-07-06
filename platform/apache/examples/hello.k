@@ -5,27 +5,25 @@ int System.handler(Request req) {
      req.setContentType("text/html")
      req.setContentEncoding("utf-8")
      req.logError(APLOG_WARNING, 0, "log error's test")
-     req.puts("<p>hello world!</p>\n")
-     req.puts("<p>"+req.getMethod()+"</p>\n")
-     req.puts("<p>"+req.getArgs()+"</p>\n")
-     req.puts("<p>"+req.getUri()+"</p>\n")
-     req.puts("<p>PATH_INFO:" + req.getPathInfo()+"</p>\n")
-     req.puts("<p>"+req.getHandler()+"</p>\n")
-     req.puts("<p>"+"logのテスト</p>\n")
-     req.puts("<p>"+"request & response</p>\n")
+     req.puts("<p><strong>hello world!</strong></p>\n")
+     req.puts("<p>METHOD: "+req.getMethod()+"</p>\n")
+     req.puts("<p>ARGS: "+req.getArgs()+"</p>\n")
+     req.puts("<p>URI: "+req.getUri()+"</p>\n")
+     req.puts("<p>PATH_INFO: " + req.getPathInfo()+"</p>\n")
+     req.puts("<p>HANDLER: "+req.getHandler()+"</p>\n")
      AprTable reqHeaders = req.getHeadersIn();
      AprTable resHeaderTable = req.getHeadersOut();
-     resHeaderTable.add("test", "val1");
-     resHeaderTable.add("test", "val2");
+     resHeaderTable.add("key1", "val1");
+     resHeaderTable.add("key2", "val2");
      resHeaderTable.getElts();
-     resHeaderTable.set("test", "val3");
-     resHeaderTable.add("test", "val4");
-     resHeaderTable.add("test", "値5");
-     AprTableEntry[] test = resHeaderTable.getElts();
-     req.puts("<p>size = " + test.getSize() + "</p>\n");
+     resHeaderTable.set("key1", "val3");
+     resHeaderTable.add("key1", "val4");
+     resHeaderTable.add("key2", "値5");
+     AprTableEntry[] resHeaders = resHeaderTable.getElts();
+     req.puts("<p>size = " + resHeaders.getSize() + "</p>\n");
      int i = 0;
-     while (i<test.getSize()) {
-          req.puts("<p>"+test[i].getKey() + "=>" + test[i].getVal() + "</p>\n");
+     while (i<resHeaders.getSize()) {
+          req.puts("<p>HEADERS: "+resHeaders[i].getKey() + "=>" + resHeaders[i].getVal() + "</p>\n");
           i = i+1;
      }
      return APACHE_OK;

@@ -245,10 +245,6 @@ static KMETHOD AprTable_getElts(CTX, ksfp_t *sfp _RIX)
 	const apr_table_entry_t *entries = (apr_table_entry_t *)apr_arr->elts;
 	int i=0;
 	for (i=0; i<apr_arr->nelts; i++) {
-		const char *key = entries->key;
-		const char *val = entries->val;
-		DBG_P("ELTS: %s=>%s", key, val);
-		// kAprTableEntry *e = (kAprTableEntry *)new_kObject(CT_AprTableEntry, entries);
 		kArray_add(arr, (kAprTableEntry *)new_kObject(CT_AprTableEntry, entries));
 		entries++;
 	}
