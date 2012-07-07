@@ -128,7 +128,7 @@ static ksymbol_t tosymbol(CTX, kExpr *expr)
 {
 	if(Expr_isTerm(expr)) {
 		kToken *tk = expr->tk;
-		if(tk->tt == TK_SYMBOL) {
+		if(tk->kw == TK_SYMBOL) {
 			return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 		}
 	}
@@ -172,7 +172,7 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 static kMethod* ExprTerm_getSetterNULL(CTX, kStmt *stmt, kExpr *expr, kObject *scr, kGamma *gma, ktype_t ty)
 {
 	USING_SUGAR;
-	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
+	if(Expr_isTerm(expr) && expr->tk->kw == TK_SYMBOL) {
 		kToken *tk = expr->tk;
 		if(tk->kw != KW_SymbolPattern) {
 			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is keyword", S_text(tk->text));

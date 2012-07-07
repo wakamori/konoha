@@ -604,10 +604,10 @@ static kExpr *Expr_lookupMethod(CTX, kStmt *stmt, kExpr *expr, kcid_t this_cid, 
 	kKonohaSpace *ks = gma->genv->ks;
 	kToken *tkMN = expr->cons->toks[0];
 	DBG_ASSERT(IS_Token(tkMN));
-	if(tkMN->tt == TK_SYMBOL || tkMN->tt == TK_USYMBOL) {
+	if(tkMN->kw == TK_SYMBOL || tkMN->kw == TK_USYMBOL) {
 		kToken_setmn(tkMN, ksymbolA(S_text(tkMN->text), S_size(tkMN->text), SYM_NEWID), MNTYPE_method);
 	}
-	if(tkMN->tt == TK_MN) {
+	if(tkMN->kw == TK_MN) {
 		mtd = kKonohaSpace_getMethodNULL(ks, this_cid, tkMN->mn);
 		if(mtd == NULL) {
 			if(tkMN->text != TS_EMPTY) {
@@ -644,7 +644,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kStmt *stmt, kExpr *expr, kclass_t *ct
 
 static kbool_t Expr_isSymbol(kExpr *expr)
 {
-	return (Expr_isTerm(expr) && (expr->tk->tt == TK_SYMBOL || expr->tk->tt == TK_USYMBOL));
+	return (Expr_isTerm(expr) && (expr->tk->kw == TK_SYMBOL || expr->tk->kw == TK_USYMBOL));
 }
 
 static kMethod* Expr_lookUpFuncOrMethod(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)
@@ -1007,7 +1007,7 @@ static KMETHOD StmtTyCheck_return(CTX, ksfp_t *sfp _RIX)
 
 static kbool_t ExprTerm_toVariable(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t ty)
 {
-	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
+	if(Expr_isTerm(expr) && expr->tk->kw == TK_SYMBOL) {
 		kToken *tk = expr->tk;
 		if(tk->kw != KW_SymbolPattern) {
 			kToken_p(stmt, tk, ERR_, "%s is keyword", S_text(tk->text));
@@ -1161,7 +1161,7 @@ static void KonohaSpace_syncMethods(CTX)
 static void Stmt_setMethodFunc(CTX, kStmt *stmt, kKonohaSpace *ks, kMethod *mtd)
 {
 	kToken *tcode = kStmt_token(stmt, KW_BlockPattern, NULL);
-	if(tcode != NULL && tcode->tt == TK_CODE) {
+	if(tcode != NULL && tcode->kw == TK_CODE) {
 		KSETv(((struct _kMethod*)mtd)->tcode, tcode);  //FIXME
 		KSETv(((struct _kMethod*)mtd)->lazyns, ks);
 		kMethod_setFunc(mtd, Fmethod_lazyCompilation);
@@ -1200,7 +1200,7 @@ static kbool_t StmtTypeDecl_setParam(CTX, kStmt *stmt, int n, kparam_t *p)
 	kExpr  *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
 	DBG_ASSERT(tkT != NULL);
 	DBG_ASSERT(expr != NULL);
-	if(Expr_isTerm(expr) && expr->tk->tt == TK_SYMBOL) {
+	if(Expr_isTerm(expr) && expr->tk->kw == TK_SYMBOL) {
 		kToken *tkN = expr->tk;
 		ksymbol_t fn = ksymbolA(S_text(tkN->text), S_size(tkN->text), SYM_NEWID);
 		p[n].fn = fn;

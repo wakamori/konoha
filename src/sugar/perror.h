@@ -92,7 +92,8 @@ static void Token_pERR(CTX, struct _kToken *tk, const char *fmt, ...)
 	kString *errmsg = vperrorf(_ctx, ERR_, tk->uline, -1, fmt, ap);
 	va_end(ap);
 	KSETv(tk->text, errmsg);
-	tk->tt = TK_ERR;
+	tk->kw = TK_ERR;
+	kToken_setUnresolved(tk, true);
 }
 
 #define kStmt_toERR(STMT, ENO)  Stmt_toERR(_ctx, STMT, ENO)
@@ -162,8 +163,8 @@ static kExpr* Stmt_p(CTX, kStmt *stmt, kToken *tk, int pe, const char *fmt, ...)
 #define kToken_s(tk) kToken_s_(_ctx, tk)
 static const char *kToken_s_(CTX, kToken *tk)
 {
-	switch((int)tk->tt) {
-	case TK_INDENT: return "end of line";
+	switch((int)tk->kw) {
+	case TK_INDENT: return "indent";
 	case TK_CODE: ;
 	case AST_BRACE: return "{... }";
 	case AST_PARENTHESIS: return "(... )";

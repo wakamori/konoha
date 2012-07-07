@@ -35,7 +35,7 @@ static KMETHOD Token_isTypeName(CTX, ksfp_t *sfp _RIX)
 //## boolean Token.isParenthesis();
 static KMETHOD Token_isParenthesis(CTX, ksfp_t *sfp _RIX)
 {
-	RETURNb_(sfp[0].tk->tt == AST_PARENTHESIS);
+	RETURNb_(sfp[0].tk->kw == AST_PARENTHESIS);
 }
 
 //## int Stmt.getBuild();
@@ -287,7 +287,7 @@ static kbool_t sugar_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 
 static kbool_t isSubKeyword(CTX, kArray *tls, int s, int e)
 {
-	if(s+1 < e && tls->toks[s+1]->tt == TK_TEXT) {
+	if(s+1 < e && tls->toks[s+1]->kw == TK_TEXT) {
 		const char *t = S_text(tls->toks[s+1]->text);
 		if(isalpha(t[0]) || t[0] < 0 /* multibytes char */) {
 			return 1;
@@ -301,7 +301,7 @@ static struct _ksyntax *toks_syntax(CTX, kKonohaSpace *ks, kArray *tls)
 	USING_SUGAR;
 	int s = 0, e = kArray_size(tls);
 	if(s < e) {
-		if(tls->toks[s]->tt == TK_TEXT) {
+		if(tls->toks[s]->kw == TK_TEXT) {
 			ksymbol_t kw;
 			if(isSubKeyword(_ctx, tls, s, e)) {
 				char buf[256];

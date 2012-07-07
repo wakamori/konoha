@@ -838,7 +838,7 @@ static void defineDefaultKeywordSymbol(CTX)
 		"", "$expr", "$SYMBOL", "$USYMBOL", "$TEXT", "$INT", "$FLOAT",
 		"$type", "$()", "$[]", "${}", "$block", "$params", "$toks",
 		".", "/", "%", "*", "+", "-", "<", "<=", ">", ">=", "==", "!=",
-		"&&", "||", "!", "=", ",", "$",
+		"&&", "||", "!", "=", ",", "$", /*"@",*/
 		"void", "boolean", "int", "true", "false", "if", "else", "return", // syn
 
 		"new",

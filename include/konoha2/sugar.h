@@ -199,35 +199,13 @@ struct _kKonohaSpace {
 	karray_t          cl;        // const variable
 };
 
+typedef kshort_t    ktoken_t;
 typedef kshort_t    kexpr_t;
-
-typedef enum {
-	TK_NONE,          // KW_ERR
-	TK_INDENT,        // KW_ExprPattern
-	TK_SYMBOL,        // KW_SymbolPattern
-	TK_USYMBOL,       // KW_UsymbolPattern
-	TK_TEXT,          // KW_TextPattern
-	TK_INT,           // KW_IntPattern
-	TK_FLOAT,         // KW_FloatPattern
-	TK_TYPE,          // KW_TypePattern
-	AST_PARENTHESIS,  // KW_ParenthesisPattern
-	AST_BRACKET,      // KW_Bracket
-	AST_BRACE,        // KW_BracePattern
-
-	TK_OPERATOR,
-	TK_MSYMBOL,       //
-	TK_ERR,           //
-	TK_CODE,          //
-	TK_WHITESPACE,    //
-	TK_METANAME,
-	TK_MN,
-	AST_OPTIONAL      // for syntax sugar
-} ktoken_t ;
 
 typedef const struct _kToken kToken;
 struct _kToken {
 	kObjectHeader h;
-	kushort_t tt;
+//	kushort_t tt;
 	ksymbol_t kw;
 	union {
 		kString *text;
@@ -245,18 +223,13 @@ struct _kToken {
 	};
 };
 
-#define kToken_topch(tk) ((S_size(tk->text) == 1) ? S_text(tk->text)[0] : 0)
+#define kToken_needsKeywordResolved(o)      (TFLAG_is(uintptr_t,(o)->h.magicflag,kObject_Local1))
+#define kToken_setUnresolved(o, B)          TFLAG_set(uintptr_t,(o)->h.magicflag,kObject_Local1,B)
+#define kToken_topch(tk)                    ((tk)->kw != TK_TEXT && (S_size((tk)->text) == 1) ? S_text((tk)->text)[0] : 0)
 
 typedef enum {
 	MNTYPE_method, MNTYPE_unary, MNTYPE_binary
 } mntype_t;
-
-static inline void kToken_setmn(kToken *tk, kmethodn_t mn, mntype_t mn_type)
-{
-	((struct _kToken*)tk)->tt = TK_MN;
-	((struct _kToken*)tk)->mn = mn;
-	((struct _kToken*)tk)->mn_type = (kshort_t)mn_type;
-}
 
 #define TEXPR_LOCAL_   -4   /*THIS IS NEVER PASSED*/
 #define TEXPR_BLOCK_   -3   /*THIS IS NEVER PASSED*/
@@ -396,6 +369,22 @@ struct _kGamma {
 #define K_NULLEXPR   (kExpr*)((CT_Expr)->nulvalNUL)
 #define K_NULLBLOCK  (kBlock*)((CT_Block)->nulvalNUL)
 
+#define TK_ERR      KW_ToksPattern
+#define TK_CODE     KW_BlockPattern
+#define TK_NONE 0
+#define TK_INDENT 1
+#define TK_SYMBOL  KW_SymbolPattern
+#define TK_USYMBOL KW_UsymbolPattern
+#define TK_TEXT  KW_TextPattern
+#define TK_INT   KW_IntPattern
+#define TK_FLOAT KW_FloatPattern
+#define TK_TYPE  KW_TypePattern
+//#define AST_PARENTHESIS KW_ParenthesisPattern
+//#define AST_BRACKET     KW_BracketPattern
+//#define AST_BRACE       KW_BracePattern
+#define TK_MN           KW_ParamsPattern
+#define TK_METANAME     KW_ATMARK
+
 #define KW_END  ((ksymbol_t)-1)
 #define KW_ERR  (((ksymbol_t)0)|0) /**/
 #define KW_ExprPattern (((ksymbol_t)1)|KW_PATTERN) /*$expr*/
@@ -405,9 +394,16 @@ struct _kGamma {
 #define KW_IntPattern (((ksymbol_t)5)|KW_PATTERN) /*$INT*/
 #define KW_FloatPattern (((ksymbol_t)6)|KW_PATTERN) /*$FLOAT*/
 #define KW_TypePattern (((ksymbol_t)7)|KW_PATTERN) /*$type*/
-#define KW_ParenthesisPattern (((ksymbol_t)8)|KW_PATTERN) /*$()*/
-#define KW_BracketPattern  (((ksymbol_t)9)|KW_PATTERN) /*$[]*/
-#define KW_BracePattern (((ksymbol_t)10)|KW_PATTERN) /*${}*/
+//#define KW_ParenthesisPattern (((ksymbol_t)8)|KW_PATTERN) /*$()*/
+//#define KW_BracketPattern  (((ksymbol_t)9)|KW_PATTERN) /*$[]*/
+//#define KW_BracePattern (((ksymbol_t)10)|KW_PATTERN) /*${}*/
+#define KW_ParenthesisPattern (((ksymbol_t)8)) /*()*/
+#define KW_BracketPattern     (((ksymbol_t)9)) /*[]*/
+#define KW_BracePattern       (((ksymbol_t)10)) /*{}*/
+#define AST_PARENTHESIS KW_ParenthesisPattern
+#define AST_BRACKET     KW_BracketPattern
+#define AST_OPTIONAL    (((ksymbol_t)9)|KW_ATMARK)  /*@[]*/
+#define AST_BRACE       KW_BracePattern
 #define KW_BlockPattern (((ksymbol_t)11)|KW_PATTERN) /*$block*/
 #define KW_ParamsPattern (((ksymbol_t)12)|KW_PATTERN) /*$params*/
 #define KW_ToksPattern (((ksymbol_t)13)|KW_PATTERN) /*$toks*/
@@ -435,8 +431,9 @@ struct _kGamma {
 #define KW_LET     (15+KW_DOT)
 #define KW_COMMA   (16+KW_DOT)
 #define KW_DOLLAR  KW_PATTERN
+#define KW_ATMARK  MN_Annotation
 
-// #define KW_void (((ksymbol_t)31)|0) /*void*/
+// #define KW_void (((ksymbol_t)32)|0) /*void*/
 
 #define KW_void      31
 #define KW_boolean   (1+KW_void)
@@ -450,6 +447,13 @@ struct _kGamma {
 #define KW_new       (8+KW_void)
 
 #define FN_this      FN_("this")
+
+static inline void kToken_setmn(kToken *tk, kmethodn_t mn, mntype_t mn_type)
+{
+	((struct _kToken*)tk)->kw = TK_MN;
+	((struct _kToken*)tk)->mn = mn;
+	((struct _kToken*)tk)->mn_type = (kshort_t)mn_type;
+}
 
 struct _kKonohaSpace;
 

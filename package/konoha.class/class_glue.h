@@ -257,12 +257,12 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "invalid application of 'new' to incomplete class %s", CT_t(ct));
 		}
 
-		if(TK_isType(tk1) && tk2->tt == AST_PARENTHESIS) {  // new C (...)
+		if(TK_isType(tk1) && tk2->kw == AST_PARENTHESIS) {  // new C (...)
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			kExpr *expr = SUGAR new_ConsExpr(_ctx, syn, 2, tkNEW, NewExpr(_ctx, syn, tk1, TK_type(tk1), 0));
 			RETURN_(expr);
 		}
-		if(TK_isType(tk1) && tk2->tt == AST_BRACKET) {     // new C [...]
+		if(TK_isType(tk1) && tk2->kw == AST_BRACKET) {     // new C [...]
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_new);
 			kclass_t *ct = CT_p0(_ctx, CT_Array, TK_type(tk1));
 			kToken_setmn(tkNEW, MN_("newArray"), MNTYPE_method);
@@ -274,7 +274,7 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
 {
-	DBG_ASSERT(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL || tk->tt == TK_MSYMBOL);
+	DBG_ASSERT(tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL);
 	return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 }
 
@@ -305,7 +305,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 {
 	USING_SUGAR;
 	kToken *tkP = (kToken*)kObject_getObject(stmt, KW_BlockPattern, NULL);
-	if(tkP != NULL && tkP->tt == TK_CODE) {
+	if(tkP != NULL && tkP->kw == TK_CODE) {
 		kArray *a = ctxsugar->tokens;
 		size_t atop = kArray_size(a), s, i;
 		SUGAR KonohaSpace_tokenize(_ctx, kStmt_ks(stmt), S_text(tkP->text), tkP->uline, a);
@@ -315,9 +315,9 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			kToken *tk = a->toks[i];
 			int topch = kToken_topch(tk);
 			DBG_P("cname='%s'", cname);
-			if(topch == '(' && tkP->tt == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
+			if(topch == '(' && tkP->kw == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
-				tkNEW->tt = TK_SYMBOL;
+				tkNEW->kw = TK_SYMBOL;
 				KSETv(tkNEW->text, SYM_s(MN_new));
 				tkNEW->uline = tkP->uline;
 				kArray_add(a, tkNEW);

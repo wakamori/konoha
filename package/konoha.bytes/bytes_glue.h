@@ -390,8 +390,7 @@ static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 		if(ch == '\'' && prev != '\\') {
 			if(IS_NOTNULL(tk)) {
 				KSETv(tk->text, new_kString(tenv->source + tok_start + 1, (pos-1)- (tok_start+1), 0));
-				tk->tt = TK_CODE;
-				tk->kw = SYM_("$SQUOTE");
+				tk->kw = SYM_("$SingleQuote");
 			}
 			return pos;
 		}
@@ -424,7 +423,7 @@ static kbool_t bytes_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 	USING_SUGAR;
 	SUGAR KonohaSpace_setTokenizer(_ctx, ks, '\'', parseSQUOTE, NULL);
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ .kw = SYM_("$SQUOTE"), _TERM, ExprTyCheck_(Squote)},
+		{ .kw = SYM_("$SingleQuote"), _TERM, ExprTyCheck_(Squote)},
 		{ .kw = KW_END, },
 	};
 	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);

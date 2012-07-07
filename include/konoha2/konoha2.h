@@ -337,11 +337,14 @@ typedef kushort_t       kparamid_t;
 #define MN_ISBOOL     KFLAG_H0
 #define MN_GETTER     KFLAG_H1
 #define MN_SETTER     KFLAG_H2
+
 #define MN_Annotation (KFLAG_H1|KFLAG_H2)
+#define MN_isAnnotation(S)   ((S & KW_PATTERN) == MN_Annotation)
 
 #define MN_TOCID      (KFLAG_H0|KFLAG_H1)
 #define MN_ASCID      (KFLAG_H0|KFLAG_H1|KFLAG_H2)
 #define KW_PATTERN    (KFLAG_H0|KFLAG_H1|KFLAG_H2)
+#define KW_isPATTERN(S)      ((S & KW_PATTERN) == KW_PATTERN)
 
 #define MN_isISBOOL(mn)   (SYM_HEAD(mn) == MN_ISBOOL)
 #define MN_toISBOOL(mn)   ((SYM_UNMASK(mn)) | MN_ISBOOL)

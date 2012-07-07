@@ -559,8 +559,7 @@ static void Token_init(CTX, kObject *o, void *conf)
 {
 	struct _kToken *tk = (struct _kToken*)o;
 	tk->uline     =   0;
-	tk->tt        =   (ktoken_t)conf;
-	tk->kw        =   0;
+	tk->kw        =   (ksymbol_t)(intptr_t)conf;
 	KINITv(tk->text, TS_EMPTY);
 }
 
@@ -572,44 +571,45 @@ static void Token_reftrace(CTX, kObject *o)
 	END_REFTRACE();
 }
 
-static const char *T_tt(ktoken_t t)
-{
-	static const char* symTKDATA[] = {
-		"TK_NONE",
-		"TK_INDENT",
-		"TK_SYMBOL",
-		"TK_USYMBOL",
-		"TK_TEXT",
-		"TK_INT",
-		"TK_FLOAT",
-		"TK_TYPE",
-		"AST_()",
-		"AST_[]",
-		"AST_{}",
-
-		"TK_OPERATOR",
-		"TK_MSYMBOL",
-		"TK_ERR",
-		"TK_CODE",
-		"TK_WHITESPACE",
-		"TK_METANAME",
-		"TK_MN",
-		"AST_OPTIONAL[]",
-	};
-	if(t <= AST_OPTIONAL) {
-		return symTKDATA[t];
-	}
-	return "TK_UNKNOWN";
-}
+//static const char *T_tt(ktoken_t t)
+//{
+//	int tt = SYM_UNMASK(t);
+//	static const char* symTKDATA[] = {
+//		"TK_NONE",
+//		"TK_INDENT",
+//		"TK_SYMBOL",
+//		"TK_USYMBOL",
+//		"TK_TEXT",
+//		"TK_INT",
+//		"TK_FLOAT",
+//		"TK_TYPE",
+//		"AST_()",
+//		"AST_[]",
+//		"AST_{}",
+//
+//		"TK_OPERATOR",
+//		"TK_MSYMBOL",
+//		"TK_ERR",
+//		"TK_CODE",
+//		"TK_WHITESPACE",
+//		"TK_METANAME",
+//		"TK_MN",
+//		"AST_OPTIONAL[]",
+//	};
+//	if(tt <= AST_OPTIONAL) {
+//		return symTKDATA[tt];
+//	}
+//	return "TK_UNKNOWN";
+//}
 
 static void dumpToken(CTX, kToken *tk)
 {
 	if(verbose_sugar) {
-		if(tk->tt == TK_MN) {
-			DUMP_P("%s %d: %s%s(%s)\n", T_tt(tk->tt), (short)tk->uline, T_mn(tk->mn), kToken_s(tk));
+		if(tk->kw == TK_MN) {
+			DUMP_P("%s%s %d: %s%s(%s)\n", KW_t(tk->kw), (short)tk->uline, T_mn(tk->mn), kToken_s(tk));
 		}
 		else {
-			DUMP_P("%s %d: kw=%s%s '%s'\n", T_tt(tk->tt), (short)tk->uline, KW_t(tk->kw), kToken_s(tk));
+			DUMP_P("%s%s %d: kw=%s%s '%s'\n", KW_t(tk->kw), (short)tk->uline, KW_t(tk->kw), kToken_s(tk));
 		}
 	}
 }
@@ -624,7 +624,7 @@ static void dumpIndent(CTX, int nest)
 
 static int kTokenList_beginChar(kToken *tk)
 {
-	switch(tk->tt) {
+	switch(tk->kw) {
 	case AST_PARENTHESIS: return '(';
 	case AST_BRACE: return '{';
 	case AST_BRACKET: return '[';
@@ -634,7 +634,7 @@ static int kTokenList_beginChar(kToken *tk)
 
 static int kTokenList_endChar(kToken *tk)
 {
-	switch(tk->tt) {
+	switch(tk->kw) {
 	case AST_PARENTHESIS: return ')';
 	case AST_BRACE: return '}';
 	case AST_BRACKET: return ']';
@@ -978,10 +978,10 @@ static kBlock* Stmt_block(CTX, kStmt *stmt, ksymbol_t kw, kBlock *def)
 	if(bk != NULL) {
 		if(IS_Token(bk)) {
 			kToken *tk = (kToken*)bk;
-			if (tk->tt == TK_CODE) {
+			if (tk->kw == TK_CODE) {
 				Token_toBRACE(_ctx, (struct _kToken*)tk, kStmt_ks(stmt));
 			}
-			if (tk->tt == AST_BRACE) {
+			if (tk->kw == AST_BRACE) {
 				bk = new_Block(_ctx, kStmt_ks(stmt), stmt, tk->sub, 0, kArray_size(tk->sub), ';');
 				kObject_setObject(stmt, kw, bk);
 			}

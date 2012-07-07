@@ -162,7 +162,8 @@ static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 		}
 		else {   // X[1] => get X 1
 			struct _kToken *tkN = new_W(Token, 0);
-			tkN->tt = TK_MN; tkN->mn = MN_toGETTER(0);
+			tkN->kw = TK_MN;
+			tkN->mn = MN_toGETTER(0);
 			tkN->uline = tk->uline;
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			lexpr  = SUGAR new_ConsExpr(_ctx, syn, 2, tkN, lexpr);

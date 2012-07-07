@@ -39,7 +39,7 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *th
 		break;
 	}
 	if(IS_NOTNULL(tk)) {
-		tk->tt = TK_INDENT;
+		tk->kw = TK_INDENT;
 		tk->indent = indent;  /* 0 FIXME: Debug/Parser/LineNumber.k (Failed) */
 	}
 	return pos-1;
@@ -73,61 +73,59 @@ static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc 
 	}
 	if(IS_NOTNULL(tk)) {
 		KSETv(tk->text, new_kString(ts + tok_start, (pos-1)-tok_start, SPOL_ASCII));
-		tk->tt = (dot == 0) ? TK_INT : TK_FLOAT;
+		tk->kw = (dot == 0) ? TK_INT : TK_FLOAT;
+	}
+	return pos - 1;  // next
+}
+
+static void Token_setText(CTX, struct _kToken *tk, const char *t, size_t len)
+{
+	ksymbol_t kw = ksymbolA(t, len, SYM_NONAME);
+	if(kw == SYM_UNMASK(kw)) {
+		KSETv(tk->text, SYM_s(kw));
+	}
+	else {
+		KSETv(tk->text, new_kString(t, len, SPOL_ASCII));
+	}
+}
+
+static int parseSYMBOL_(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, ksymbol_t defkw)
+{
+	int ch, pos = tok_start;
+	const char *ts = tenv->source;
+	while((ch = ts[pos++]) != 0) {
+		if(ch == '_' || isalnum(ch)) continue; // nothing
+		break;
+	}
+	if(IS_NOTNULL(tk)) {
+		Token_setText(_ctx, tk, ts + tok_start, (pos-1)-tok_start);
+		kToken_setUnresolved(tk, true);
+		tk->kw = defkw;
 	}
 	return pos - 1;  // next
 }
 
 static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
-	int ch, pos = tok_start;
-	const char *ts = tenv->source;
-	while((ch = ts[pos++]) != 0) {
-		if(ch == '_' || isalnum(ch)) continue; // nothing
-		break;
-	}
-	if(IS_NOTNULL(tk)) {
-		KSETv(tk->text, new_kString(ts + tok_start, (pos-1)-tok_start, SPOL_ASCII));
-		tk->tt = TK_SYMBOL;
-	}
-	return pos - 1;  // next
+	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
 }
 
 static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
-	int ch, pos = tok_start;
-	const char *ts = tenv->source;
-	while((ch = ts[pos++]) != 0) {
-		if(ch == '_' || isalnum(ch)) continue; // nothing
-		break;
-	}
-	if(IS_NOTNULL(tk)) {
-		KSETv(tk->text, new_kString(ts + tok_start, (pos-1)-tok_start, SPOL_ASCII));
-		tk->tt = TK_USYMBOL;
-	}
-	return pos - 1;  // next
+	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_USYMBOL);
 }
 
 static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
-	int ch, pos = tok_start;
-	const char *ts = tenv->source;
-	while((ch = ts[pos++]) != 0) {
-		if(!(ch < 0)) break;
-	}
-	if(IS_NOTNULL(tk)) {
-		KSETv(tk->text, new_kString(ts + tok_start, (pos-1)-tok_start, SPOL_UTF8));
-		tk->tt = TK_MSYMBOL;
-	}
-	return pos - 1;  // next
+	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
 }
 
 static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
 {
 	if(IS_NOTNULL(tk)) {
-		const char *s = tenv->source + tok_start;
-		KSETv(tk->text, new_kString(s, 1, SPOL_ASCII|SPOL_POOL));
-		tk->tt = TK_OPERATOR;
+		kToken_setUnresolved(tk, true);
+		tk->kw = TK_SYMBOL;
+		Token_setText(_ctx, tk, tenv->source + tok_start, 1);
 	}
 	return tok_start+1;
 }
@@ -147,9 +145,9 @@ static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *
 		break;
 	}
 	if(IS_NOTNULL(tk)) {
-		const char *s = tenv->source + tok_start;
-		KSETv(tk->text, new_kString(s, (pos-1)-tok_start, SPOL_ASCII|SPOL_POOL));
-		tk->tt = TK_OPERATOR;
+		kToken_setUnresolved(tk, true);
+		Token_setText(_ctx, tk, tenv->source + tok_start, (pos-1)-tok_start);
+		tk->kw = TK_SYMBOL;
 	}
 	return pos-1;
 }
@@ -214,7 +212,7 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 			if(IS_NOTNULL(tk)) {
 				size_t length = kwb_bytesize(&wb);
 				KSETv(tk->text, new_kString(kwb_top(&wb, 1), length, 0));
-				tk->tt = TK_TEXT;
+				tk->kw = TK_TEXT;
 			}
 			kwb_free(&wb);
 			return pos;
@@ -389,7 +387,7 @@ static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 			if(level == 0) {
 				if(IS_NOTNULL(tk)) {
 					KSETv(tk->text, new_kString(tenv->source + tok_start + 1, ((pos-2)-(tok_start)+1), 0));
-					tk->tt = TK_CODE;
+					tk->kw = TK_CODE;
 				}
 				return pos + 1;
 			}
@@ -413,11 +411,11 @@ static void tokenize(CTX, tenv_t *tenv)
 	int ch, pos = 0;
 	const Ftokenizer *fmat = tenv->fmat;
 	struct _kToken *tk = new_W(Token, 0);
-	assert(tk->tt == 0);
+	DBG_ASSERT(tk->kw == 0);
 	tk->uline = tenv->uline;
 	pos = parseINDENT(_ctx, tk, tenv, pos, NULL);
 	while((ch = kchar(tenv->source, pos)) != 0) {
-		if(tk->tt != 0) {
+		if(tk->kw != 0) {
 			kArray_add(tenv->list, tk);
 			tk = new_W(Token, 0);
 			tk->uline = tenv->uline;
@@ -426,7 +424,7 @@ static void tokenize(CTX, tenv_t *tenv)
 		assert(pos2 > pos);
 		pos = pos2;
 	}
-	if(tk->tt != 0) {
+	if(tk->kw != 0) {  // FIXME: Memory Leaks ???
 		kArray_add(tenv->list, tk);
 	}
 }
@@ -475,33 +473,33 @@ static void KonohaSpace_tokenize(CTX, kKonohaSpace *ks, const char *source, klin
 
 // --------------------------------------------------------------------------
 
-static int findTopCh(CTX, kArray *tls, int s, int e, ktoken_t tt, int closech)
+static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst);
+#define kToken_topch2(tt, tk) ((tk->kw == tt && (S_size((tk)->text) == 1)) ? S_text((tk)->text)[0] : 0)
+
+static int findCloseChar(CTX, kArray *tls, int s, int e, ksymbol_t tt, int closech)
 {
 	int i;
 	for(i = s; i < e; i++) {
 		kToken *tk = tls->toks[i];
-		if(tk->tt == tt && S_text(tk->text)[0] == closech) return i;
+		if(kToken_topch2(tt, tk) == closech) return i;
 	}
-	DBG_ASSERT(i != e);  // Must not happen
 	return e;
 }
 
-static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst);
-
-static kbool_t checkNestedSyntax(CTX, kArray *tls, int *s, int e, ktoken_t tt, int opench, int closech)
+static kbool_t checkNestedSyntax(CTX, kArray *tls, int *s, int e, ksymbol_t astkw, int opench, int closech)
 {
 	int i = *s;
 	struct _kToken *tk = tls->Wtoks[i];
-	const char *t = S_text(tk->text);
-	if(t[0] == opench && t[1] == 0) {
-		int ne = findTopCh(_ctx, tls, i+1, e, tk->tt, closech);
-		tk->tt = tt; tk->kw = tt;
+	int topch = kToken_topch2(tk->kw, tk);
+	if(topch == opench) {
+		int ne = findCloseChar(_ctx, tls, i+1, e, tk->kw, closech);
+		tk->kw = astkw;
 		KSETv(tk->sub, new_(TokenArray, 0));
 		makeSyntaxRule(_ctx, tls, i+1, ne, tk->sub);
 		*s = ne;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
@@ -511,43 +509,44 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 //	dumpTokenArray(_ctx, 0, tls, s, e);
 	for(i = s; i < e; i++) {
 		struct _kToken *tk = tls->Wtoks[i];
-		if(tk->tt == TK_INDENT) continue;
-		if(tk->tt == TK_TEXT /*|| tk->tt == TK_STEXT*/) {
+		int topch = kToken_topch(tk);
+		if(tk->kw == TK_INDENT) continue;
+		if(tk->kw == TK_TEXT) {
 			if(checkNestedSyntax(_ctx, tls, &i, e, AST_PARENTHESIS, '(', ')') ||
 				checkNestedSyntax(_ctx, tls, &i, e, AST_BRACKET, '[', ']') ||
 				checkNestedSyntax(_ctx, tls, &i, e, AST_BRACE, '{', '}')) {
 			}
 			else {
-				tk->tt = TK_CODE;
+				// FIXME: tk->tt = TK_CODE;
 				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 			}
 			kArray_add(adst, tk);
 			continue;
 		}
-		if(tk->tt == TK_SYMBOL || tk->tt == TK_USYMBOL) {
-			if(i > 0 && kToken_topch(tls->toks[i-1]) == '$') {
+		if(topch == '$' && i+1 < e) {
+			tk = tls->Wtoks[++i];
+			if(tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL) {
 				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW) | KW_PATTERN;
-				tk->tt = TK_METANAME;
 				if(nameid == 0) nameid = tk->kw;
 				tk->nameid = nameid;
 				nameid = 0;
-				kArray_add(adst, tk); continue;
-			}
-			if(i + 1 < e && kToken_topch(tls->toks[i+1]) == ':') {
-				kToken *tk = tls->toks[i];
-				nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
-				i++;
+				kArray_add(adst, tk);
 				continue;
 			}
 		}
-		if(tk->tt == TK_OPERATOR) {
+		else if(topch == '[') {
 			if(checkNestedSyntax(_ctx, tls, &i, e, AST_OPTIONAL, '[', ']')) {
 				kArray_add(adst, tk);
 				continue;
 			}
-			if(kToken_topch(tls->toks[i]) == '$') continue;
+			return false;
 		}
-		Token_pERR(_ctx, tk, "illegal sugar syntax: %s", kToken_s(tk));
+		if(tk->kw == TK_SYMBOL && i + 1 < e && kToken_topch(tls->toks[i+1]) == ':') {
+			nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
+			i++;
+			continue;
+		}
+		Token_pERR(_ctx, tk, "illegal syntax rule: %s", kToken_s(tk));
 		return false;
 	}
 	return true;
