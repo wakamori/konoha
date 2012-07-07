@@ -300,7 +300,7 @@ struct _kKonohaCode {
 #endif
 
 #define OPEXEC_ERROR(start, msg) {\
-		kreportf(ErrTag, 0, "%s", S_text(msg));\
+		kreportf(NoneTag, 0, "%s", S_text(msg));\
 		kraise(0);\
 	}\
 
