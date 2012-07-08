@@ -108,10 +108,10 @@ static void KLIB2_setGetterSetter(CTX, kclass_t *ct)
 
 // --------------------------------------------------------------------------
 
-// int KonohaSpace.getCid(String name, int defval)
-static KMETHOD KonohaSpace_getCid(CTX, ksfp_t *sfp _RIX)
+// int NameSpace.getCid(String name, int defval)
+static KMETHOD NameSpace_getCid(CTX, ksfp_t *sfp _RIX)
 {
-	kclass_t *ct = kKonohaSpace_getCT(sfp[0].ks, NULL/*fixme*/, S_text(sfp[1].s), S_size(sfp[1].s), (kcid_t)sfp[2].ivalue);
+	kclass_t *ct = kNameSpace_getCT(sfp[0].ks, NULL/*fixme*/, S_text(sfp[1].s), S_size(sfp[1].s), (kcid_t)sfp[2].ivalue);
 	kint_t cid = ct != NULL ? ct->cid : sfp[2].ivalue;
 	RETURNi_(cid);
 }
@@ -131,7 +131,7 @@ static void setfield(CTX, KDEFINE_CLASS *ct, int fctsize, kclass_t *supct)
 	}
 }
 
-static kclass_t* defineClass(CTX, kKonohaSpace *ks, kflag_t cflag, kString *name, kclass_t *supct, int fsize, kline_t pline)
+static kclass_t* defineClass(CTX, kNameSpace *ks, kflag_t cflag, kString *name, kclass_t *supct, int fsize, kline_t pline)
 {
 	KDEFINE_CLASS defNewClass = {
 		.cflag  = cflag,
@@ -145,8 +145,8 @@ static kclass_t* defineClass(CTX, kKonohaSpace *ks, kflag_t cflag, kString *name
 	return ct;
 }
 
-// int KonohaSpace.defineClass(int flag, String name, int supcid, int fieldsize);
-static KMETHOD KonohaSpace_defineClass(CTX, ksfp_t *sfp _RIX)
+// int NameSpace.defineClass(int flag, String name, int supcid, int fieldsize);
+static KMETHOD NameSpace_defineClass(CTX, ksfp_t *sfp _RIX)
 {
 	ktype_t supcid = sfp[3].ivalue == 0 ? TY_Object :(ktype_t)sfp[3].ivalue;
 	kclass_t *supct = kclass(supcid, sfp[K_RTNIDX].uline);
@@ -182,8 +182,8 @@ static void defineField(CTX, struct _kclass *ct, int flag, ktype_t ty, kString *
 	}
 }
 
-// int KonohaSpace.defineClassField(int cid, int flag, int ty, String name, Object *value);
-static KMETHOD KonohaSpace_defineClassField(CTX, ksfp_t *sfp _RIX)
+// int NameSpace.defineClassField(int cid, int flag, int ty, String name, Object *value);
+static KMETHOD NameSpace_defineClassField(CTX, ksfp_t *sfp _RIX)
 {
 	kcid_t cid = (kcid_t)sfp[1].ivalue;
 	kflag_t flag = (kflag_t)sfp[2].ivalue;
@@ -208,22 +208,22 @@ static KMETHOD KonohaSpace_defineClassField(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t class_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t class_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	USING_SUGAR;
 	int FN_flag = FN_("flag"), FN_cid = FN_("cid"), FN_name = FN_("name"), FN_defval = FN_("defval");
 	intptr_t MethodData[] = {
-		_Public, _F(KonohaSpace_getCid), TY_Int, TY_KonohaSpace, MN_toGETTER(MN_("getCid")), 2, TY_String, FN_name, TY_Int, FN_defval,
-		_Public, _F(KonohaSpace_defineClass), TY_Int, TY_KonohaSpace, MN_("defineClass"), 4, TY_Int, FN_flag, TY_String, FN_name, TY_Int, FN_("supcid"), TY_Int, FN_("fieldSize"),
-		_Public, _F(KonohaSpace_defineClassField), TY_Int, TY_KonohaSpace, MN_("defineClassField"), 5, TY_Int, FN_cid, TY_Int, FN_flag, TY_Int, FN_("type"), TY_String, FN_name, TY_Object, FN_defval,
+		_Public, _F(NameSpace_getCid), TY_Int, TY_NameSpace, MN_toGETTER(MN_("getCid")), 2, TY_String, FN_name, TY_Int, FN_defval,
+		_Public, _F(NameSpace_defineClass), TY_Int, TY_NameSpace, MN_("defineClass"), 4, TY_Int, FN_flag, TY_String, FN_name, TY_Int, FN_("supcid"), TY_Int, FN_("fieldSize"),
+		_Public, _F(NameSpace_defineClassField), TY_Int, TY_NameSpace, MN_("defineClassField"), 5, TY_Int, FN_cid, TY_Int, FN_flag, TY_Int, FN_("type"), TY_String, FN_name, TY_Object, FN_defval,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	KSET_KLIB2(Method_indexOfField, KLIB2_Method_indexOfField, pline);
 	return true;
 }
 
-static kbool_t class_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t class_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -286,9 +286,9 @@ static KMETHOD ExprTyCheck_Getter(CTX, ksfp_t *sfp _RIX)
 	ksymbol_t fn = tosymbolUM(_ctx, tkN);
 	kExpr *self = SUGAR Expr_tyCheckAt(_ctx, stmt, expr, 1, gma, TY_var, 0);
 	if(self != K_NULLEXPR) {
-		kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toGETTER(fn));
+		kMethod *mtd = kNameSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toGETTER(fn));
 		if(mtd == NULL) {
-			mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toISBOOL(fn));
+			mtd = kNameSpace_getMethodNULL(gma->genv->ks, self->ty, MN_toISBOOL(fn));
 		}
 		if(mtd != NULL) {
 			KSETv(expr->cons->methods[0], mtd);
@@ -308,7 +308,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 	if(tkP != NULL && tkP->kw == TK_CODE) {
 		kArray *a = ctxsugar->tokens;
 		size_t atop = kArray_size(a), s, i;
-		SUGAR KonohaSpace_tokenize(_ctx, kStmt_ks(stmt), S_text(tkP->text), tkP->uline, a);
+		SUGAR NameSpace_tokenize(_ctx, kStmt_ks(stmt), S_text(tkP->text), tkP->uline, a);
 		s = kArray_size(a);
 		const char *cname = S_text(tkC->text);
 		for(i = atop; i < s; i++) {
@@ -370,7 +370,7 @@ static void ObjectField_reftrace (CTX, kObject *o)
 	END_REFTRACE();
 }
 
-static struct _kclass* defineClassName(CTX, kKonohaSpace *ks, kflag_t cflag, kString *name, kcid_t supcid, kline_t pline)
+static struct _kclass* defineClassName(CTX, kNameSpace *ks, kflag_t cflag, kString *name, kcid_t supcid, kline_t pline)
 {
 	KDEFINE_CLASS defNewClass = {
 		.cflag  = cflag,
@@ -384,7 +384,7 @@ static struct _kclass* defineClassName(CTX, kKonohaSpace *ks, kflag_t cflag, kSt
 		{S_text(name), TY_TYPE, ct},
 		{NULL},
 	};
-	kKonohaSpace_loadConstData(ks, ClassData, 0); // add class name to this namespace
+	kNameSpace_loadConstData(ks, ClassData, 0); // add class name to this namespace
 //	kMethod *mtd = new_kMethod(_Public/*flag*/, ct->cid, MN_new, NULL);
 //	kMethod_setParam(mtd, ct->cid, 0, NULL);
 //	CT_addMethod(_ctx, ct, mtd);
@@ -538,7 +538,7 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 			RETURNb_(false);
 		}
 	}
-	struct _kclass *ct = (struct _kclass*)kKonohaSpace_getCT(gma->genv->ks, NULL/*FIXME*/, S_text(tkC->text), S_size(tkC->text), TY_unknown);
+	struct _kclass *ct = (struct _kclass*)kNameSpace_getCT(gma->genv->ks, NULL/*FIXME*/, S_text(tkC->text), S_size(tkC->text), TY_unknown);
 	if (ct != NULL) {
 		if (!CT_isForward(ct)) {
 			SUGAR Stmt_p(_ctx, stmt, NULL, ERR_, "%s is already defined", CT_t(ct));
@@ -572,7 +572,7 @@ static KMETHOD StmtTyCheck_class(CTX, ksfp_t *sfp _RIX)
 	RETURNb_(true);
 }
 
-static kbool_t class_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t class_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
@@ -582,11 +582,11 @@ static kbool_t class_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .kw = SYM_("."), ExprTyCheck_(Getter) },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t class_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t class_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

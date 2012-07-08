@@ -41,8 +41,8 @@ KDEFINE_PACKAGE* string_init(void)
 		KPACKNAME("String", "1.0"),
 		.initPackage = string_initPackage,
 		.setupPackage = string_setupPackage,
-		.initKonohaSpace = string_initKonohaSpace,
-		.setupKonohaSpace = string_setupKonohaSpace,
+		.initNameSpace = string_initNameSpace,
+		.setupNameSpace = string_setupNameSpace,
 	};
 	return &d;
 }

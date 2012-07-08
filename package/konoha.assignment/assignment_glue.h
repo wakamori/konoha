@@ -46,7 +46,7 @@ static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 				DBG_ASSERT(IS_Method(mtd));
 				if((MN_isGETTER(mtd->mn) || MN_isISBOOL(mtd->mn)) && !kMethod_isStatic(mtd)) {
 					ktype_t cid = lexpr->cons->exprs[1]->ty;
-					mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, cid, MN_toSETTER(mtd->mn));
+					mtd = kNameSpace_getMethodNULL(gma->genv->ks, cid, MN_toSETTER(mtd->mn));
 					if(mtd != NULL) {
 						KSETv(lexpr->cons->methods[0], mtd);
 						kArray_add(lexpr->cons, rexpr);
@@ -62,12 +62,12 @@ static KMETHOD ExprTyCheck_assignment(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
-static	kbool_t assignment_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t assignment_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t assignment_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t assignment_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -156,7 +156,7 @@ static KMETHOD ParseExpr_OprAssignment(CTX, ksfp_t *sfp _RIX)
 	RETURN_(expr);
 }
 
-static kbool_t assignment_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t assignment_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
@@ -168,11 +168,11 @@ static kbool_t assignment_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .kw = SYM_("%="), _OPLeft, /*.priority_op2 =*/ StmtTyCheck_(DefaultAssignment), ParseExpr_(OprAssignment), .priority_op2 = 4096,},
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t assignment_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t assignment_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

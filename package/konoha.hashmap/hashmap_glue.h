@@ -110,7 +110,7 @@ static KMETHOD HashMap_new(CTX, ksfp_t *sfp _RIX)
 
 #define CT_HashMap cHashMap
 #define TY_HashMap cHashMap->cid
-static	kbool_t hashmap_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t hashmap_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KDEFINE_CLASS defHashMap = {
 		STRUCTNAME(HashMap),
@@ -128,18 +128,18 @@ static	kbool_t hashmap_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public, _F(HashMap_new), TY_HashMap, TY_HashMap, MN_("new"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t hashmap_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t hashmap_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
 //----------------------------------------------------------------------------
 
-static kbool_t hashmap_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t hashmap_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	// TODO: map literal
 	USING_SUGAR;
@@ -147,11 +147,11 @@ static kbool_t hashmap_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 
 			{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t hashmap_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t hashmap_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

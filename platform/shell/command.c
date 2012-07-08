@@ -478,13 +478,13 @@ static void konoha_define(CTX, char *keyvalue)
 			KDEFINE_INT_CONST ConstData[] = {
 				{keyvalue, TY_Int, n}, {}
 			};
-			kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+			kNameSpace_loadConstData(KNULL(NameSpace), ConstData, 0);
 		}
 		else {
 			KDEFINE_TEXT_CONST ConstData[] = {
 				{keyvalue, TY_TEXT, p+1}, {}
 			};
-			kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+			kNameSpace_loadConstData(KNULL(NameSpace), ConstData, 0);
 		}
 	}
 	else {
@@ -500,7 +500,7 @@ static void konoha_import(CTX, char *packagename)
 	if(!KREQUIRE_PACKAGE(bufname, 0)) {
 		PLAT exit_i(EXIT_FAILURE);
 	}
-	KEXPORT_PACKAGE(bufname, KNULL(KonohaSpace), 0);
+	KEXPORT_PACKAGE(bufname, KNULL(NameSpace), 0);
 }
 
 static void konoha_startup(CTX, const char *startup_script)
@@ -534,7 +534,7 @@ static void konoha_commandline(CTX, int argc, char** argv)
 			{"SCRIPT_ARGV", CT_StringArray0->cid, (kObject*)a},
 			{}
 	};
-	kKonohaSpace_loadConstData(KNULL(KonohaSpace), ConstData, 0);
+	kNameSpace_loadConstData(KNULL(NameSpace), ConstData, 0);
 }
 
 static struct option long_options2[] = {

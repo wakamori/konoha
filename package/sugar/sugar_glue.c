@@ -76,24 +76,24 @@ static KMETHOD Block_tyCheckAll(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
-//## void KonohaSpace.addPatternMatch(String keyword, Func f);
-static KMETHOD KonohaSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
+//## void NameSpace.addPatternMatch(String keyword, Func f);
+static KMETHOD NameSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_PatternMatch, sfp[2].fo);
 }
 
-//## void KonohaSpace.addParseExpr(String keyword, Func f);
-static KMETHOD KonohaSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
+//## void NameSpace.addParseExpr(String keyword, Func f);
+static KMETHOD NameSpace_addParseExpr(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_ParseExpr, sfp[2].fo);
 }
 
-//## void KonohaSpace.addStmtTyCheck(String keyword, Func f);
-static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
+//## void NameSpace.addStmtTyCheck(String keyword, Func f);
+static KMETHOD NameSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
@@ -101,16 +101,16 @@ static KMETHOD KonohaSpace_addStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 }
 
 
-//## void KonohaSpace.addTopStmtTyCheck(String keyword, Func f);
-static KMETHOD KonohaSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
+//## void NameSpace.addTopStmtTyCheck(String keyword, Func f);
+static KMETHOD NameSpace_addTopStmtTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
 	SUGAR SYN_addSugarFunc(_ctx, sfp[0].ks, ksymbolA(S_text(key), S_size(key), _NEWID), SYNIDX_TopStmtTyCheck, sfp[2].fo);
 }
 
-//## void KonohaSpace.addExprTyCheck(String keyword, Func f);
-static KMETHOD KonohaSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
+//## void NameSpace.addExprTyCheck(String keyword, Func f);
+static KMETHOD NameSpace_addExprTyCheck(CTX, ksfp_t *sfp _RIX)
 {
 	USING_SUGAR;
 	kString *key = sfp[1].s;
@@ -131,7 +131,7 @@ static KMETHOD Stmt_printError(CTX, ksfp_t *sfp _RIX)
 // --------------------------------------------------------------------------
 // AST Method
 
-//static ksyntax_t* get_syntax(CTX, kKonohaSpace *ks, kString *key)
+//static ksyntax_t* get_syntax(CTX, kNameSpace *ks, kString *key)
 //{
 //	USING_SUGAR;
 //	symbol_t kw = KW_s(key);
@@ -233,7 +233,7 @@ static KMETHOD Stmt_newExpr(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t sugar_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	USING_SUGAR;
 	int FN_buildid = FN_("buildid"), FN_key = FN_("key"), FN_defval = FN_("defval");
@@ -264,11 +264,11 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public, _F(Stmt_tyCheckExpr), TY_Boolean, TY_Stmt, MN_("tyCheckExpr"), 4, TY_String, FN_key, TY_Gamma, FN_gma, TY_Int, FN_typeid, TY_Int, FN_pol,
 		_Public, _F(Block_tyCheckAll), TY_Boolean, TY_Block, MN_("tyCheckAll"), 1, TY_Gamma, FN_gma,
 
-		_Public, _F(KonohaSpace_addPatternMatch), TY_void, TY_KonohaSpace, MN_("addPatternMatch"), 2, TY_String, FN_key, TY_FuncPatternMatch, FN_func,
-		_Public, _F(KonohaSpace_addParseExpr), TY_void, TY_KonohaSpace, MN_("addParseExpr"), 2, TY_String, FN_key, TY_FuncParseExpr, FN_func,
-		_Public, _F(KonohaSpace_addTopStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addTopStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
-		_Public, _F(KonohaSpace_addStmtTyCheck), TY_void, TY_KonohaSpace, MN_("addStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
-		_Public, _F(KonohaSpace_addExprTyCheck), TY_void, TY_KonohaSpace, MN_("addExprTyCheck"), 2, TY_String, FN_key, TY_FuncExprTyCheck, FN_func,
+		_Public, _F(NameSpace_addPatternMatch), TY_void, TY_NameSpace, MN_("addPatternMatch"), 2, TY_String, FN_key, TY_FuncPatternMatch, FN_func,
+		_Public, _F(NameSpace_addParseExpr), TY_void, TY_NameSpace, MN_("addParseExpr"), 2, TY_String, FN_key, TY_FuncParseExpr, FN_func,
+		_Public, _F(NameSpace_addTopStmtTyCheck), TY_void, TY_NameSpace, MN_("addTopStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
+		_Public, _F(NameSpace_addStmtTyCheck), TY_void, TY_NameSpace, MN_("addStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,
+		_Public, _F(NameSpace_addExprTyCheck), TY_void, TY_NameSpace, MN_("addExprTyCheck"), 2, TY_String, FN_key, TY_FuncExprTyCheck, FN_func,
 
 		_Public, _F(Stmt_printError), TY_Expr, TY_Stmt, MN_("printError"), 1, TY_String, FN_msg,
 
@@ -276,11 +276,11 @@ static	kbool_t sugar_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 //		_Public, _F(Stmt_parsedExpr), TY_Expr, TY_Stmt, MN_("parseExpr"), 3, TY_TokenArray, FN_tls, TY_Int, FN_s, TY_Int, FN_e,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, MethodData);
+	kNameSpace_loadMethodData(NULL, MethodData);
 	return true;
 }
 
-static kbool_t sugar_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t sugar_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -296,7 +296,7 @@ static kbool_t isSubKeyword(CTX, kArray *tls, int s, int e)
 	return 0;
 }
 
-static struct _ksyntax *toks_syntax(CTX, kKonohaSpace *ks, kArray *tls)
+static struct _ksyntax *toks_syntax(CTX, kNameSpace *ks, kArray *tls)
 {
 	USING_SUGAR;
 	int s = 0, e = kArray_size(tls);
@@ -345,7 +345,7 @@ static KMETHOD StmtTyCheck_sugar(CTX, ksfp_t *sfp _RIX)
 	RETURNb_(r);
 }
 
-static kbool_t sugar_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t sugar_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_INT_CONST IntData[] = {
@@ -388,16 +388,16 @@ static kbool_t sugar_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 #undef DEFINE_KEYWORD
 		{NULL},
 	};
-	kKonohaSpace_loadConstData(ks, IntData, pline);
+	kNameSpace_loadConstData(ks, IntData, pline);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("sugar"), .rule ="\"sugar\" $toks", TopStmtTyCheck_(sugar), },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t sugar_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t sugar_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -408,8 +408,8 @@ KDEFINE_PACKAGE* sugar_init(void)
 		KPACKNAME("sugar", "1.0"),
 		.initPackage = sugar_initPackage,
 		.setupPackage = sugar_setupPackage,
-		.initKonohaSpace = sugar_initKonohaSpace,
-		.setupKonohaSpace = sugar_setupKonohaSpace,
+		.initNameSpace = sugar_initNameSpace,
+		.setupNameSpace = sugar_setupNameSpace,
 	};
 	return &d;
 }

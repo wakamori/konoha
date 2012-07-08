@@ -329,7 +329,7 @@ static KMETHOD System_fsync(CTX, ksfp_t *sfp _RIX)
 #define _Im kMethod_Immutable
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t fd_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t fd_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	intptr_t MethodData[] = {
 		_Public|_Const|_Im, _F(System_lseek), TY_Int, TY_System, MN_("lseek"), 3, TY_Int, FN_("fd"), TY_Int, FN_("offset"), TY_Int, FN_("whence"),
@@ -350,21 +350,21 @@ static kbool_t fd_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args,
 		_Public|_Const|_Im, _F(System_fsync), TY_Int, TY_System, MN_("fsync"), 1, TY_Int, FN_("fd"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t fd_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t fd_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t fd_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t fd_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t fd_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t fd_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -34,8 +34,8 @@ KDEFINE_PACKAGE* math_init(void)
 		KPACKNAME("math", "1.0"),
 		.initPackage = math_initPackage,
 		.setupPackage = math_setupPackage,
-		.initKonohaSpace = math_initKonohaSpace,
-		.setupKonohaSpace = math_setupKonohaSpace,
+		.initNameSpace = math_initNameSpace,
+		.setupNameSpace = math_setupNameSpace,
 	};
 	return &d;
 }

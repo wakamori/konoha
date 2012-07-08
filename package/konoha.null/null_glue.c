@@ -8,8 +8,8 @@ KDEFINE_PACKAGE* null_init(void)
 		KPACKNAME("null", "1.0"),
 		.initPackage = null_initPackage,
 		.setupPackage = null_setupPackage,
-		.initKonohaSpace = null_initKonohaSpace,
-		.setupKonohaSpace = null_setupKonohaSpace,
+		.initNameSpace = null_initNameSpace,
+		.setupNameSpace = null_setupNameSpace,
 	};
 	return &d;
 }

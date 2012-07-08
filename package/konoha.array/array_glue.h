@@ -122,7 +122,7 @@ static KMETHOD Array_add1(CTX, ksfp_t *sfp _RIX)
 #define _Im       kMethod_Immutable
 #define _F(F)     (intptr_t)(F)
 
-static	kbool_t array_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t array_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	intptr_t MethodData[] = {
 		_Public|_Im, _F(Array_get), TY_T0,   TY_Array, MN_("get"), 1, TY_Int, FN_("index"),
@@ -132,11 +132,11 @@ static	kbool_t array_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public,     _F(Array_add1), TY_void, TY_Array, MN_("add"), 1, TY_T0, FN_("value"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t array_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t array_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -173,18 +173,18 @@ static KMETHOD ParseExpr_BRACKET(CTX, ksfp_t *sfp _RIX)
 	}
 }
 
-static kbool_t array_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t array_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("$[]"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(BRACKET), .priority_op2 = 16, },  //AST_BRACKET
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t array_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t array_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

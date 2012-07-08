@@ -40,7 +40,7 @@
 
 // --------------------------------------------------------------------------
 
-static	kbool_t konoha_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t konoha_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KREQUIRE_PACKAGE("konoha.assignment", pline);
 	KREQUIRE_PACKAGE("konoha.while", pline);
@@ -57,12 +57,12 @@ static	kbool_t konoha_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 	return true;
 }
 
-static kbool_t konoha_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t konoha_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t konoha_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t konoha_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	KEXPORT_PACKAGE("konoha.assignment", ks, pline);
 	KEXPORT_PACKAGE("konoha.while", ks, pline);
@@ -78,7 +78,7 @@ static kbool_t konoha_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
 	return true;
 }
 
-static kbool_t konoha_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t konoha_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -89,8 +89,8 @@ KDEFINE_PACKAGE* konoha_init(void)
 		KPACKNAME("konoha", "1.0"),
 		.initPackage = konoha_initPackage,
 		.setupPackage = konoha_setupPackage,
-		.initKonohaSpace = konoha_initKonohaSpace,
-		.setupKonohaSpace = konoha_setupKonohaSpace,
+		.initNameSpace = konoha_initNameSpace,
+		.setupNameSpace = konoha_setupNameSpace,
 	};
 	return &d;
 }

@@ -35,8 +35,8 @@ KDEFINE_PACKAGE* class_init(void)
 		KPACKNAME("class", "1.0"),
 		.initPackage = class_initPackage,
 		.setupPackage = class_setupPackage,
-		.initKonohaSpace = class_initKonohaSpace,
-		.setupKonohaSpace = class_setupKonohaSpace,
+		.initNameSpace = class_initNameSpace,
+		.setupNameSpace = class_setupNameSpace,
 	};
 	return &d;
 }

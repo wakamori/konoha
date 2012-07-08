@@ -77,7 +77,7 @@ static void kapacheshare_free(CTX, struct kmodshare_t *baseh)
 }
 
 
-static kbool_t apache_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t apache_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	static KDEFINE_CLASS Def = {
 		STRUCTNAME(Request),
@@ -119,21 +119,21 @@ static kbool_t apache_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 		{"APLOG_DEBUG", TY_Int, APLOG_DEBUG},
 		{NULL, 0, 0}
 	};
-	kKonohaSpace_loadConstData(ks, IntData, 0);
+	kNameSpace_loadConstData(ks, IntData, 0);
 	return true;
 }
 
-static kbool_t apache_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t apache_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t apache_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t apache_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t apache_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t apache_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -144,8 +144,8 @@ KDEFINE_PACKAGE* apache_init(void)
 		KPACKNAME("apache", "1.0"),
 		.initPackage = apache_initPackage,
 		.setupPackage = apache_setupPackage,
-		.initKonohaSpace = apache_initKonohaSpace,
-		.setupKonohaSpace = apache_setupKonohaSpace,
+		.initNameSpace = apache_initNameSpace,
+		.setupNameSpace = apache_setupNameSpace,
 	};
 	return &d;
 }

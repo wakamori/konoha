@@ -425,7 +425,7 @@ static KMETHOD JsonArray_append(CTX, ksfp_t *sfp _RIX)
 
 /* ------------------------------------------------------------------------ */
 
-static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t jansson_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KREQUIRE_PACKAGE("konoha.float", pline);
 	//KREQUIRE_PACKAGE("konoha.string", pline);
@@ -469,23 +469,23 @@ static	kbool_t jansson_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public|_Const|_Im, _F(JsonArray_append),    TY_void,           TY_JsonArray, MN_("append"),   1, TY_Json, FN_("data"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t jansson_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t jansson_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t jansson_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t jansson_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	//KEXPORT_PACKAGE("konoha.string", ks,  pline);
 	//KEXPORT_PACKAGE("konoha.float", ks, pline);
 	return true;
 }
 
-static kbool_t jansson_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t jansson_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

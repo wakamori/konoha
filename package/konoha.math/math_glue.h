@@ -182,7 +182,7 @@ static KMETHOD Math_atanh(CTX, ksfp_t *sfp _RIX)
 #define _KVf(T) "MATH_" #T, TY_Float, M_##T
 #define TY_Math  (cMath->cid)
 
-static	kbool_t math_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t math_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KREQUIRE_PACKAGE("konoha.float", pline);
 	static KDEFINE_CLASS MathDef = {
@@ -227,7 +227,7 @@ static	kbool_t math_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 #endif
 			DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 
 	KDEFINE_FLOAT_CONST FloatData[] = {
 			{_KVf(E)},
@@ -239,22 +239,22 @@ static	kbool_t math_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 			{_KVf(SQRT2)},
 			{}
 	};
-	kKonohaSpace_loadConstData(ks, FloatData, 0);
+	kNameSpace_loadConstData(ks, FloatData, 0);
 	return true;
 }
 
-static kbool_t math_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t math_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t math_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t math_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	KEXPORT_PACKAGE("konoha.float", ks, pline);
 	return true;
 }
 
-static kbool_t math_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t math_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

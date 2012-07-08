@@ -33,8 +33,8 @@ KDEFINE_PACKAGE* bytes_init(void)
 		KPACKNAME("bytes", "1.0"),
 		.initPackage = bytes_initPackage,
 		.setupPackage = bytes_setupPackage,
-		.initKonohaSpace = bytes_initKonohaSpace,
-		.setupKonohaSpace = bytes_setupKonohaSpace,
+		.initNameSpace = bytes_initNameSpace,
+		.setupNameSpace = bytes_setupNameSpace,
 	};
 	return &d;
 }

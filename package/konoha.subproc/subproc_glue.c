@@ -54,8 +54,8 @@ KDEFINE_PACKAGE* subproc_init(void)
 		KPACKNAME("subproc", "1.0"),
 		.initPackage = subproc_initPackage,
 		.setupPackage = subproc_setupPackage,
-		.initKonohaSpace = subproc_initKonohaSpace,
-		.setupKonohaSpace = subproc_setupKonohaSpace,
+		.initNameSpace = subproc_initNameSpace,
+		.setupNameSpace = subproc_setupNameSpace,
 	};
 	return &d;
 }

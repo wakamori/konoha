@@ -466,7 +466,7 @@ typedef struct kshare_t {
 		const struct _kArray  *a; \
 		const struct _kMethod            *mtd;\
 		const struct _kFunc         *fo; \
-		const struct _kKonohaSpace             *ks;\
+		const struct _kNameSpace             *ks;\
 		const struct _kToken             *tk;\
 		const struct _kStmt              *stmt;\
 		const struct _kExpr              *expr;\
@@ -1019,7 +1019,7 @@ struct _kMethod {
 	union {
 		kObject              *objdata;
 		const struct _kKonohaCode   *kcode;
-		const struct _kKonohaSpace  *lazyns;       // lazy compilation
+		const struct _kNameSpace  *lazyns;       // lazy compilation
 	};
 	const struct _kMethod           *proceedNUL;   // proceed
 };
@@ -1124,7 +1124,7 @@ struct _kSystem {
 /* ----------------------------------------------------------------------- */
 // klib2
 
-struct _kKonohaSpace;
+struct _kNameSpace;
 struct klogconf_t;
 
 typedef const struct _klib2  klib2_t;
@@ -1160,7 +1160,7 @@ struct _klib2 {
 	kpack_t     (*Kpack)(CTX, const char *, size_t, int spol, ksymbol_t def);
 	ksymbol_t   (*Ksymbol2)(CTX, const char*, size_t, int spol, ksymbol_t def);
 
-	kbool_t     (*KimportPackage)(CTX, const struct _kKonohaSpace*, const char *, kline_t);
+	kbool_t     (*KimportPackage)(CTX, const struct _kNameSpace*, const char *, kline_t);
 	kclass_t*   (*Kclass)(CTX, kcid_t, kline_t);
 	kString*    (*KCT_shortName)(CTX, kclass_t *ct);
 	kclass_t*   (*KCT_Generics)(CTX, kclass_t *ct, ktype_t rty, int psize, kparam_t *p);
@@ -1192,11 +1192,11 @@ struct _klib2 {
 	kbool_t    (*KsetModule)(CTX, int, struct kmodshare_t *, kline_t);
 	kclass_t*  (*KaddClassDef)(CTX, kpack_t, kpack_t, kString *, KDEFINE_CLASS *, kline_t);
 
-	kclass_t*  (*KS_getCT)(CTX, const struct _kKonohaSpace *, kclass_t *, const char *, size_t, kcid_t def);
-	void       (*KS_loadMethodData)(CTX, const struct _kKonohaSpace *, intptr_t *d);
-	void       (*KS_loadConstData)(CTX, const struct _kKonohaSpace *, const char **d, kline_t);
-	kMethod*   (*KS_getMethodNULL)(CTX, const struct _kKonohaSpace *ks, kcid_t cid, kmethodn_t mn);
-	kMethod*   (*KS_getGetterMethodNULL)(CTX, const struct _kKonohaSpace *, ktype_t cid, ksymbol_t sym);
+	kclass_t*  (*KS_getCT)(CTX, const struct _kNameSpace *, kclass_t *, const char *, size_t, kcid_t def);
+	void       (*KS_loadMethodData)(CTX, const struct _kNameSpace *, intptr_t *d);
+	void       (*KS_loadConstData)(CTX, const struct _kNameSpace *, const char **d, kline_t);
+	kMethod*   (*KS_getMethodNULL)(CTX, const struct _kNameSpace *ks, kcid_t cid, kmethodn_t mn);
+	kMethod*   (*KS_getGetterMethodNULL)(CTX, const struct _kNameSpace *, ktype_t cid, ksymbol_t sym);
 
 	void       (*KS_syncMethods)(CTX);
 	void       (*KCodeGen)(CTX, kMethod *, const struct _kBlock *);
@@ -1305,11 +1305,11 @@ struct _klib2 {
 #define kClassTable_Generics(CT, RTY, PSIZE, P)    (KPI)->KCT_Generics(_ctx, CT, RTY, PSIZE, P)
 #define Konoha_setModule(N,D,P)              (KPI)->KsetModule(_ctx, N, D, P)
 #define Konoha_addClassDef(PAC, DOM, NAME, DEF, UL)    (KPI)->KaddClassDef(_ctx, PAC, DOM, NAME, DEF, UL)
-#define kKonohaSpace_getCT(NS, THIS, S, L, C)      (KPI)->KS_getCT(_ctx, NS, THIS, S, L, C)
-#define kKonohaSpace_loadMethodData(NS, DEF)       (KPI)->KS_loadMethodData(_ctx, NS, DEF)
-#define kKonohaSpace_loadConstData(KS, DEF, UL)    (KPI)->KS_loadConstData(_ctx, KS, (const char**)&(DEF), UL)
-#define kKonohaSpace_getMethodNULL(KS, CID, MN)    (KPI)->KS_getMethodNULL(_ctx, KS, CID, MN)
-#define kKonohaSpace_syncMethods()    (KPI)->KS_syncMethods(_ctx)
+#define kNameSpace_getCT(NS, THIS, S, L, C)      (KPI)->KS_getCT(_ctx, NS, THIS, S, L, C)
+#define kNameSpace_loadMethodData(NS, DEF)       (KPI)->KS_loadMethodData(_ctx, NS, DEF)
+#define kNameSpace_loadConstData(KS, DEF, UL)    (KPI)->KS_loadConstData(_ctx, KS, (const char**)&(DEF), UL)
+#define kNameSpace_getMethodNULL(KS, CID, MN)    (KPI)->KS_getMethodNULL(_ctx, KS, CID, MN)
+#define kNameSpace_syncMethods()    (KPI)->KS_syncMethods(_ctx)
 
 typedef struct {
 	const char *key;

@@ -481,7 +481,7 @@ static int python_init_count = 0;
 #define _Im       kMethod_Immutable
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t python_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t python_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	python_init_count++;
 	if(python_init_count == 1) {
@@ -551,29 +551,29 @@ static	kbool_t python_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 		_Public|_Im, _F(PyObject_), TY_PyObject, TY_PyObject, 0, 1, TY_PyObject, 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	if(IS_defineFloat()) {
 		intptr_t MethodData[] = {
 			_Public|_Const|_Im|_Coercion, _F(PyObject_toFloat), TY_Float, TY_PyObject, MN_to(TY_Float), 0,
 			_Public|_Const|_Im|_Coercion, _F(Float_toPyObject), TY_PyObject, TY_Float, MN_to(TY_PyObject), 0,
 			DEND,
 		};
-		kKonohaSpace_loadMethodData(ks, MethodData);
+		kNameSpace_loadMethodData(ks, MethodData);
 	}
 	return true;
 }
 
-static kbool_t python_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t python_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t python_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t python_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t python_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t python_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

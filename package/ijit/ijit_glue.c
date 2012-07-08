@@ -687,7 +687,7 @@ static void KMethod_genCode(CTX, kMethod *mtd, kBlock *bk)
 	END_LOCAL();
 }
 
-static kbool_t ijit_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t ijit_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KREQUIRE_PACKAGE("sugar", pline);
 	KREQUIRE_PACKAGE("konoha.float", pline);
@@ -718,17 +718,17 @@ static kbool_t ijit_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 	//	{"PTRSIZE", TY_Int, sizeof(void*)},
 	//	{NULL},
 	//};
-	//kKonohaSpace_loadConstData(ks, IntData, pline);
+	//kNameSpace_loadConstData(ks, IntData, pline);
 
 	Konoha_setModule(MOD_jit, &base->h, pline);
 	return true;
 }
 
-static kbool_t ijit_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t ijit_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 
-	kMethod *mtd = kKonohaSpace_getMethodNULL(ks, TY_System, MN_("genCode"));
+	kMethod *mtd = kNameSpace_getMethodNULL(ks, TY_System, MN_("genCode"));
 	KINITv(kmodjit->genCode, mtd);
 #define TY_Pointer kmodjit->cPointer->cid
 #define _Public   kMethod_Public
@@ -820,23 +820,23 @@ static kbool_t ijit_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 
 	struct _klib2 *l = (struct _klib2*)_ctx->lib2;
 	l->KMethod_genCode = GenCodeDefault;
-	kKonohaSpace_syncMethods();
+	kNameSpace_syncMethods();
 	l->KMethod_genCode = KMethod_genCode;
 	//KSET_KLIB(Method_genCode, pline);
 
 	return true;
 }
 
-static kbool_t ijit_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t ijit_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t ijit_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t ijit_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -847,8 +847,8 @@ KDEFINE_PACKAGE* ijit_init(void)
 		KPACKNAME("ijit", "1.0"),
 		.initPackage = ijit_initPackage,
 		.setupPackage = ijit_setupPackage,
-		.initKonohaSpace = ijit_initKonohaSpace,
-		.setupKonohaSpace = ijit_setupKonohaSpace,
+		.initNameSpace = ijit_initNameSpace,
+		.setupNameSpace = ijit_setupNameSpace,
 	};
 	return &d;
 }

@@ -33,11 +33,11 @@ extern "C" {
 /* ------------------------------------------------------------------------ */
 // Block
 
-static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s, int e, int delim, kArray *tlsdst, kToken **tkERRRef);
+static int selectStmtLine(CTX, kNameSpace *ks, int *indent, kArray *tls, int s, int e, int delim, kArray *tlsdst, kToken **tkERRRef);
 static void Block_addStmtLine(CTX, kBlock *bk, kArray *tls, int s, int e, kToken *tkERR);
-static int makeTree(CTX, kKonohaSpace *ks, ktoken_t tt, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef);
+static int makeTree(CTX, kNameSpace *ks, ktoken_t tt, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef);
 
-static kBlock *new_Block(CTX, kKonohaSpace *ks, kStmt *parent, kArray *tls, int s, int e, int delim)
+static kBlock *new_Block(CTX, kNameSpace *ks, kStmt *parent, kArray *tls, int s, int e, int delim)
 {
 	struct _kBlock *bk = new_W(Block, ks);
 	PUSH_GCSTACK(bk);
@@ -58,7 +58,7 @@ static kBlock *new_Block(CTX, kKonohaSpace *ks, kStmt *parent, kArray *tls, int 
 	return (kBlock*)bk;
 }
 
-static kbool_t Token_resolved(CTX, kKonohaSpace *ks, struct _kToken *tk)
+static kbool_t Token_resolved(CTX, kNameSpace *ks, struct _kToken *tk)
 {
 	ksymbol_t kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NONAME);
 	if(kw != SYM_NONAME) {
@@ -77,7 +77,7 @@ static kbool_t Token_resolved(CTX, kKonohaSpace *ks, struct _kToken *tk)
 	return 0;
 }
 
-static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _kToken *tk, kToken *tkP)
+static struct _kToken* TokenType_resolveGenerics(CTX, kNameSpace *ks, struct _kToken *tk, kToken *tkP)
 {
 	size_t i, psize= 0, size = kArray_size(tkP->sub);
 	kparam_t p[size];
@@ -112,7 +112,7 @@ static struct _kToken* TokenType_resolveGenerics(CTX, kKonohaSpace *ks, struct _
 	return tk;
 }
 
-static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArray *dst, kToken **tkERR)
+static int appendKeyword(CTX, kNameSpace *ks, kArray *tls, int s, int e, kArray *dst, kToken **tkERR)
 {
 	int next = s; // don't add
 	struct _kToken *tk = tls->Wtoks[s];
@@ -120,7 +120,7 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 		if(!Token_resolved(_ctx, ks, tk)) {
 			const char *t = S_text(tk->text);
 			if(isalpha(t[0])) {
-				kclass_t *ct = kKonohaSpace_getCT(ks, NULL/*FIXME*/, S_text(tk->text), S_size(tk->text), TY_unknown);
+				kclass_t *ct = kNameSpace_getCT(ks, NULL/*FIXME*/, S_text(tk->text), S_size(tk->text), TY_unknown);
 				if(ct != NULL) {
 					tk->kw = KW_TypePattern;
 					tk->ty = ct->cid;
@@ -164,13 +164,13 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 	return next;
 }
 
-static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kKonohaSpace *ks)
+static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kNameSpace *ks)
 {
 	if(tk->kw == TK_CODE) {
 		INIT_GCSTACK();
 		kArray *a = new_(TokenArray, 0);
 		PUSH_GCSTACK(a);
-		KonohaSpace_tokenize(_ctx, ks, S_text(tk->text), tk->uline, a);
+		NameSpace_tokenize(_ctx, ks, S_text(tk->text), tk->uline, a);
 		tk->kw = AST_BRACE;
 		KSETv(tk->sub, a);
 		RESET_GCSTACK();
@@ -179,7 +179,7 @@ static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kKonohaSpace *ks)
 	return 0;
 }
 
-static int makeTree(CTX, kKonohaSpace *ks, ktoken_t astkw, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef)
+static int makeTree(CTX, kNameSpace *ks, ktoken_t astkw, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef)
 {
 	int i, probablyCloseBefore = e - 1;
 	kToken *tk = tls->toks[s];
@@ -225,7 +225,7 @@ static int makeTree(CTX, kKonohaSpace *ks, ktoken_t astkw, kArray *tls, int s, i
 	return e;
 }
 
-static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s, int e, int delim, kArray *tlsdst, kToken **tkERRRef)
+static int selectStmtLine(CTX, kNameSpace *ks, int *indent, kArray *tls, int s, int e, int delim, kArray *tlsdst, kToken **tkERRRef)
 {
 	int i = s;
 	DBG_ASSERT(e <= kArray_size(tls));
@@ -442,7 +442,7 @@ static inline kToken* TokenArray_nextToken(CTX, kArray *tls, int s, int e)
 	return (s < e) ? tls->toks[s] : K_NULLTOKEN;
 }
 
-static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, int s, int e)
+static ksyntax_t* NameSpace_getSyntaxRule(CTX, kNameSpace *ks, kArray *tls, int s, int e)
 {
 	kToken *tk = tls->toks[s];
 	if(TK_isType(tk)) {
@@ -488,7 +488,7 @@ static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, 
 static kbool_t Stmt_parseSyntaxRule(CTX, kStmt *stmt, kArray *tls, int s, int e)
 {
 	kbool_t ret = false;
-	ksyntax_t *syn = KonohaSpace_getSyntaxRule(_ctx, kStmt_ks(stmt), tls, s, e);
+	ksyntax_t *syn = NameSpace_getSyntaxRule(_ctx, kStmt_ks(stmt), tls, s, e);
 	DBG_ASSERT(syn != NULL);
 	if(syn->syntaxRuleNULL != NULL) {
 		((struct _kStmt*)stmt)->syn = syn;

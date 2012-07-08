@@ -51,8 +51,8 @@ KDEFINE_PACKAGE* socket_init(void)
 		KPACKNAME("socket", "1.0"),
 		.initPackage = socket_initPackage,
 		.setupPackage = socket_setupPackage,
-		.initKonohaSpace = socket_initKonohaSpace,
-		.setupKonohaSpace = socket_setupKonohaSpace,
+		.initNameSpace = socket_initNameSpace,
+		.setupNameSpace = socket_setupNameSpace,
 	};
 	return &d;
 }

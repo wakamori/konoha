@@ -35,8 +35,8 @@ KDEFINE_PACKAGE* float_init(void)
 		KPACKNAME("float", "1.0"),
 		.initPackage = float_initPackage,
 		.setupPackage = float_setupPackage,
-		.initKonohaSpace = float_initKonohaSpace,
-		.setupKonohaSpace = float_setupKonohaSpace,
+		.initNameSpace = float_initNameSpace,
+		.setupNameSpace = float_setupNameSpace,
 	};
 	return &d;
 }

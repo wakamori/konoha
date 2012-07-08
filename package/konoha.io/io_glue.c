@@ -880,7 +880,7 @@ static KMETHOD OutputStream_close(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t io_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t io_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kioshare_t *base = (kioshare_t*)KCALLOC(sizeof(kioshare_t));
 	base->h.name     = "io";
@@ -910,21 +910,21 @@ static kbool_t io_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args,
 		_Public, _F(OutputStream_close),     TY_void,         TY_OutputStream, MN_("close"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, MethodData);
+	kNameSpace_loadMethodData(NULL, MethodData);
 	return true;
 }
 
-static kbool_t io_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t io_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t io_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t io_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t io_setupLingo(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t io_setupLingo(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -935,7 +935,7 @@ KDEFINE_PACKAGE* io_init(void)
 		KPACKNAME("io", "1.0"),
 		.initPackage  = io_initPackage,
 		.setupPackage = io_setupPackage,
-		.initKonohaSpace = io_initKonohaSpace,
+		.initNameSpace = io_initNameSpace,
 		.setupPackage = io_setupLingo,
 	};
 	return &d;

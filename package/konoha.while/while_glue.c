@@ -40,8 +40,8 @@ KDEFINE_PACKAGE* while_init(void)
 		KPACKNAME("C-compatible while", "1.0"),
 		.initPackage      = while_initPackage,
 		.setupPackage     = while_setupPackage,
-		.initKonohaSpace  = while_initKonohaSpace,
-		.setupKonohaSpace = while_setupKonohaSpace,
+		.initNameSpace  = while_initNameSpace,
+		.setupNameSpace = while_setupNameSpace,
 	};
 	return &d;
 }

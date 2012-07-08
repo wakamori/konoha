@@ -27,12 +27,12 @@
 
 // --------------------------------------------------------------------------
 
-static	kbool_t while_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t while_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t while_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t while_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -107,7 +107,7 @@ static KMETHOD StmtTyCheck_continue(CTX, ksfp_t *sfp _RIX)
 
 #define _LOOP .flag = (SYNFLAG_StmtJumpAhead|SYNFLAG_StmtJumpSkip)
 
-static kbool_t while_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t while_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
@@ -117,11 +117,11 @@ static kbool_t while_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .kw = SYM_("for"), _LOOP, StmtTyCheck_(for), .rule = "\"for\" \"(\" var: $block \";\" $expr \";\" each: $block \")\" $block", },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t while_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t while_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

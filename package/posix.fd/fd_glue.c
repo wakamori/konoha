@@ -42,8 +42,8 @@ KDEFINE_PACKAGE* fd_init(void)
 		KPACKNAME("fd", "1.0"),
 		.initPackage = fd_initPackage,
 		.setupPackage = fd_setupPackage,
-		.initKonohaSpace = fd_initKonohaSpace,
-		.setupKonohaSpace = fd_setupKonohaSpace,
+		.initNameSpace = fd_initNameSpace,
+		.setupNameSpace = fd_setupNameSpace,
 	};
 	return &d;
 }

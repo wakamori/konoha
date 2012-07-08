@@ -40,8 +40,8 @@ KDEFINE_PACKAGE* jansson_init(void)
 		KPACKNAME("jansson", "1.0"),
 		.initPackage = jansson_initPackage,
 		.setupPackage = jansson_setupPackage,
-		.initKonohaSpace = jansson_initKonohaSpace,
-		.setupKonohaSpace = jansson_setupKonohaSpace,
+		.initNameSpace = jansson_initNameSpace,
+		.setupNameSpace = jansson_setupNameSpace,
 	};
 	return &d;
 }

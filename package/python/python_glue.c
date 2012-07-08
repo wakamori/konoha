@@ -37,8 +37,8 @@ KDEFINE_PACKAGE* python_init(void)
 		KPACKNAME("python", "1.0"),
 		.initPackage = python_initPackage,
 		.setupPackage = python_setupPackage,
-		.initKonohaSpace = python_initKonohaSpace,
-		.setupKonohaSpace = python_setupKonohaSpace,
+		.initNameSpace = python_initNameSpace,
+		.setupNameSpace = python_setupNameSpace,
 	};
 	return &d;
 }

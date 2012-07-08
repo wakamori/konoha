@@ -333,7 +333,7 @@ static KMETHOD Bytes_new(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t bytes_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t bytes_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kmodiconv_t *base = (kmodiconv_t*)KCALLOC(sizeof(kmodiconv_t), 1);
 #ifdef _ICONV_H
@@ -370,11 +370,11 @@ static kbool_t bytes_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public|_Const|_Im,     _F(Bytes_new), TY_Bytes, TY_Bytes, MN_("new"), 1, TY_Int, FN_size,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, methoddata);
+	kNameSpace_loadMethodData(NULL, methoddata);
 	return true;
 }
 
-static kbool_t bytes_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t bytes_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -418,19 +418,19 @@ static KMETHOD ExprTyCheck_Squote(CTX, ksfp_t *sfp _RIX)
 	RETURN_(K_NULLEXPR);
 }
 
-static kbool_t bytes_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t bytes_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
-	SUGAR KonohaSpace_setTokenizer(_ctx, ks, '\'', parseSQUOTE, NULL);
+	SUGAR NameSpace_setTokenizer(_ctx, ks, '\'', parseSQUOTE, NULL);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("$SingleQuote"), _TERM, ExprTyCheck_(Squote)},
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t bytes_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t bytes_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -32,12 +32,12 @@
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t null_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t null_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t null_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t null_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -53,18 +53,18 @@ static KMETHOD ExprTyCheck_null(CTX, ksfp_t *sfp _RIX)
 	RETURN_(kExpr_setVariable(expr, NULL, reqty, 0, gma));
 }
 
-static kbool_t null_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t null_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("null"), _TERM, ExprTyCheck_(null), },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t null_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t null_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

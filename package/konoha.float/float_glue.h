@@ -178,7 +178,7 @@ static KMETHOD Float_random(CTX, ksfp_t *sfp _RIX)
 #define _Static   kMethod_Static
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t float_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t float_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kmodfloat_t *base = (kmodfloat_t*)KCALLOC(sizeof(kmodfloat_t), 1);
 	base->h.name     = "float";
@@ -214,16 +214,16 @@ static	kbool_t float_initPackage(CTX, kKonohaSpace *ks, int argc, const char**ar
 		_Public|_Static|_Im, _F(Float_random), TY_Float, TY_Float, MN_("random"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	KDEFINE_FLOAT_CONST FloatData[] = {
 		{"FLOAT_EPSILON", TY_Float, DBL_EPSILON},
 		{}
 	};
-	kKonohaSpace_loadConstData(ks, FloatData, pline);
+	kNameSpace_loadConstData(ks, FloatData, pline);
 	return true;
 }
 
-static kbool_t float_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t float_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -239,7 +239,7 @@ static KMETHOD ExprTyCheck_Float(CTX, ksfp_t *sfp _RIX)
 	RETURN_(kExpr_setNConstValue(expr, TY_Float, sfp[4].ndata));
 }
 
-static kbool_t float_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t float_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
@@ -248,11 +248,11 @@ static kbool_t float_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ .kw = SYM_("$FLOAT"), ExprTyCheck_(Float), },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t float_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t float_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -119,12 +119,12 @@ static void dumpMethodList(CTX, ksfp_t *sfp, size_t start, kArray *list)
 	}
 }
 
-KMETHOD KonohaSpace_man(CTX, ksfp_t *sfp _RIX)
+KMETHOD NameSpace_man(CTX, ksfp_t *sfp _RIX)
 {
 	INIT_GCSTACK();
 	kArray *list = _ctx->stack->gcstack;
 	size_t start = kArray_size(list);
-	kKonohaSpace *ks = sfp[0].ks;
+	kNameSpace *ks = sfp[0].ks;
 	kclass_t *ct = O_ct(sfp[1].o);
 	DBG_P("*** man %s", TY_t(ct->cid));
 	while(ks != NULL) {
@@ -143,25 +143,25 @@ KMETHOD KonohaSpace_man(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t i_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t i_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	USING_SUGAR;
 	kclass_t *ct = kclass(TY_Method, pline);
 	KSET_CLASSFUNC(ct, p, Method, pline);
 	intptr_t MethodData[] = {
-		_Public, _F(KonohaSpace_man), TY_void, TY_KonohaSpace, MN_("man"), 1, TY_Object, FN_("x") | FN_COERCION,
+		_Public, _F(NameSpace_man), TY_void, TY_NameSpace, MN_("man"), 1, TY_Object, FN_("x") | FN_COERCION,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t i_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t i_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t i_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t i_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 //	USING_SUGAR;
 //	KDEFINE_SYNTAX SYNTAX[] = {
@@ -170,11 +170,11 @@ static kbool_t i_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 //		{ TOKEN("$FLOAT"), .kw = KW_TK(TK_FLOAT), .ExprTyCheck = ExprTyCheck_FLOAT, },
 //		{ .kw = KW_END, },
 //	};
-//	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+//	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t i_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t i_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -185,8 +185,8 @@ KDEFINE_PACKAGE* i_init(void)
 		KPACKNAME("konoha.i", "1.0"),
 		.initPackage = i_initPackage,
 		.setupPackage = i_setupPackage,
-		.initKonohaSpace = i_initKonohaSpace,
-		.setupKonohaSpace = i_setupKonohaSpace,
+		.initNameSpace = i_initNameSpace,
+		.setupNameSpace = i_setupNameSpace,
 	};
 	return &d;
 }

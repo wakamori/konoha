@@ -506,7 +506,7 @@ static void kmodmpi_free(CTX, struct kmodshare_t *baseh)
 
 #define MOD_mpi 19/*TODO*/
 
-static kbool_t mpi_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t mpi_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kmodmpi_t *base = (kmodmpi_t*)KCALLOC(sizeof(kmodmpi_t), 1);
 	base->h.name     = "mpi";
@@ -665,7 +665,7 @@ static kbool_t mpi_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args
 		_Public, _F(MPIData_getSize), TY_Int, TY_MPIData, MN_("getSize"), 0, 
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, MethodData);
+	kNameSpace_loadMethodData(NULL, MethodData);
 	KDEFINE_INT_CONST OpData[] = {
 			{"MAX",  TY_MPIOp, (kint_t)MPI_MAX},
 			{"MIN",  TY_MPIOp, (kint_t)MPI_MIN},
@@ -679,21 +679,21 @@ static kbool_t mpi_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args
 			{"BXOR", TY_MPIOp, (kint_t)MPI_BXOR},
 			{}
 	};
-	kKonohaSpace_loadConstData(ks, OpData, pline);
+	kNameSpace_loadConstData(ks, OpData, pline);
 	return true;
 }
 
-static kbool_t mpi_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t mpi_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t mpi_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t mpi_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t mpi_setupLingo(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t mpi_setupLingo(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -704,7 +704,7 @@ KDEFINE_PACKAGE* mpi_init(void)
 		KPACKNAME("mpi", "1.0"),
 		.initPackage  = mpi_initPackage,
 		.setupPackage = mpi_setupPackage,
-		.initKonohaSpace = mpi_initKonohaSpace,
+		.initNameSpace = mpi_initNameSpace,
 		.setupPackage = mpi_setupLingo,
 	};
 	return &d;

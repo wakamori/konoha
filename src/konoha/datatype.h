@@ -1029,5 +1029,5 @@ static void KCLASSTABLE_loadMethod(CTX)
 		_Static|_Public|_Immutable, _F(System_gc), TY_void, TY_System, MN_("gc"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, MethodData);
+	kNameSpace_loadMethodData(NULL, MethodData);
 }

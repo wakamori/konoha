@@ -1241,7 +1241,7 @@ static void Subproc_p(CTX, ksfp_t *sfp, int pos, kwb_t *wb, int level)
 #define _Im kMethod_Immutable
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t subproc_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t subproc_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kmodsubproc_t *base = (kmodsubproc_t *)KCALLOC(sizeof(kmodsubproc_t), 1);
 	base->h.name     = "subproc";
@@ -1292,21 +1292,21 @@ static kbool_t subproc_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public|_Const|_Im, _F(Subproc_isERR2StdOUT), TY_Boolean, TY_Subproc, MN_("isERR2StdOUT"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t subproc_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t subproc_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t subproc_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t subproc_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t subproc_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t subproc_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -40,8 +40,8 @@ KDEFINE_PACKAGE* int_init(void)
 		KPACKNAME("int", "1.0"),
 		.initPackage =int_initPackage,
 		.setupPackage = int_setupPackage,
-		.initKonohaSpace = int_initKonohaSpace,
-		.setupKonohaSpace = int_setupKonohaSpace,
+		.initNameSpace = int_initNameSpace,
+		.setupNameSpace = int_setupNameSpace,
 	};
 	return &d;
 }

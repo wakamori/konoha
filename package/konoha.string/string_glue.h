@@ -364,7 +364,7 @@ static KMETHOD String_toLower(CTX, ksfp_t *sfp _RIX)
 #define _Im kMethod_Immutable
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t string_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t string_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	int FN_s = FN_("s");
 	int FN_n = FN_("n");
@@ -382,21 +382,21 @@ static kbool_t string_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 		_Public|_Const|_Im, _F(String_substring),   TY_String, TY_String, MN_("substring"), 2, TY_Int, FN_("offset"), TY_Int, FN_("length"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t string_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t string_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t string_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t string_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t string_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t string_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

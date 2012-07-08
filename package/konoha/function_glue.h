@@ -79,7 +79,7 @@ static KMETHOD Func_invoke(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static	kbool_t function_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t function_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	kmodfunction_t *base = (kmodfunction_t*)KCALLOC(sizeof(kmodfunction_t), 1);
 	base->h.name     = "function";
@@ -113,16 +113,16 @@ static	kbool_t function_initPackage(CTX, kKonohaSpace *ks, int argc, const char*
 //		_Public|_Const|_Im, _F(String_toFloat), TY_Float, TY_String, MN_to(TY_Float), 0,
 //		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	KDEFINE_FLOAT_CONST FloatData[] = {
 		{"FLOAT_EPSILON", TY_Float, DBL_EPSILON},
 		{}
 	};
-	kKonohaSpace_loadConstData(ks, FloatData, pline);
+	kNameSpace_loadConstData(ks, FloatData, pline);
 	return true;
 }
 
-static kbool_t function_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t function_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -138,7 +138,7 @@ static KMETHOD ExprTyCheck_Float(CTX, ksfp_t *sfp _RIX)
 	RETURN_(kExpr_setNConstValue(expr, TY_Float, sfp[4].ndata));
 }
 
-static kbool_t function_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t function_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
@@ -148,11 +148,11 @@ static kbool_t function_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
 		{ TOKEN("$param"), ExprTyCheck_(FuncStyleCall), },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t function_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t function_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -35,8 +35,8 @@ KDEFINE_PACKAGE* array_init(void)
 		KPACKNAME("array", "1.0"),
 		.initPackage = array_initPackage,
 		.setupPackage = array_setupPackage,
-		.initKonohaSpace = array_initKonohaSpace,
-		.setupKonohaSpace = array_setupKonohaSpace,
+		.initNameSpace = array_initNameSpace,
+		.setupNameSpace = array_setupNameSpace,
 	};
 	return &d;
 }

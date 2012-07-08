@@ -454,7 +454,7 @@ static void tokenize(CTX, tenv_t *tenv)
 	}
 }
 
-static const Ftokenizer *KonohaSpace_tokenizerMatrix(CTX, kKonohaSpace *ks)
+static const Ftokenizer *NameSpace_tokenizerMatrix(CTX, kNameSpace *ks)
 {
 	if(ks->fmat == NULL) {
 		DBG_ASSERT(KCHAR_MAX * sizeof(Ftokenizer) == sizeof(MiniKonohaTokenMatrix));
@@ -465,19 +465,19 @@ static const Ftokenizer *KonohaSpace_tokenizerMatrix(CTX, kKonohaSpace *ks)
 		else {
 			memcpy(fmat, MiniKonohaTokenMatrix, sizeof(MiniKonohaTokenMatrix));
 		}
-		((struct _kKonohaSpace*)ks)->fmat = (const Ftokenizer*)fmat;
+		((struct _kNameSpace*)ks)->fmat = (const Ftokenizer*)fmat;
 	}
 	return ks->fmat;
 }
 
-static void KonohaSpace_setTokenizer(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo)
+static void NameSpace_setTokenizer(CTX, kNameSpace *ks, int ch, Ftokenizer f, kFunc *fo)
 {
 	int kchar = (ch < 0) ? _MULTI : cMatrix[ch];
-	Ftokenizer *fmat = (Ftokenizer*)KonohaSpace_tokenizerMatrix(_ctx, ks);
+	Ftokenizer *fmat = (Ftokenizer*)NameSpace_tokenizerMatrix(_ctx, ks);
 	fmat[kchar] = f;
 }
 
-static void KonohaSpace_tokenize(CTX, kKonohaSpace *ks, const char *source, kline_t uline, kArray *a)
+static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t uline, kArray *a)
 {
 	size_t i, pos = kArray_size(a);
 	tenv_t tenv = {
@@ -486,7 +486,7 @@ static void KonohaSpace_tokenize(CTX, kKonohaSpace *ks, const char *source, klin
 		.list   = a,
 		.bol    = source,
 		.indent_tab = 4,
-		.fmat   = ks == NULL ? MiniKonohaTokenMatrix : KonohaSpace_tokenizerMatrix(_ctx, ks),
+		.fmat   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenizerMatrix(_ctx, ks),
 	};
 	tokenize(_ctx, &tenv);
 	if(uline == 0) {
@@ -581,7 +581,7 @@ static void parseSyntaxRule(CTX, const char *rule, kline_t uline, kArray *a)
 {
 	kArray *tls = ctxsugar->tokens;
 	size_t pos = kArray_size(tls);
-	KonohaSpace_tokenize(_ctx, NULL, rule, uline, tls);
+	NameSpace_tokenize(_ctx, NULL, rule, uline, tls);
 	makeSyntaxRule(_ctx, tls, pos, kArray_size(tls), a);
 	kArray_clear(tls, pos);
 }

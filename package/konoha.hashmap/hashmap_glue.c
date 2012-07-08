@@ -36,8 +36,8 @@ KDEFINE_PACKAGE* hashmap_init(void)
 		KPACKNAME("hashmap", "1.0"),
 		.initPackage = hashmap_initPackage,
 		.setupPackage = hashmap_setupPackage,
-		.initKonohaSpace = hashmap_initKonohaSpace,
-		.setupKonohaSpace = hashmap_setupKonohaSpace,
+		.initNameSpace = hashmap_initNameSpace,
+		.setupNameSpace = hashmap_setupNameSpace,
 	};
 	return &d;
 }

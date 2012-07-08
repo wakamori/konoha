@@ -613,7 +613,7 @@ static KMETHOD SockAddr_new (CTX, ksfp_t *sfp _RIX)
 #define TY_SockAddr         cSockAddr->cid
 #define IS_SockAddr(O)      ((O)->h.ct == CT_SockAddr)
 
-static	kbool_t socket_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t socket_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KDEFINE_CLASS defSockAddr = {
 		STRUCTNAME(SockAddr),
@@ -644,7 +644,7 @@ static	kbool_t socket_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 		_Public|_Const|_Im, _F(SockAddr_new), TY_SockAddr, TY_SockAddr, MN_("new"), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	if(IS_defineBytes()) {
 		intptr_t MethodData2[] = {
 				_Public|_Const|_Im, _F(System_sendto), TY_Int, TY_System, MN_("sendto"), 6, TY_Int, FN_("socket"), TY_Bytes, FN_("msg"), TY_Int, FN_("flag"), TY_String, FN_("dstIP"), TY_Int, FN_("dstPort"), TY_Int, FN_("family"),
@@ -653,7 +653,7 @@ static	kbool_t socket_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 				_Public|_Const|_Im, _F(System_send), TY_Int, TY_System, MN_("send"), 3, TY_Int, FN_("fd"), TY_Bytes, FN_("msg"), TY_Int, FN_("flags"),
 				DEND,
 			};
-		kKonohaSpace_loadMethodData(ks, MethodData2);
+		kNameSpace_loadMethodData(ks, MethodData2);
 	}
 	else {
 		kreportf(INFO_, pline, "konoha.bytes package hasn't imported. Some features are still disabled.");
@@ -714,21 +714,21 @@ static	kbool_t socket_initPackage(CTX, kKonohaSpace *ks, int argc, const char**a
 			{"SHUT_RDWR", TY_Int, SHUT_RDWR},
 			{}
 	};
-	kKonohaSpace_loadConstData(ks, IntData, pline);
+	kNameSpace_loadConstData(ks, IntData, pline);
 	return true;
 }
 
-static kbool_t socket_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t socket_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t socket_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t socket_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t socket_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t socket_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

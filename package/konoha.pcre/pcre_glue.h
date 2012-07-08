@@ -637,7 +637,7 @@ static KMETHOD String_split(CTX, ksfp_t *sfp _RIX)
 #define _Coercion kMethod_Coercion
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t pcre_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t pcre_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	if(!knh_linkDynamicPCRE(_ctx)) {
 		return false; // libpcre open fail
@@ -671,11 +671,11 @@ static kbool_t pcre_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		_Public|_Const, _F(String_split),  TY_StrArray, TY_String, MN_("split"), 1, TY_Regex, FN_x,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t pcre_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t pcre_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -731,21 +731,21 @@ static KMETHOD ExprTyCheck_Regex(CTX, ksfp_t *sfp _RIX)
 }
 
 #define _SLASH     30//FIXME (from src/sugar/token.h)
-static kbool_t pcre_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t pcre_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	parseSLASH = ks->fmat[_SLASH];
 	DBG_ASSERT(parseSLASH != NULL);
-	SUGAR KonohaSpace_setTokenizer(_ctx, ks, '/', parseREGEX, NULL);
+	SUGAR NameSpace_setTokenizer(_ctx, ks, '/', parseREGEX, NULL);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("$regex"), _TERM, ExprTyCheck_(Regex), },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t pcre_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t pcre_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

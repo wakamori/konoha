@@ -33,8 +33,8 @@ KDEFINE_PACKAGE* assignment_init(void)
 		KPACKNAME("assignment", "1.0"),
 		.initPackage = assignment_initPackage,
 		.setupPackage = assignment_setupPackage,
-		.initKonohaSpace = assignment_initKonohaSpace,
-		.setupKonohaSpace = assignment_setupKonohaSpace,
+		.initNameSpace = assignment_initNameSpace,
+		.setupNameSpace = assignment_setupNameSpace,
 	};
 	return &d;
 }

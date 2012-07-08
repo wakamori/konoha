@@ -40,8 +40,8 @@ KDEFINE_PACKAGE* curl_init(void)
 		KPACKNAME("curl", "1.0"),
 		.initPackage = curl_initPackage,
 		.setupPackage = curl_setupPackage,
-		.initKonohaSpace = curl_initKonohaSpace,
-		.setupKonohaSpace = curl_setupKonohaSpace,
+		.initNameSpace = curl_initNameSpace,
+		.setupNameSpace = curl_setupNameSpace,
 	};
 	return &d;
 }

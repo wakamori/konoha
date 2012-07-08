@@ -49,7 +49,7 @@
 //////	VAR_StmtTyCheck(stmt, syn, gma);
 //////	if((r = SUGAR Stmt_tyCheckExpr(_ctx, stmt, KW_ExprPattern, gma, TY_Boolean, 0))) {
 //////		kExpr *expr = kStmt_expr(stmt, KW_ExprPattern, NULL);
-//////		kMethod *mtd = kKonohaSpace_getMethodNULL(gma->genv->ks, TY_KonohaSpace, MN_("assert"));
+//////		kMethod *mtd = kNameSpace_getMethodNULL(gma->genv->ks, TY_NameSpace, MN_("assert"));
 //////		assert(expr != NULL);
 //////		assert(mtd != NULL);
 //////		kStmt_toExprCall(stmt, mtd, 2, gma->genv->ks, expr);
@@ -66,39 +66,39 @@
 //#define _Coercion kMethod_Coercion
 //#define _F(F)   (intptr_t)(F)
 //
-//static kbool_t assert_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+//static kbool_t assert_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 //{
 //	USING_SUGAR;
 //	int FN_cond = FN_("cond");
 //	intptr_t MethodData[] = {
-//		_Static|_Public, _F(KonohaSpace_assert), TY_Int, TY_KonohaSpace, MN_("assert"), 1, TY_Boolean, FN_cond,
+//		_Static|_Public, _F(NameSpace_assert), TY_Int, TY_NameSpace, MN_("assert"), 1, TY_Boolean, FN_cond,
 //		DEND,
 //	};
-//	kKonohaSpace_loadMethodData(ks, MethodData);
+//	kNameSpace_loadMethodData(ks, MethodData);
 //	return true;
 //}
 //
-//static kbool_t assert_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+//static kbool_t assert_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 //{
 //	return true;
 //}
 //
 //#define TOKEN(T)  .name = T/*, .namelen = (sizeof(T)-1)*/
 //
-//static kbool_t assert_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+//static kbool_t assert_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 //{
 //	USING_SUGAR;
 //	KDEFINE_SYNTAX SYNTAX[] = {
 //		{ TOKEN("assert"), .rule = "'assert' '(' $expr ')'", .TopStmtTyCheck = StmtTyCheck_assert, .StmtTyCheck = StmtTyCheck_assert},
 //		{ .kw = KW_END, },
 //	};
-//	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+//	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 //
 //	return true;
 //}
 //
 //
-//static kbool_t assert_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+//static kbool_t assert_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 //{
 //	return true;
 //}
@@ -109,8 +109,8 @@
 //		KPACKNAME("assert", "1.0"),
 //		.initPackage = assert_initPackage,
 //		.setupPackage = assert_setupPackage,
-//		.initKonohaSpace = assert_initKonohaSpace,
-//		.setupKonohaSpace = assert_setupKonohaSpace,
+//		.initNameSpace = assert_initNameSpace,
+//		.setupNameSpace = assert_setupNameSpace,
 //	};
 //	return &d;
 //}

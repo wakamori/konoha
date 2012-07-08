@@ -4613,7 +4613,7 @@ static void kmodllvm_free(CTX, struct kmodshare_t *baseh)
 #define _Im       kMethod_Immutable
 #define _F(F)   (intptr_t)(F)
 
-static kbool_t llvm_initPackage(CTX, kKonohaSpace *ks, int argc, const char **args, kline_t pline)
+static kbool_t llvm_initPackage(CTX, kNameSpace *ks, int argc, const char **args, kline_t pline)
 {
 	(void)argc;(void)args;
 	kmodllvm_t *base = (kmodllvm_t*)KCALLOC(sizeof(kmodllvm_t), 1);
@@ -5248,27 +5248,27 @@ static kbool_t llvm_initPackage(CTX, kKonohaSpace *ks, int argc, const char **ar
 		_Public|_Const|_Coercion|_Im, _F(Object_toLLVMBasicBlock), TY_BasicBlock, TY_Object, MN_to(TY_BasicBlock), 0,
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(NULL, methoddata);
-	kKonohaSpace_loadConstData(ks, IntAttributes, 0);
-	kKonohaSpace_loadConstData(ks, IntIntrinsic, 0);
-	kKonohaSpace_loadConstData(ks, IntGlobalVariable, 0);
+	kNameSpace_loadMethodData(NULL, methoddata);
+	kNameSpace_loadConstData(ks, IntAttributes, 0);
+	kNameSpace_loadConstData(ks, IntIntrinsic, 0);
+	kNameSpace_loadConstData(ks, IntGlobalVariable, 0);
 
 	return true;
 }
 
-static kbool_t llvm_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t llvm_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	(void)_ctx;(void)ks;(void)pline;
 	return true;
 }
 
-static kbool_t llvm_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t llvm_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	(void)_ctx;(void)ks;(void)pline;
 	return true;
 }
 
-static kbool_t llvm_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t llvm_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	(void)_ctx;(void)ks;(void)pline;
 	return true;
@@ -5282,8 +5282,8 @@ KDEFINE_PACKAGE* llvm_init(void)
 		"llvm", "3.0", "", "", "",
 		llvm_initPackage,
 		llvm_setupPackage,
-		llvm_initKonohaSpace,
-		llvm_setupKonohaSpace,
+		llvm_initNameSpace,
+		llvm_setupNameSpace,
 		K_REVISION
 	};
 

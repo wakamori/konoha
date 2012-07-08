@@ -98,7 +98,7 @@ static void Token_pERR(CTX, struct _kToken *tk, const char *fmt, ...)
 
 #define kStmt_toERR(STMT, ENO)  Stmt_toERR(_ctx, STMT, ENO)
 #define kStmt_isERR(STMT)       ((STMT)->build == TSTMT_ERR)
-static ksyntax_t* KonohaSpace_syn(CTX, kKonohaSpace *ks0, ksymbol_t kw, int isnew);
+static ksyntax_t* NameSpace_syn(CTX, kNameSpace *ks0, ksymbol_t kw, int isnew);
 
 static void Stmt_toERR(CTX, kStmt *stmt, kString *errmsg)
 {

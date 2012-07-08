@@ -138,7 +138,7 @@ static KMETHOD System_setgroups(CTX, ksfp_t *sfp _RIX)
 
 #define _KVi(T) #T, TY_Int, T
 
-static	kbool_t process_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t process_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	intptr_t MethodData[] = {
 		_Public|_Static, _F(System_getpid), TY_Int, TY_System, MN_("getpid"), 0,
@@ -158,7 +158,7 @@ static	kbool_t process_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		_Public|_Static, _F(System_setgroups), TY_Int, TY_System, MN_("setgroups"), 2, TY_Int, FN_("size"), TY_Array, FN_("*list"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	KDEFINE_INT_CONST IntData[] = {
 		{_KVi(SIGHUP)},
 		{_KVi(SIGINT)},
@@ -166,21 +166,21 @@ static	kbool_t process_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 		{_KVi(SIGKILL)},
 		{}
 	};
-	kKonohaSpace_loadConstData(ks, IntData, 0);
+	kNameSpace_loadConstData(ks, IntData, 0);
 	return true;
 }
 
-static kbool_t process_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t process_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t process_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t process_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t process_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t process_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -192,8 +192,8 @@ KDEFINE_PACKAGE* process_init(void)
 		KPACKLIB("POSIX.1", "1.0"),
 		.initPackage = process_initPackage,
 		.setupPackage = process_setupPackage,
-		.initKonohaSpace = process_initKonohaSpace,
-		.setupKonohaSpace = process_setupKonohaSpace,
+		.initNameSpace = process_initNameSpace,
+		.setupNameSpace = process_setupNameSpace,
 	};
 	return &d;
 }

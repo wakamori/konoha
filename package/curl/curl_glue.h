@@ -398,7 +398,7 @@ static KMETHOD Curl_getInfo(CTX, ksfp_t *sfp _RIX)
 
 #define _KVi(T)  #T, TY_Int, T
 
-static	kbool_t curl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t curl_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	ctx = (struct kcontext_t *)_ctx;
 
@@ -418,7 +418,7 @@ static	kbool_t curl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		_Public|_Const|_Im, _F(Curl_getInfo), TY_Object/*FIXME TY_Dynamic*/, TY_Curl, MN_("getInfo"), 1, TY_Int, FN_("type"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 
 	KDEFINE_INT_CONST IntData[] = {
 		{_KVi(CURLOPT_AUTOREFERER)},
@@ -519,21 +519,21 @@ static	kbool_t curl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		{_KVi(CURLINFO_CONTENT_TYPE)},
 		{} // end of const data
 	};
-	kKonohaSpace_loadConstData(ks, IntData, pline);
+	kNameSpace_loadConstData(ks, IntData, pline);
 	return true;
 }
 
-static kbool_t curl_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t curl_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t curl_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t curl_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t curl_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t curl_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

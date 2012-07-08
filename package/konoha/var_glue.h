@@ -27,12 +27,12 @@
 
 // --------------------------------------------------------------------------
 
-static	kbool_t var_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static	kbool_t var_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t var_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t var_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -73,19 +73,19 @@ static KMETHOD StmtTyCheck_var(CTX, ksfp_t *sfp _RIX)
 
 // ---------------------------------------------------------------------------
 
-static kbool_t var_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t var_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ TOKEN("var"), StmtTyCheck_(var), .rule = "\"var\" var: $expr \"=\" $expr", },
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
 
-static kbool_t var_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t var_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }

@@ -79,7 +79,7 @@ static KMETHOD kSHA1_Final(CTX, ksfp_t *sfp _RIX)
 #define TY_openssl  (ct0->cid)
 #define TY_Log      (ct1->cid)
 
-static kbool_t openssl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t openssl_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	static const char *names[] = {
 		"MD5",
@@ -111,21 +111,21 @@ static kbool_t openssl_initPackage(CTX, kKonohaSpace *ks, int argc, const char**
 
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	return true;
 }
 
-static kbool_t openssl_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t openssl_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t openssl_initKonohaSpace(CTX,  kKonohaSpace *ks, kline_t pline)
+static kbool_t openssl_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t openssl_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t openssl_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -135,8 +135,8 @@ KDEFINE_PACKAGE* openssl_init(void)
 		KPACKNAME("openssl", "1.0"),
 		.initPackage = openssl_initPackage,
 		.setupPackage = openssl_setupPackage,
-		.initKonohaSpace = openssl_initKonohaSpace,
-		.setupKonohaSpace = openssl_setupKonohaSpace,
+		.initNameSpace = openssl_initNameSpace,
+		.setupNameSpace = openssl_setupNameSpace,
 	};
 	return &d;
 }

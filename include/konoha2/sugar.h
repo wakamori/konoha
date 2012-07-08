@@ -56,10 +56,10 @@ typedef struct {
 	const char *libname;
 	const char *libversion;
 	const char *note;
-	kbool_t (*initPackage)(CTX, const struct _kKonohaSpace *, int, const char**, kline_t);
-	kbool_t (*setupPackage)(CTX, const struct _kKonohaSpace *, kline_t);
-	kbool_t (*initKonohaSpace)(CTX, const struct _kKonohaSpace *, kline_t);
-	kbool_t (*setupKonohaSpace)(CTX, const struct _kKonohaSpace *, kline_t);
+	kbool_t (*initPackage)(CTX, const struct _kNameSpace *, int, const char**, kline_t);
+	kbool_t (*setupPackage)(CTX, const struct _kNameSpace *, kline_t);
+	kbool_t (*initNameSpace)(CTX, const struct _kNameSpace *, kline_t);
+	kbool_t (*setupNameSpace)(CTX, const struct _kNameSpace *, kline_t);
 	int konoha_revision;
 } KDEFINE_PACKAGE_;
 
@@ -69,7 +69,7 @@ typedef KDEFINE_PACKAGE* (*Fpackageinit)(void);
 typedef struct _kpackage kpackage_t;
 struct _kpackage {
 	kpack_t                      packid;
-	const struct _kKonohaSpace  *ks;
+	const struct _kNameSpace  *ks;
 	KDEFINE_PACKAGE             *packdef;
 	kline_t                      export_script;
 };
@@ -186,10 +186,10 @@ typedef struct KDEFINE_SYNTAX {
 
 #define new_SugarFunc(F)     new_(Func, new_kMethod(0, 0, 0, F))
 
-typedef const struct _kKonohaSpace kKonohaSpace;
-struct _kKonohaSpace {
+typedef const struct _kNameSpace kNameSpace;
+struct _kNameSpace {
 	kObjectHeader h;
-	const struct     _kKonohaSpace   *parentNULL;
+	const struct     _kNameSpace   *parentNULL;
 	kpack_t packid;  kpack_t packdom;
 	const Ftokenizer *fmat;
 	struct kmap_t    *syntaxMapNN;
@@ -299,7 +299,7 @@ struct _kStmt {
 typedef const struct _kBlock kBlock;
 struct _kBlock {
 	kObjectHeader h;
-	kKonohaSpace        *ks;
+	kNameSpace        *ks;
 	kStmt               *parentNULL;
 	kArray              *blocks;
 	kExpr               *esp;
@@ -326,7 +326,7 @@ typedef struct {
 
 typedef struct gmabuf_t {
 	kflag_t  flag;    kflag_t  cflag;
-	kKonohaSpace     *ks;
+	kNameSpace     *ks;
 	kcid_t            this_cid;
 	kcid_t            static_cid;
 	kMethod*          mtd;
@@ -349,7 +349,7 @@ struct _kGamma {
 #define CT_Expr     kmodsugar->cExpr
 #define CT_Stmt     kmodsugar->cStmt
 #define CT_Block    kmodsugar->cBlock
-#define CT_KonohaSpace    kmodsugar->cKonohaSpace
+#define CT_NameSpace    kmodsugar->cNameSpace
 #define CT_Gamma    kmodsugar->cGamma
 
 #define CT_TokenArray           kmodsugar->cTokenArray
@@ -452,9 +452,9 @@ static inline void kToken_setmn(kToken *tk, kmethodn_t mn, mntype_t mn_type)
 	((struct _kToken*)tk)->mn_type = (kshort_t)mn_type;
 }
 
-struct _kKonohaSpace;
+struct _kNameSpace;
 
-#define kKonohaSpace_defineSyntax(L, S)  kmodsugar->KKonohaSpace_defineSyntax(_ctx, L, S)
+#define kNameSpace_defineSyntax(L, S)  kmodsugar->KNameSpace_defineSyntax(_ctx, L, S)
 
 typedef struct {
 	kmodshare_t h;
@@ -462,7 +462,7 @@ typedef struct {
 	kclass_t *cExpr;
 	kclass_t *cStmt;
 	kclass_t *cBlock;
-	kclass_t *cKonohaSpace;
+	kclass_t *cNameSpace;
 	kclass_t *cGamma;
 	kclass_t *cTokenArray;
 
@@ -476,8 +476,8 @@ typedef struct {
 	kFunc *ParseExpr_Op;
 
 	// export
-	void (*KonohaSpace_setTokenizer)(CTX, kKonohaSpace *ks, int ch, Ftokenizer f, kFunc *fo);
-	void (*KonohaSpace_tokenize)(CTX, kKonohaSpace *, const char *, kline_t, kArray *);
+	void (*NameSpace_setTokenizer)(CTX, kNameSpace *ks, int ch, Ftokenizer f, kFunc *fo);
+	void (*NameSpace_tokenize)(CTX, kNameSpace *, const char *, kline_t, kArray *);
 
 	kExpr* (*Expr_setConstValue)(CTX, kExpr *expr, ktype_t ty, kObject *o);
 	kExpr* (*Expr_setNConstValue)(CTX, kExpr *expr, ktype_t ty, uintptr_t ndata);
@@ -495,13 +495,13 @@ typedef struct {
 	kExpr *    (*new_TypedMethodCall)(CTX, kStmt *, ktype_t ty, kMethod *mtd, kGamma *gma, int n, ...);
 	void       (*Stmt_toExprCall)(CTX, kStmt *stmt, kMethod *mtd, int n, ...);
 
-	ksyntax_t* (*KonohaSpace_syn)(CTX, kKonohaSpace *, ksymbol_t, int);
-	void       (*KonohaSpace_defineSyntax)(CTX, kKonohaSpace *, KDEFINE_SYNTAX *);
-	void       (*SYN_setSugarFunc)(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
-	void       (*SYN_addSugarFunc)(CTX, kKonohaSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
+	ksyntax_t* (*NameSpace_syn)(CTX, kNameSpace *, ksymbol_t, int);
+	void       (*NameSpace_defineSyntax)(CTX, kNameSpace *, KDEFINE_SYNTAX *);
+	void       (*SYN_setSugarFunc)(CTX, kNameSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
+	void       (*SYN_addSugarFunc)(CTX, kNameSpace *ks, ksymbol_t kw, size_t idx, kFunc *fo);
 
 	kbool_t    (*makeSyntaxRule)(CTX, kArray*, int, int, kArray *);
-	kBlock*    (*new_Block)(CTX, kKonohaSpace *, kStmt *, kArray *, int, int, int);
+	kBlock*    (*new_Block)(CTX, kNameSpace *, kStmt *, kArray *, int, int, int);
 	void       (*Block_insertAfter)(CTX, kBlock *bk, kStmt *target, kStmt *stmt);
 
 	kExpr*     (*Stmt_newExpr2)(CTX, kStmt *stmt, kArray *tls, int s, int e);
@@ -515,8 +515,8 @@ typedef struct {
 } kmodsugar_t;
 
 #define EXPORT_SUGAR(base) \
-	base->KonohaSpace_setTokenizer = KonohaSpace_setTokenizer;\
-	base->KonohaSpace_tokenize = KonohaSpace_tokenize;\
+	base->NameSpace_setTokenizer = NameSpace_setTokenizer;\
+	base->NameSpace_tokenize = NameSpace_tokenize;\
 	base->Stmt_token          = Stmt_token;\
 	base->Stmt_block          = Stmt_block;\
 	base->Stmt_expr           = Stmt_expr;\
@@ -531,8 +531,8 @@ typedef struct {
 	base->new_TypedMethodCall = new_TypedMethodCall;\
 	/*base->Stmt_toExprCall     = Stmt_toExprCall;*/\
 	/*syntax*/\
-	base->KonohaSpace_defineSyntax  = KonohaSpace_defineSyntax;\
-	base->KonohaSpace_syn           = KonohaSpace_syn;\
+	base->NameSpace_defineSyntax  = NameSpace_defineSyntax;\
+	base->NameSpace_syn           = NameSpace_syn;\
 	base->makeSyntaxRule     = makeSyntaxRule;\
 	base->SYN_setSugarFunc   = SYN_setSugarFunc;\
 	base->SYN_addSugarFunc   = SYN_addSugarFunc;\
@@ -570,7 +570,7 @@ typedef struct {
 #ifdef USING_SUGAR_AS_BUILTIN
 
 //#define KW_(T)                      keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
-#define SYN_(KS, KW)                KonohaSpace_syn(_ctx, KS, KW, 0)
+#define SYN_(KS, KW)                NameSpace_syn(_ctx, KS, KW, 0)
 
 #define kStmt_token(STMT, KW, DEF)  Stmt_token(_ctx, STMT, KW, DEF)
 #define kStmt_expr(STMT, KW, DEF)   Stmt_expr(_ctx, STMT, KW, DEF)
@@ -590,7 +590,7 @@ typedef struct {
 #else/*SUGAR_EXPORTS*/
 #define USING_SUGAR                          const kmodsugar_t *_e = (const kmodsugar_t *)kmodsugar
 #define SUGAR                                _e->
-#define TY_KonohaSpace                       _e->cKonohaSpace->cid
+#define TY_NameSpace                       _e->cNameSpace->cid
 #define TY_Token                             _e->cToken->cid
 #define TY_Stmt                              _e->cStmt->cid
 #define TY_Block                             _e->cBlock->cid
@@ -599,8 +599,8 @@ typedef struct {
 #define TY_TokenArray                        _e->cTokenArray->cid
 
 //#define KW_(T)                               _e->keyword(_ctx, T, sizeof(T)-1, SYM_NONAME)
-#define SYN_(KS, KW)                         _e->KonohaSpace_syn(_ctx, KS, KW, 0)
-#define NEWSYN_(KS, KW)                      (struct _ksyntax*)_e->KonohaSpace_syn(_ctx, KS, KW, 1)
+#define SYN_(KS, KW)                         _e->NameSpace_syn(_ctx, KS, KW, 0)
+#define NEWSYN_(KS, KW)                      (struct _ksyntax*)_e->NameSpace_syn(_ctx, KS, KW, 1)
 
 #define kStmt_token(STMT, KW, DEF)           _e->Stmt_token(_ctx, STMT, KW, DEF)
 #define kStmt_expr(STMT, KW, DEF)            _e->Stmt_expr(_ctx, STMT, KW, DEF)
@@ -626,7 +626,7 @@ typedef struct {
 #define TK_type(TK)       (TK)->ty
 
 #define kStmt_ks(STMT)   Stmt_ks(_ctx, STMT)
-static inline kKonohaSpace *Stmt_ks(CTX, kStmt *stmt)
+static inline kNameSpace *Stmt_ks(CTX, kStmt *stmt)
 {
 	return stmt->parentNULL->ks;
 }

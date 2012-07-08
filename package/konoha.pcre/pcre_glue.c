@@ -39,8 +39,8 @@ KDEFINE_PACKAGE* pcre_init(void)
 		KPACKNAME("regex", "1.0"),
 		.initPackage = pcre_initPackage,
 		.setupPackage = pcre_setupPackage,
-		.initKonohaSpace = pcre_initKonohaSpace,
-		.setupKonohaSpace = pcre_setupKonohaSpace,
+		.initNameSpace = pcre_initNameSpace,
+		.setupNameSpace = pcre_setupNameSpace,
 	};
 	return &d;
 }

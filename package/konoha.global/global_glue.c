@@ -35,8 +35,8 @@ KDEFINE_PACKAGE* global_init(void)
 		KPACKNAME("global", "1.0"),
 		.initPackage = global_initPackage,
 		.setupPackage = global_setupPackage,
-		.initKonohaSpace = global_initKonohaSpace,
-		.setupKonohaSpace = global_setupKonohaSpace,
+		.initNameSpace = global_initNameSpace,
+		.setupNameSpace = global_setupNameSpace,
 	};
 	return &d;
 }

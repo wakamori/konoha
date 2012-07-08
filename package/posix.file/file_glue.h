@@ -207,7 +207,7 @@ static KMETHOD File_putC(CTX, ksfp_t *sfp _RIX)
 #define TY_File         cFile->cid
 #define IS_File(O)      ((O)->h.ct == CT_File)
 
-static kbool_t file_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t file_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	KDEFINE_CLASS defFile = {
 		STRUCTNAME(FILE),
@@ -225,7 +225,7 @@ static kbool_t file_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 		_Public|_Const|_Im, _F(File_putC), TY_Boolean, TY_File, MN_("putC"), 1, TY_Int, FN_("ch"),
 		DEND,
 	};
-	kKonohaSpace_loadMethodData(ks, MethodData);
+	kNameSpace_loadMethodData(ks, MethodData);
 	if (IS_defineBytes()) {
 		// the function below uses Bytes
 		intptr_t MethodData2[] = {
@@ -233,24 +233,24 @@ static kbool_t file_initPackage(CTX, kKonohaSpace *ks, int argc, const char**arg
 			_Public|_Const, _F(File_read), TY_Int, TY_File, MN_("read"), 3, TY_Bytes, FN_("buf"), TY_Int, FN_("offset"), TY_Int, FN_("len"),
 			DEND,
 		};
-		kKonohaSpace_loadMethodData(ks, MethodData2);
+		kNameSpace_loadMethodData(ks, MethodData2);
 	} else {
 		kreportf(INFO_, pline, "konoha.bytes package hasn't imported. Some features are still disabled.");
 	}
 	return true;
 }
 
-static kbool_t file_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t file_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t file_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t file_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t file_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t file_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
