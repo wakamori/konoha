@@ -77,7 +77,7 @@ struct _kpackage {
 // tokenizer
 #define KCHAR_MAX  41
 struct tenv_t;
-typedef int (*Ftokenizer)(CTX, struct _kToken *, struct tenv_t *, int, kFunc *thunk);
+typedef int (*Ftokenizer)(CTX, struct _kToken *, struct tenv_t *, int);
 
 typedef struct tenv_t {
 	const char   *source;
@@ -374,14 +374,11 @@ struct _kGamma {
 #define TK_NONE 0
 #define TK_INDENT 1
 #define TK_SYMBOL  KW_SymbolPattern
-#define TK_USYMBOL KW_UsymbolPattern
+//#define TK_USYMBOL KW_UsymbolPattern
 #define TK_TEXT  KW_TextPattern
 #define TK_INT   KW_IntPattern
 #define TK_FLOAT KW_FloatPattern
 #define TK_TYPE  KW_TypePattern
-//#define AST_PARENTHESIS KW_ParenthesisPattern
-//#define AST_BRACKET     KW_BracketPattern
-//#define AST_BRACE       KW_BracePattern
 #define TK_MN           KW_ParamsPattern
 #define TK_METANAME     KW_ATMARK
 

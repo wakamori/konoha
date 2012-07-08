@@ -270,6 +270,7 @@ static KMETHOD ExprTyCheck_Int(CTX, ksfp_t *sfp _RIX)
 	RETURN_(kExpr_setNConstValue(expr, TY_Int, (uintptr_t)n));
 }
 
+
 static kMethod* KS_getGetterMethodNULL(CTX, kKonohaSpace *ks, ktype_t cid, ksymbol_t fn)
 {
 	kMethod *mtd = kKonohaSpace_getMethodNULL(ks, cid, MN_toGETTER(fn));
@@ -284,6 +285,14 @@ static kExpr* new_GetterExpr(CTX, kToken *tkU, kMethod *mtd, kExpr *expr)
 	struct _kExpr *expr1 = (struct _kExpr *)new_TypedConsExpr(_ctx, TEXPR_CALL, kMethod_rtype(mtd), 2, mtd, expr);
 	KSETv(expr1->tk, tkU); // for uline
 	return (kExpr*)expr1;
+}
+
+static kObject *KonohaSpace_getSymbolValueNULL(CTX, kKonohaSpace *ks, const char *key, size_t klen)
+{
+	if(key[0] == 'K' && (key[1] == 0 || strcmp("Konoha", key) == 0)) {
+		return (kObject*)ks;
+	}
+	return NULL;
 }
 
 static kExpr* Expr_tyCheckVariable2(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, ktype_t reqty)
@@ -336,21 +345,27 @@ static kExpr* Expr_tyCheckVariable2(CTX, kStmt *stmt, kExpr *expr, kGamma *gma, 
 			return new_ConstValue(ct->cid, fo);
 		}
 	}
-	return kToken_p(stmt, tk, ERR_, "undefined name: %s", kToken_s(tk));
+	if(fn != SYM_NONAME) {
+		kvs_t *kv = KonohaSpace_getConstNULL(_ctx, gma->genv->ks, fn);
+		if(kv != NULL) {
+			if(SYMKEY_isBOXED(kv->key)) {
+				kExpr_setConstValue(expr, kv->ty, kv->oval);
+			}
+			else {
+				kExpr_setNConstValue(expr, kv->ty, kv->uval);
+			}
+			return expr;
+		}
+	}
+	kObject *v = KonohaSpace_getSymbolValueNULL(_ctx, gma->genv->ks, S_text(tk->text), S_size(tk->text));
+	kExpr *texpr = (v == NULL) ? kToken_p(stmt, tk, ERR_, "undefined name: %s", kToken_s(tk)) : kExpr_setConstValue(expr, O_cid(v), v);
+	return texpr;
 }
 
 static KMETHOD ExprTyCheck_Symbol(CTX, ksfp_t *sfp _RIX)
 {
 	VAR_ExprTyCheck(stmt, expr, gma, reqty);
 	RETURN_(Expr_tyCheckVariable2(_ctx, stmt, expr, gma, reqty));
-}
-
-static kObject *KonohaSpace_getSymbolValueNULL(CTX, kKonohaSpace *ks, const char *key, size_t klen)
-{
-	if(key[0] == 'K' && (key[1] == 0 || strcmp("Konoha", key) == 0)) {
-		return (kObject*)ks;
-	}
-	return NULL;
 }
 
 static KMETHOD ExprTyCheck_Usymbol(CTX, ksfp_t *sfp _RIX)
@@ -604,7 +619,7 @@ static kExpr *Expr_lookupMethod(CTX, kStmt *stmt, kExpr *expr, kcid_t this_cid, 
 	kKonohaSpace *ks = gma->genv->ks;
 	kToken *tkMN = expr->cons->toks[0];
 	DBG_ASSERT(IS_Token(tkMN));
-	if(tkMN->kw == TK_SYMBOL || tkMN->kw == TK_USYMBOL) {
+	if(tkMN->kw == TK_SYMBOL) {
 		kToken_setmn(tkMN, ksymbolA(S_text(tkMN->text), S_size(tkMN->text), SYM_NEWID), MNTYPE_method);
 	}
 	if(tkMN->kw == TK_MN) {
@@ -644,7 +659,7 @@ static kExpr *Expr_tyCheckFuncParams(CTX, kStmt *stmt, kExpr *expr, kclass_t *ct
 
 static kbool_t Expr_isSymbol(kExpr *expr)
 {
-	return (Expr_isTerm(expr) && (expr->tk->kw == TK_SYMBOL || expr->tk->kw == TK_USYMBOL));
+	return (Expr_isTerm(expr) && (expr->tk->kw == TK_SYMBOL));
 }
 
 static kMethod* Expr_lookUpFuncOrMethod(CTX, kExpr *exprN, kGamma *gma, ktype_t reqty)

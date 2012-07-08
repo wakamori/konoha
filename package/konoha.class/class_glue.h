@@ -274,7 +274,7 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 
 static ksymbol_t tosymbolUM(CTX, kToken *tk)
 {
-	DBG_ASSERT(tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL);
+	DBG_ASSERT(tk->kw == TK_SYMBOL);
 	return ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWID);
 }
 
@@ -315,7 +315,7 @@ static void Stmt_parseClassBlock(CTX, kStmt *stmt, kToken *tkC)
 			kToken *tk = a->toks[i];
 			int topch = kToken_topch(tk);
 			DBG_P("cname='%s'", cname);
-			if(topch == '(' && tkP->kw == TK_USYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
+			if(topch == '(' && tkP->kw == TK_SYMBOL && strcmp(cname, S_text(tkP->text)) == 0) {
 				struct _kToken *tkNEW = new_W(Token, 0);
 				tkNEW->kw = TK_SYMBOL;
 				KSETv(tkNEW->text, SYM_s(MN_new));

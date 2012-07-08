@@ -682,17 +682,17 @@ static kbool_t pcre_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 
 static Ftokenizer parseSLASH;
 
-static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, prev = '/', pos = tok_start + 1;
 	if(tenv->source[pos] == '*' || tenv->source[pos] == '/') {
-		return parseSLASH(_ctx, tk, tenv, tok_start, thunk);
+		return parseSLASH(_ctx, tk, tenv, tok_start);
 	}
 	int tlsize = kArray_size(tenv->list);
 	if(tlsize > 0) {
 		kToken *tkPrev = tenv->list->toks[tlsize - 1];
 		if(tkPrev->kw == TK_INT || tkPrev->kw == TK_SYMBOL) {
-			return parseSLASH(_ctx, tk, tenv, tok_start, thunk);
+			return parseSLASH(_ctx, tk, tenv, tok_start);
 		}
 	}
 	while((ch = tenv->source[pos++]) != 0) {

@@ -30,7 +30,7 @@ extern "C" {
 
 /* ------------------------------------------------------------------------ */
 
-static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *thunk)
+static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 {
 	int ch, indent = 0;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -45,14 +45,14 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *th
 	return pos-1;
 }
 
-static int parseNL(CTX, struct _kToken *tk, tenv_t *tenv, int pos, kFunc *thunk)
+static int parseNL(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 {
 	tenv->uline += 1;
 	tenv->bol = tenv->source + pos + 1;
-	return parseINDENT(_ctx, tk, tenv, pos+1, thunk);
+	return parseINDENT(_ctx, tk, tenv, pos+1);
 }
 
-static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, pos = tok_start, dot = 0;
 	const char *ts = tenv->source;
@@ -89,6 +89,30 @@ static void Token_setText(CTX, struct _kToken *tk, const char *t, size_t len)
 	}
 }
 
+static kbool_t isLowerCaseSymbol(const char *t)
+{
+	while(t[0] != 0) {
+		if(islower(t[0])) return true;
+		if(t[0] == '_') {
+			t++; continue;
+		}
+		return false;
+	}
+	return true;
+}
+
+static kbool_t isUpperCaseSymbol(const char *t)
+{
+	while(t[0] != 0) {
+		if(isupper(t[0])) return true;
+		if(t[0] == '_') {
+			t++; continue;
+		}
+		break;
+	}
+	return false;
+}
+
 static int parseSYMBOL_(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, ksymbol_t defkw)
 {
 	int ch, pos = tok_start;
@@ -105,22 +129,22 @@ static int parseSYMBOL_(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, ks
 	return pos - 1;  // next
 }
 
-static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
 }
 
-static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
-{
-	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_USYMBOL);
-}
-
-static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
 }
 
-static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
+{
+	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
+}
+
+static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	if(IS_NOTNULL(tk)) {
 		kToken_setUnresolved(tk, true);
@@ -130,7 +154,7 @@ static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc 
 	return tok_start+1;
 }
 
-static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, pos = tok_start;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -152,7 +176,7 @@ static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *
 	return pos-1;
 }
 
-static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, pos = tok_start;
 	while((ch = tenv->source[pos++]) != 0) {
@@ -161,7 +185,7 @@ static int parseLINE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc
 	return pos-1;/*EOF*/
 }
 
-static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, prev = 0, level = 1, pos = tok_start + 2;
 	/*@#nnnn is line number */
@@ -187,19 +211,19 @@ static int parseCOMMENT(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kF
 	return pos-1;/*EOF*/
 }
 
-static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	const char *ts = tenv->source + tok_start;
 	if(ts[1] == '/') {
-		return parseLINE(_ctx, tk, tenv, tok_start, thunk);
+		return parseLINE(_ctx, tk, tenv, tok_start);
 	}
 	if(ts[1] == '*') {
-		return parseCOMMENT(_ctx, tk, tenv, tok_start, thunk);
+		return parseCOMMENT(_ctx, tk, tenv, tok_start);
 	}
-	return parseOP(_ctx, tk, tenv, tok_start, thunk);
+	return parseOP(_ctx, tk, tenv, tok_start);
 }
 
-static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	kwb_t wb;
 	kwb_init(&(_ctx->stack->cwb), &wb);
@@ -236,12 +260,12 @@ static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFu
 	return pos-1;
 }
 
-static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	return tok_start+1;
 }
 
-static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	if(IS_NOTNULL(tk)) {
 		Token_pERR(_ctx, tk, "undefined token character: %c", tenv->source[tok_start]);
@@ -250,7 +274,7 @@ static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 	return tok_start;
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk);
+static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start);
 
 static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _NULL      0
@@ -377,7 +401,7 @@ static int kchar(const char *t, int pos)
 	return (ch < 0) ? _MULTI : cMatrix[ch];
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, level = 1, pos = tok_start + 1;
 	const Ftokenizer *fmat = tenv->fmat;
@@ -397,7 +421,7 @@ static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFun
 			level++; pos++;
 		}
 		else {
-			pos = fmat[ch](_ctx, (struct _kToken*)K_NULLTOKEN, tenv, pos, NULL);
+			pos = fmat[ch](_ctx, (struct _kToken*)K_NULLTOKEN, tenv, pos);
 		}
 	}
 	if(IS_NOTNULL(tk)) {
@@ -413,14 +437,14 @@ static void tokenize(CTX, tenv_t *tenv)
 	struct _kToken *tk = new_W(Token, 0);
 	DBG_ASSERT(tk->kw == 0);
 	tk->uline = tenv->uline;
-	pos = parseINDENT(_ctx, tk, tenv, pos, NULL);
+	pos = parseINDENT(_ctx, tk, tenv, pos);
 	while((ch = kchar(tenv->source, pos)) != 0) {
 		if(tk->kw != 0) {
 			kArray_add(tenv->list, tk);
 			tk = new_W(Token, 0);
 			tk->uline = tenv->uline;
 		}
-		int pos2 = fmat[ch](_ctx, tk, tenv, pos, NULL);
+		int pos2 = fmat[ch](_ctx, tk, tenv, pos);
 		assert(pos2 > pos);
 		pos = pos2;
 	}
@@ -525,7 +549,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 		}
 		if(topch == '$' && i+1 < e) {
 			tk = tls->Wtoks[++i];
-			if(tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL) {
+			if(tk->kw == TK_SYMBOL) {
 				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW) | KW_PATTERN;
 				if(nameid == 0) nameid = tk->kw;
 				tk->nameid = nameid;

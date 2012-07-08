@@ -56,7 +56,7 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 		{ PATTERN(Usymbol), _TERM, PatternMatch_(Usymbol), /* .rule = "$USYMBOL \"=\" $expr",*/ TopStmtTyCheck_(ConstDecl), ExprTyCheck_(Usymbol),},
 		{ PATTERN(Text), _TERM, ExprTyCheck_(Text),},
 		{ PATTERN(Int), _TERM, ExprTyCheck_(Int),},
-		{ PATTERN(Float), _TERM, /* ExprTyCheck_(FLOAT), */},
+		{ PATTERN(Float), _TERM, },
 		{ PATTERN(Type), _TERM, PatternMatch_(Type), .rule = "$type $expr", StmtTyCheck_(TypeDecl), ExprTyCheck_(Type), },
 		{ PATTERN(Parenthesis), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(Parenthesis), .priority_op2 = 16, ExprTyCheck_(FuncStyleCall),}, //AST_PARENTHESIS
 		{ PATTERN(Bracket),  },  //AST_BRACKET
@@ -86,7 +86,6 @@ static void defineDefaultSyntax(CTX, kKonohaSpace *ks)
 		{ TOKEN(void), .type = TY_void, .rule ="$type [$USYMBOL \".\"] $SYMBOL $params [$block]", TopStmtTyCheck_(MethodDecl)},
 		{ TOKEN(boolean), .type = TY_Boolean, },
 		{ TOKEN(int),     .type = TY_Int, },
-//		{ TOKEN("null"), _TERM, ExprTyCheck_(null),},
 		{ TOKEN(true),  _TERM, ExprTyCheck_(true),},
 		{ TOKEN(false),  _TERM, ExprTyCheck_(false),},
 		{ TOKEN(if), .rule ="\"if\" \"(\" $expr \")\" $block [\"else\" else: $block]", TopStmtTyCheck_(if), StmtTyCheck_(if), },

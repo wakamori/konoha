@@ -380,7 +380,7 @@ static kbool_t bytes_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
 }
 
 
-static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, kFunc *thunk)
+static int parseSQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, prev = '\'', pos = tok_start + 1;
 	while((ch = tenv->source[pos++]) != 0) {

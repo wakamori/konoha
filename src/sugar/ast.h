@@ -116,22 +116,23 @@ static int appendKeyword(CTX, kKonohaSpace *ks, kArray *tls, int s, int e, kArra
 {
 	int next = s; // don't add
 	struct _kToken *tk = tls->Wtoks[s];
-	if(tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL) {
+	if(tk->kw == TK_SYMBOL) {
 		if(!Token_resolved(_ctx, ks, tk)) {
-			kclass_t *ct = kKonohaSpace_getCT(ks, NULL/*FIXME*/, S_text(tk->text), S_size(tk->text), TY_unknown);
-			if(ct != NULL) {
-				tk->kw = KW_TypePattern;
-				tk->ty = ct->cid;
+			const char *t = S_text(tk->text);
+			if(isalpha(t[0])) {
+				kclass_t *ct = kKonohaSpace_getCT(ks, NULL/*FIXME*/, S_text(tk->text), S_size(tk->text), TY_unknown);
+				if(ct != NULL) {
+					tk->kw = KW_TypePattern;
+					tk->ty = ct->cid;
+				}
+			}
+			else {
+				Token_pERR(_ctx, tk, "undefined token: %s", kToken_s(tk));
+				tkERR[0] = tk;
+				return e;
 			}
 		}
 	}
-//	else if(tk->tt == TK_OPERATOR) {
-//		if(!Token_resolved(_ctx, ks, tk)) {
-//			Token_pERR(_ctx, tk, "undefined token: %s", kToken_s(tk));
-//			tkERR[0] = tk;
-//			return e;
-//		}
-//	}
 	kToken_setUnresolved(tk, false);
 	if(TK_isType(tk)) {   // trying to resolve Type[Type, Type]
 		kArray_add(dst, tk);
@@ -233,7 +234,7 @@ static int selectStmtLine(CTX, kKonohaSpace *ks, int *indent, kArray *tls, int s
 		kToken *tk = tls->toks[i];
 		struct _kToken *tk1 = tls->Wtoks[i+1];
 		int topch = kToken_topch(tk);
-		if(topch == '@' && (tk1->kw == TK_SYMBOL || tk1->kw == TK_USYMBOL)) {
+		if(topch == '@' && (tk1->kw == TK_SYMBOL)) {
 			tk1->kw = ksymbolA(S_text(tk1->text), S_size(tk1->text), SYM_NEWID) | MN_Annotation;
 			kArray_add(tlsdst, tk1); i++;
 			tk1 = tls->Wtoks[i+1];
@@ -458,7 +459,7 @@ static ksyntax_t* KonohaSpace_getSyntaxRule(CTX, kKonohaSpace *ks, kArray *tls, 
 		DBG_P("Expression");
 		return SYN_(ks, KW_ExprPattern);  // expression
 	}
-	if(tk->kw == TK_USYMBOL) {
+	if(tk->kw == TK_SYMBOL && isUpperCaseSymbol(S_text(tk->text))) {
 		kToken *tk1 = TokenArray_nextToken(_ctx, tls, s+1, e);
 		if(tk1->kw == KW_LET) {
 			DBG_P("Const");
@@ -688,7 +689,7 @@ static inline kbool_t isFieldName(kArray *tls, int c, int e)
 {
 	if(c + 1 < e) {
 		kToken *tk = tls->toks[c+1];
-		return (tk->kw == TK_SYMBOL || tk->kw == TK_USYMBOL);
+		return (tk->kw == TK_SYMBOL);
 	}
 	return false;
 }
@@ -789,7 +790,7 @@ static KMETHOD PatternMatch_Usymbol(CTX, ksfp_t *sfp _RIX)
 	VAR_PatternMatch(stmt, name, tls, s, e);
 	int r = -1;
 	kToken *tk = tls->toks[s];
-	if(tk->kw == TK_USYMBOL) {
+	if(tk->kw == TK_SYMBOL && isUpperCaseSymbol(S_text(tk->text))) {
 		kObject_setObject(stmt, name, tk);
 		r = s + 1;
 	}
