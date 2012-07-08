@@ -39,6 +39,7 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 		break;
 	}
 	if(IS_NOTNULL(tk)) {
+		kToken_setUnresolved(tk, true);  // to avoid indent within tree tokens
 		tk->kw = TK_INDENT;
 		tk->indent = indent;  /* 0 FIXME: Debug/Parser/LineNumber.k (Failed) */
 	}
@@ -89,7 +90,7 @@ static void Token_setText(CTX, struct _kToken *tk, const char *t, size_t len)
 	}
 }
 
-static kbool_t isLowerCaseSymbol(const char *t)
+/**static kbool_t isLowerCaseSymbol(const char *t)
 {
 	while(t[0] != 0) {
 		if(islower(t[0])) return true;
@@ -99,7 +100,7 @@ static kbool_t isLowerCaseSymbol(const char *t)
 		return false;
 	}
 	return true;
-}
+}**/
 
 static kbool_t isUpperCaseSymbol(const char *t)
 {
