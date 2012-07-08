@@ -1,4 +1,5 @@
 
+/**
 K.import("sugar");
 
 @Public boolean Stmt.tyCheckWhile(Gamma gma) {
@@ -7,3 +8,4 @@ K.import("sugar");
 	}
 	return false;
 }
+**/
