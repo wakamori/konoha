@@ -27,4 +27,3 @@ System.p("ほげほげ".toBytes().encodeTo("UTF-8").decodeFrom("UTF-8"));
 System.p("ほげほげ".toBytes().encodeTo("SHIFT_JIS").decodeFrom("SHIFT_JIS"));
 System.p("ほげほげ".toBytes().encodeTo("EUC-JP").decodeFrom("EUC-JP"));
 
-System.p("hoge".toBytes()[0]);
