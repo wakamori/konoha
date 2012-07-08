@@ -83,7 +83,6 @@ typedef struct tenv_t {
 	const char   *source;
 	kline_t       uline;
 	kArray       *list;
-	const char   *bol;     // begin of line
 	int           indent_tab;
 	const CFuncTokenize *cfunc;
 	union {

@@ -49,7 +49,6 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 static int parseNL(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 {
 	tenv->uline += 1;
-	tenv->bol = tenv->source + pos + 1;
 	return parseINDENT(_ctx, tk, tenv, pos+1);
 }
 
@@ -485,7 +484,6 @@ static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t 
 		.source = source,
 		.uline  = uline,
 		.list   = a,
-		.bol    = source,
 		.indent_tab = 4,
 		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenizerMatrix(_ctx, ks),
 	};
