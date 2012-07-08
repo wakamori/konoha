@@ -680,7 +680,7 @@ static kbool_t pcre_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 	return true;
 }
 
-static Ftokenizer parseSLASH;
+static CFuncTokenize parseSLASH;
 
 static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {

@@ -77,7 +77,7 @@ struct _kpackage {
 // tokenizer
 #define KCHAR_MAX  41
 struct tenv_t;
-typedef int (*Ftokenizer)(CTX, struct _kToken *, struct tenv_t *, int);
+typedef int (*CFuncTokenize)(CTX, struct _kToken *, struct tenv_t *, int);
 
 typedef struct tenv_t {
 	const char   *source;
@@ -85,7 +85,11 @@ typedef struct tenv_t {
 	kArray       *list;
 	const char   *bol;     // begin of line
 	int           indent_tab;
-	const Ftokenizer *fmat;
+	const CFuncTokenize *cfunc;
+	union {
+		kFunc  **func;
+		kArray **funcList;
+	};
 } tenv_t;
 
 /******
@@ -191,7 +195,7 @@ struct _kNameSpace {
 	kObjectHeader h;
 	const struct     _kNameSpace   *parentNULL;
 	kpack_t packid;  kpack_t packdom;
-	const Ftokenizer *fmat;
+	const CFuncTokenize *fmat;
 	struct kmap_t    *syntaxMapNN;
 	//
 	kObject          *scrobj;
@@ -476,7 +480,7 @@ typedef struct {
 	kFunc *ParseExpr_Op;
 
 	// export
-	void (*NameSpace_setTokenizer)(CTX, kNameSpace *ks, int ch, Ftokenizer f, kFunc *fo);
+	void (*NameSpace_setTokenizer)(CTX, kNameSpace *ks, int ch, CFuncTokenize f, kFunc *fo);
 	void (*NameSpace_tokenize)(CTX, kNameSpace *, const char *, kline_t, kArray *);
 
 	kExpr* (*Expr_setConstValue)(CTX, kExpr *expr, ktype_t ty, kObject *o);

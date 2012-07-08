@@ -254,7 +254,7 @@ static int parseUndefinedToken(CTX, struct _kToken *tk, tenv_t *tenv, int tok_st
 
 static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start);
 
-static const Ftokenizer MiniKonohaTokenMatrix[] = {
+static const CFuncTokenize MiniKonohaTokenMatrix[] = {
 #define _NULL      0
 	parseSKIP,
 #define _UNDEF     1
@@ -379,10 +379,35 @@ static int kchar(const char *t, int pos)
 	return (ch < 0) ? _MULTI : cMatrix[ch];
 }
 
+static int callFuncTokenize(CTX, kFunc *fo, tenv_t *tenv, int tok_start)
+{
+	return tok_start;
+}
+
+static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int tok_start)
+{
+	int pos;
+	if(tenv->func != NULL && tenv->func[kchar] != NULL) {
+		kFunc *fo = tenv->func[kchar];
+		if(IS_Array(fo)) {
+			kArray *a = (kArray*)fo;
+			int i;
+			for(i = kArray_size(a); i >= 0; i--) {
+				pos = callFuncTokenize(_ctx, a->funcs[i], tenv, tok_start);
+				if(pos > tok_start) return pos;
+			}
+			fo = a->funcs[0];
+		}
+		pos = callFuncTokenize(_ctx, fo, tenv, tok_start);
+		if(pos > tok_start) return pos;
+	}
+	pos = tenv->cfunc[kchar](_ctx, tk, tenv, tok_start);
+	return pos;
+}
+
 static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, level = 1, pos = tok_start + 1;
-	const Ftokenizer *fmat = tenv->fmat;
 	while((ch = kchar(tenv->source, pos)) != 0) {
 		if(ch == _RBR/*}*/) {
 			level--;
@@ -399,7 +424,7 @@ static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 			level++; pos++;
 		}
 		else {
-			pos = fmat[ch](_ctx, (struct _kToken*)K_NULLTOKEN, tenv, pos);
+			pos = tokenizeEach(_ctx, ch, (struct _kToken*)K_NULLTOKEN, tenv, pos);
 		}
 	}
 	if(IS_NOTNULL(tk)) {
@@ -411,7 +436,6 @@ static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 static void tokenize(CTX, tenv_t *tenv)
 {
 	int ch, pos = 0;
-	const Ftokenizer *fmat = tenv->fmat;
 	struct _kToken *tk = new_W(Token, 0);
 	DBG_ASSERT(tk->kw == 0);
 	tk->uline = tenv->uline;
@@ -422,7 +446,7 @@ static void tokenize(CTX, tenv_t *tenv)
 			tk = new_W(Token, 0);
 			tk->uline = tenv->uline;
 		}
-		int pos2 = fmat[ch](_ctx, tk, tenv, pos);
+		int pos2 = tokenizeEach(_ctx, ch, tk, tenv, pos);
 		assert(pos2 > pos);
 		pos = pos2;
 	}
@@ -431,26 +455,26 @@ static void tokenize(CTX, tenv_t *tenv)
 	}
 }
 
-static const Ftokenizer *NameSpace_tokenizerMatrix(CTX, kNameSpace *ks)
+static const CFuncTokenize *NameSpace_tokenizerMatrix(CTX, kNameSpace *ks)
 {
 	if(ks->fmat == NULL) {
-		DBG_ASSERT(KCHAR_MAX * sizeof(Ftokenizer) == sizeof(MiniKonohaTokenMatrix));
-		Ftokenizer *fmat = (Ftokenizer*)KMALLOC(sizeof(MiniKonohaTokenMatrix));
+		DBG_ASSERT(KCHAR_MAX * sizeof(CFuncTokenize) == sizeof(MiniKonohaTokenMatrix));
+		CFuncTokenize *fmat = (CFuncTokenize*)KMALLOC(sizeof(MiniKonohaTokenMatrix));
 		if(ks->parentNULL != NULL && ks->parentNULL->fmat != NULL) {
 			memcpy(fmat, ks->parentNULL->fmat, sizeof(MiniKonohaTokenMatrix));
 		}
 		else {
 			memcpy(fmat, MiniKonohaTokenMatrix, sizeof(MiniKonohaTokenMatrix));
 		}
-		((struct _kNameSpace*)ks)->fmat = (const Ftokenizer*)fmat;
+		((struct _kNameSpace*)ks)->fmat = (const CFuncTokenize*)fmat;
 	}
 	return ks->fmat;
 }
 
-static void NameSpace_setTokenizer(CTX, kNameSpace *ks, int ch, Ftokenizer f, kFunc *fo)
+static void NameSpace_setTokenizer(CTX, kNameSpace *ks, int ch, CFuncTokenize f, kFunc *fo)
 {
 	int kchar = (ch < 0) ? _MULTI : cMatrix[ch];
-	Ftokenizer *fmat = (Ftokenizer*)NameSpace_tokenizerMatrix(_ctx, ks);
+	CFuncTokenize *fmat = (CFuncTokenize*)NameSpace_tokenizerMatrix(_ctx, ks);
 	fmat[kchar] = f;
 }
 
@@ -463,7 +487,7 @@ static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t 
 		.list   = a,
 		.bol    = source,
 		.indent_tab = 4,
-		.fmat   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenizerMatrix(_ctx, ks),
+		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenizerMatrix(_ctx, ks),
 	};
 	tokenize(_ctx, &tenv);
 	if(uline == 0) {
