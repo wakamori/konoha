@@ -41,7 +41,7 @@ static int parseINDENT(CTX, struct _kToken *tk, tenv_t *tenv, int pos)
 	if(IS_NOTNULL(tk)) {
 		kToken_setUnresolved(tk, true);  // to avoid indent within tree tokens
 		tk->kw = TK_INDENT;
-		tk->indent = indent;  /* 0 FIXME: Debug/Parser/LineNumber.k (Failed) */
+		tk->indent = 0; /* indent FIXME: Debug/Parser/LineNumber.k (Failed) */
 	}
 	return pos-1;
 }
@@ -79,17 +79,6 @@ static int parseNUM(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	return pos - 1;  // next
 }
 
-static void Token_setText(CTX, struct _kToken *tk, const char *t, size_t len)
-{
-	ksymbol_t kw = ksymbolA(t, len, SYM_NONAME);
-	if(kw == SYM_UNMASK(kw)) {
-		KSETv(tk->text, SYM_s(kw));
-	}
-	else {
-		KSETv(tk->text, new_kString(t, len, SPOL_ASCII));
-	}
-}
-
 /**static kbool_t isLowerCaseSymbol(const char *t)
 {
 	while(t[0] != 0) {
@@ -114,7 +103,22 @@ static kbool_t isUpperCaseSymbol(const char *t)
 	return false;
 }
 
-static int parseSYMBOL_(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, ksymbol_t defkw)
+static void Token_setSymbolText(CTX, struct _kToken *tk, const char *t, size_t len)
+{
+	if(IS_NOTNULL(tk)) {
+		ksymbol_t kw = ksymbolA(t, len, SYM_NONAME);
+		kToken_setUnresolved(tk, true);
+		if(kw == SYM_UNMASK(kw)) {
+			KSETv(tk->text, SYM_s(kw));
+		}
+		else {
+			KSETv(tk->text, new_kString(t, len, SPOL_ASCII));
+		}
+		tk->kw = TK_SYMBOL;
+	}
+}
+
+static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, pos = tok_start;
 	const char *ts = tenv->source;
@@ -122,36 +126,13 @@ static int parseSYMBOL_(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start, ks
 		if(ch == '_' || isalnum(ch)) continue; // nothing
 		break;
 	}
-	if(IS_NOTNULL(tk)) {
-		Token_setText(_ctx, tk, ts + tok_start, (pos-1)-tok_start);
-		kToken_setUnresolved(tk, true);
-		tk->kw = defkw;
-	}
+	Token_setSymbolText(_ctx, tk, ts + tok_start, (pos-1)-tok_start);
 	return pos - 1;  // next
-}
-
-static int parseSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
-{
-	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
-}
-
-static int parseUSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
-{
-	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
-}
-
-static int parseMSYMBOL(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
-{
-	return parseSYMBOL_(_ctx, tk, tenv, tok_start, TK_SYMBOL);
 }
 
 static int parseOP1(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
-	if(IS_NOTNULL(tk)) {
-		kToken_setUnresolved(tk, true);
-		tk->kw = TK_SYMBOL;
-		Token_setText(_ctx, tk, tenv->source + tok_start, 1);
-	}
+	Token_setSymbolText(_ctx, tk,  tenv->source + tok_start, 1);
 	return tok_start+1;
 }
 
@@ -169,11 +150,7 @@ static int parseOP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 		}
 		break;
 	}
-	if(IS_NOTNULL(tk)) {
-		kToken_setUnresolved(tk, true);
-		Token_setText(_ctx, tk, tenv->source + tok_start, (pos-1)-tok_start);
-		tk->kw = TK_SYMBOL;
-	}
+	Token_setSymbolText(_ctx, tk, tenv->source + tok_start, (pos-1)-tok_start);
 	return pos-1;
 }
 
@@ -224,7 +201,7 @@ static int parseSLASH(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	return parseOP(_ctx, tk, tenv, tok_start);
 }
 
-static int parseDQUOTE(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
+static int parseDoubleQuotedText(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	kwb_t wb;
 	kwb_init(&(_ctx->stack->cwb), &wb);
@@ -266,16 +243,16 @@ static int parseSKIP(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	return tok_start+1;
 }
 
-static int parseUNDEF(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
+static int parseUndefinedToken(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	if(IS_NOTNULL(tk)) {
-		Token_pERR(_ctx, tk, "undefined token character: %c", tenv->source[tok_start]);
+		Token_pERR(_ctx, tk, "undefined token character: %c (ascii=%x)", tenv->source[tok_start], tenv->source[tok_start]);
 	}
 	while(tenv->source[++tok_start] != 0);
 	return tok_start;
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start);
+static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start);
 
 static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _NULL      0
@@ -285,11 +262,11 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _DIGIT     2
 	parseNUM,
 #define _UALPHA    3
-	parseUSYMBOL,
+	parseSYMBOL,
 #define _LALPHA    4
 	parseSYMBOL,
 #define _MULTI     5
-	parseMSYMBOL,
+	parseUndefinedToken,
 #define _NL        6
 	parseNL,
 #define _TAB       7
@@ -305,7 +282,7 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _RSQ       12
 	parseOP1,
 #define _LBR       13
-	parseBLOCK,
+	parseLazyBlock,
 #define _RBR       14
 	parseOP1,
 #define _LT        15
@@ -313,11 +290,11 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _GT        16
 	parseOP,
 #define _QUOTE     17
-	parseUNDEF,
+	parseUndefinedToken,
 #define _DQUOTE    18
-	parseDQUOTE,
+	parseDoubleQuotedText,
 #define _BKQUOTE   19
-	parseUNDEF,
+	parseUndefinedToken,
 #define _OKIDOKI   20
 	parseOP,
 #define _SHARP     21
@@ -355,7 +332,7 @@ static const Ftokenizer MiniKonohaTokenMatrix[] = {
 #define _CHILDER   37
 	parseOP,
 #define _BKSLASH   38
-	parseUNDEF,
+	parseUndefinedToken,
 #define _HAT       39
 	parseOP,
 #define _UNDER     40
@@ -402,7 +379,7 @@ static int kchar(const char *t, int pos)
 	return (ch < 0) ? _MULTI : cMatrix[ch];
 }
 
-static int parseBLOCK(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
+static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
 	int ch, level = 1, pos = tok_start + 1;
 	const Ftokenizer *fmat = tenv->fmat;
