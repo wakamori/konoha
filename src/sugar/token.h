@@ -405,6 +405,7 @@ static int callFuncTokenize(CTX, kFunc *fo, struct _kToken *tk, tenv_t *tenv, in
 static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int tok_start)
 {
 	int pos;
+	DBG_P("kchar=%d, tenv=%p, tenv->func=%p", kchar, tenv, tenv->func);
 	if(tenv->func != NULL && tenv->func[kchar] != NULL) {
 		kFunc *fo = tenv->func[kchar];
 		if(IS_Array(fo)) {
@@ -421,6 +422,27 @@ static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int to
 	}
 	pos = tenv->cfunc[kchar](_ctx, tk, tenv, tok_start);
 	return pos;
+}
+
+static void tokenize(CTX, tenv_t *tenv)
+{
+	int ch, pos = 0;
+	struct _kToken *tk = new_W(Token, 0);
+	tk->uline = tenv->uline;
+	pos = parseINDENT(_ctx, tk, tenv, pos);
+	while((ch = kchar(tenv->source, pos)) != 0) {
+		if(tk->kw != 0) {
+			kArray_add(tenv->list, tk);
+			tk = new_W(Token, 0);
+			tk->uline = tenv->uline;
+		}
+		int pos2 = tokenizeEach(_ctx, ch, tk, tenv, pos);
+		assert(pos2 > pos);
+		pos = pos2;
+	}
+	if(tk->kw != 0) {  // FIXME: Memory Leaks ???
+		kArray_add(tenv->list, tk);
+	}
 }
 
 static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
@@ -451,28 +473,6 @@ static int parseLazyBlock(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	return pos-1;
 }
 
-static void tokenize(CTX, tenv_t *tenv)
-{
-	int ch, pos = 0;
-	struct _kToken *tk = new_W(Token, 0);
-	DBG_ASSERT(tk->kw == 0);
-	tk->uline = tenv->uline;
-	pos = parseINDENT(_ctx, tk, tenv, pos);
-	while((ch = kchar(tenv->source, pos)) != 0) {
-		if(tk->kw != 0) {
-			kArray_add(tenv->list, tk);
-			tk = new_W(Token, 0);
-			tk->uline = tenv->uline;
-		}
-		int pos2 = tokenizeEach(_ctx, ch, tk, tenv, pos);
-		assert(pos2 > pos);
-		pos = pos2;
-	}
-	if(tk->kw != 0) {  // FIXME: Memory Leaks ???
-		kArray_add(tenv->list, tk);
-	}
-}
-
 static const CFuncTokenize *NameSpace_tokenMatrix(CTX, kNameSpace *ns)
 {
 	if(ns->tokenMatrix == NULL) {
@@ -490,9 +490,9 @@ static const CFuncTokenize *NameSpace_tokenMatrix(CTX, kNameSpace *ns)
 	return ns->tokenMatrix;
 }
 
-static kFunc **NameSpace_tokenFuncMatrix(CTX, kNameSpace *ks)
+static kFunc **NameSpace_tokenFuncMatrix(CTX, kNameSpace *ns)
 {
-	kFunc **funcMatrix = (kFunc**)NameSpace_tokenMatrix(_ctx, ks);
+	kFunc **funcMatrix = (kFunc**)NameSpace_tokenMatrix(_ctx, ns);
 	return funcMatrix + KCHAR_MAX;
 }
 
@@ -525,7 +525,7 @@ static void NameSpace_setTokenizeFunc(CTX, kNameSpace *ns, int ch, CFuncTokenize
 	}
 }
 
-static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t uline, kArray *a)
+static void NameSpace_tokenize(CTX, kNameSpace *ns, const char *source, kline_t uline, kArray *a)
 {
 	size_t i, pos = kArray_size(a);
 	tenv_t tenv = {
@@ -534,12 +534,15 @@ static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t 
 		.uline  = uline,
 		.list   = a,
 		.indent_tab = 4,
-		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenMatrix(_ctx, ks),
+		.cfunc   = (ns == NULL) ? MiniKonohaTokenMatrix : NameSpace_tokenMatrix(_ctx, ns),
 	};
 	INIT_GCSTACK();
 	kString *preparedString = new_kString(tenv.source, tenv.source_length, SPOL_ASCII|SPOL_TEXT|SPOL_NOPOOL);
 	PUSH_GCSTACK(preparedString);
 	tenv.preparedString = preparedString;
+	if(ns != NULL) {
+		tenv.func = NameSpace_tokenFuncMatrix(_ctx, ns);
+	}
 	tokenize(_ctx, &tenv);
 	RESET_GCSTACK();
 	if(uline == 0) {
