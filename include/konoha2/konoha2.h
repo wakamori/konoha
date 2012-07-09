@@ -92,7 +92,7 @@
 #define PLAT (_ctx->plat)->
 
 typedef enum {
-	CritTag, ErrTag, WarnTag, NoticeTag, InfoTag, DebugTag, NoneTag,
+	CritTag, ErrTag, WarnTag, NoticeTag, InfoTag, DebugTag, NoneTag
 } kinfotag_t;
 
 #define CRIT_ CritTag

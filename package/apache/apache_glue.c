@@ -60,7 +60,7 @@ static void AprTable_free(CTX, kObject *po)
 static void AprTableEntry_init(CTX, kObject *po, void *conf)
 {
 	(void)_ctx;
-	((kAprTableEntry*)po)->entry = (apr_table_t *) conf;
+	((kAprTableEntry*)po)->entry = (apr_table_entry_t *) conf;
 }
 
 static void AprTableEntry_free(CTX, kObject *po)
