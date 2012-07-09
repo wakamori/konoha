@@ -81,6 +81,7 @@ typedef int (*CFuncTokenize)(CTX, struct _kToken *, struct tenv_t *, int);
 
 typedef struct tenv_t {
 	const char   *source;
+	size_t        source_length;
 	kline_t       uline;
 	kArray       *list;
 	int           indent_tab;
@@ -89,6 +90,7 @@ typedef struct tenv_t {
 		kFunc  **func;
 		kArray **funcList;
 	};
+	kString *preparedString;
 } tenv_t;
 
 /******

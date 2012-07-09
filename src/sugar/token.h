@@ -378,9 +378,28 @@ static int kchar(const char *t, int pos)
 	return (ch < 0) ? _MULTI : cMatrix[ch];
 }
 
-static int callFuncTokenize(CTX, kFunc *fo, tenv_t *tenv, int tok_start)
+
+static int callFuncTokenize(CTX, kFunc *fo, struct _kToken *tk, tenv_t *tenv, int tok_start)
 {
-	return tok_start;
+	// The above string operation is bad thing. Don't repeat it
+	struct _kString *preparedString = (struct _kString*)tenv->preparedString;
+	preparedString->text = tenv->source + tok_start;
+	preparedString->bytesize = tenv->source_length - tok_start;
+	BEGIN_LOCAL(lsfp, K_CALLDELTA + 2);
+	KSETv(lsfp[K_CALLDELTA+0].o, fo->self);
+	KSETv(lsfp[K_CALLDELTA+1].o, (kObject*)tk);
+	KSETv(lsfp[K_CALLDELTA+2].s, preparedString);
+	KCALL(lsfp, 0, fo->mtd, 2, knull(CT_Int));
+	END_LOCAL();
+	int pos = lsfp[0].ivalue;
+	if(pos > tok_start) { // check new lines
+		int i;
+		const char *t = tenv->source;
+		for(i = tok_start; i < pos; i++) {
+			if(t[0] == '\n') tenv->uline += 1;
+		}
+	}
+	return pos;
 }
 
 static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int tok_start)
@@ -392,12 +411,12 @@ static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int to
 			kArray *a = (kArray*)fo;
 			int i;
 			for(i = kArray_size(a); i >= 0; i--) {
-				pos = callFuncTokenize(_ctx, a->funcs[i], tenv, tok_start);
+				pos = callFuncTokenize(_ctx, a->funcs[i], tk, tenv, tok_start);
 				if(pos > tok_start) return pos;
 			}
 			fo = a->funcs[0];
 		}
-		pos = callFuncTokenize(_ctx, fo, tenv, tok_start);
+		pos = callFuncTokenize(_ctx, fo, tk, tenv, tok_start);
 		if(pos > tok_start) return pos;
 	}
 	pos = tenv->cfunc[kchar](_ctx, tk, tenv, tok_start);
@@ -510,12 +529,18 @@ static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t 
 	size_t i, pos = kArray_size(a);
 	tenv_t tenv = {
 		.source = source,
+		.source_length = strlen(source),
 		.uline  = uline,
 		.list   = a,
 		.indent_tab = 4,
 		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenMatrix(_ctx, ks),
 	};
+	INIT_GCSTACK();
+	kString *preparedString = new_kString(tenv.source, tenv.source_length, SPOL_ASCII|SPOL_TEXT|SPOL_NOPOOL);
+	PUSH_GCSTACK(preparedString);
+	tenv.preparedString = preparedString;
 	tokenize(_ctx, &tenv);
+	RESET_GCSTACK();
 	if(uline == 0) {
 		for(i = pos; i < kArray_size(a); i++) {
 			a->Wtoks[i]->uline = 0;

@@ -854,6 +854,7 @@ struct _kString /* extends _Bytes */ {
 #define SPOL_ASCII         (1<<1)
 #define SPOL_UTF8          (1<<2)
 #define SPOL_POOL          (1<<3)
+#define SPOL_NOPOOL        (1<<5)
 #define SPOL_NOCOPY        (1<<4)
 
 #define new_T(t)            new_kString(t, knh_strlen(t), SPOL_TEXT|SPOL_ASCII|SPOL_POOL)

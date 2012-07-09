@@ -76,6 +76,13 @@ static KMETHOD Block_tyCheckAll(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
+//## void NameSpace.addTokenizeFunc(String keyword, Func f);
+static KMETHOD NameSpace_addTokenizeFunc(CTX, ksfp_t *sfp _RIX)
+{
+	USING_SUGAR;
+	SUGAR NameSpace_setTokenizeFunc(_ctx, sfp[0].ks, S_text(sfp[1].s)[0], NULL, sfp[2].fo, 1/*isAddition*/);
+}
+
 //## void NameSpace.addPatternMatch(String keyword, Func f);
 static KMETHOD NameSpace_addPatternMatch(CTX, ksfp_t *sfp _RIX)
 {
@@ -240,6 +247,10 @@ static	kbool_t sugar_initPackage(CTX, kNameSpace *ks, int argc, const char**args
 	int FN_typeid = FN_("typeid"), FN_gma = FN_("gma"), FN_pol = FN_("pol");
 	int FN_func = FN_("func"), FN_msg = FN_("msg");
 //	int FN_tls = FN_("tokens"), FN_s = FN_("s"), FN_e = FN_("e");
+
+	/* Func[Int, Token, String] */
+	kparam_t P_FuncTokenize[] = {{TY_Token}, {TY_String}};
+	int TY_FuncTokenize = (kClassTable_Generics(CT_Func, TY_Int, 2, P_FuncTokenize))->cid;
 	/* Func[Int, Stmt, Int, Token[], Int, Int] */
 	kparam_t P_FuncPatternMatch[] = {{TY_Stmt}, {TY_Int}, {TY_TokenArray}, {TY_Int}, {TY_Int}};
 	int TY_FuncPatternMatch = (kClassTable_Generics(CT_Func, TY_Int, 5, P_FuncPatternMatch))->cid;
@@ -264,6 +275,7 @@ static	kbool_t sugar_initPackage(CTX, kNameSpace *ks, int argc, const char**args
 		_Public, _F(Stmt_tyCheckExpr), TY_Boolean, TY_Stmt, MN_("tyCheckExpr"), 4, TY_String, FN_key, TY_Gamma, FN_gma, TY_Int, FN_typeid, TY_Int, FN_pol,
 		_Public, _F(Block_tyCheckAll), TY_Boolean, TY_Block, MN_("tyCheckAll"), 1, TY_Gamma, FN_gma,
 
+		_Public, _F(NameSpace_addTokenizeFunc), TY_void, TY_NameSpace, MN_("addTokenizeFunc"), 2, TY_String, FN_key, TY_FuncTokenize, FN_func,
 		_Public, _F(NameSpace_addPatternMatch), TY_void, TY_NameSpace, MN_("addPatternMatch"), 2, TY_String, FN_key, TY_FuncPatternMatch, FN_func,
 		_Public, _F(NameSpace_addParseExpr), TY_void, TY_NameSpace, MN_("addParseExpr"), 2, TY_String, FN_key, TY_FuncParseExpr, FN_func,
 		_Public, _F(NameSpace_addTopStmtTyCheck), TY_void, TY_NameSpace, MN_("addTopStmtTyCheck"), 2, TY_String, FN_key, TY_FuncStmtTyCheck, FN_func,

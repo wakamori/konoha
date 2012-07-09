@@ -115,7 +115,7 @@ static void String_init(CTX, kObject *o, void *conf)
 	struct _kString *s = (struct _kString*)o;
 	s->text = "";
 	s->bytesize = 0;
-	S_setTextSgm(s, 1);
+	S_setTextSgm(s, true);
 }
 
 static void String_free(CTX, kObject *o)
