@@ -473,20 +473,21 @@ static void tokenize(CTX, tenv_t *tenv)
 	}
 }
 
-static const CFuncTokenize *NameSpace_tokenMatrix(CTX, kNameSpace *ks)
+static const CFuncTokenize *NameSpace_tokenMatrix(CTX, kNameSpace *ns)
 {
-	if(ks->fmat == NULL) {
+	if(ns->tokenMatrix == NULL) {
 		DBG_ASSERT(KCHAR_MAX * sizeof(CFuncTokenize) == sizeof(MiniKonohaTokenMatrix));
-		CFuncTokenize *fmat = (CFuncTokenize*)KMALLOC(sizeof(MiniKonohaTokenMatrix));
-		if(ks->parentNULL != NULL && ks->parentNULL->fmat != NULL) {
-			memcpy(fmat, ks->parentNULL->fmat, sizeof(MiniKonohaTokenMatrix));
+		CFuncTokenize *tokenMatrix = (CFuncTokenize*)KMALLOC(SIZEOF_TOKENMATRIX);
+		if(ns->parentNULL != NULL && ns->parentNULL->tokenMatrix != NULL) {
+			memcpy(tokenMatrix, ns->parentNULL->tokenMatrix, SIZEOF_TOKENMATRIX);
 		}
 		else {
-			memcpy(fmat, MiniKonohaTokenMatrix, sizeof(MiniKonohaTokenMatrix));
+			memcpy(tokenMatrix, MiniKonohaTokenMatrix, sizeof(MiniKonohaTokenMatrix));
+			bzero(tokenMatrix + KCHAR_MAX, sizeof(MiniKonohaTokenMatrix));
 		}
-		((struct _kNameSpace*)ks)->fmat = (const CFuncTokenize*)fmat;
+		((struct _kNameSpace*)ns)->tokenMatrix = (const CFuncTokenize*)tokenMatrix;
 	}
-	return ks->fmat;
+	return ns->tokenMatrix;
 }
 
 static kFunc **NameSpace_tokenFuncMatrix(CTX, kNameSpace *ks)

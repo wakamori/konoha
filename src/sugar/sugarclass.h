@@ -80,8 +80,8 @@ static void NameSpace_free(CTX, kObject *o)
 	if(ks->syntaxMapNN != NULL) {
 		kmap_free(ks->syntaxMapNN, syntax_free);
 	}
-	if(ks->fmat != NULL) {
-		KFREE((void*)ks->fmat, KCHAR_MAX * sizeof(CFuncTokenize));
+	if(ks->tokenMatrix != NULL) {
+		KFREE((void*)ks->tokenMatrix, SIZEOF_TOKENMATRIX);
 	}
 	KARRAY_FREE(&ks->cl);
 }

@@ -734,8 +734,6 @@ static KMETHOD ExprTyCheck_Regex(CTX, ksfp_t *sfp _RIX)
 static kbool_t pcre_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
-	parseSLASH = ks->fmat[_SLASH];
-	DBG_ASSERT(parseSLASH != NULL);
 	SUGAR NameSpace_setTokenizeFunc(_ctx, ks, '/', parseREGEX, NULL, 0);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("$regex"), _TERM, ExprTyCheck_(Regex), },

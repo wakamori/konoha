@@ -191,12 +191,14 @@ typedef struct KDEFINE_SYNTAX {
 
 #define new_SugarFunc(F)     new_(Func, new_kMethod(0, 0, 0, F))
 
+#define SIZEOF_TOKENMATRIX (KCHAR_MAX * sizeof(CFuncTokenize) * 2)
+
 typedef const struct _kNameSpace kNameSpace;
 struct _kNameSpace {
 	kObjectHeader h;
 	const struct     _kNameSpace   *parentNULL;
 	kpack_t packid;  kpack_t packdom;
-	const CFuncTokenize *fmat;
+	const CFuncTokenize *tokenMatrix;
 	struct kmap_t    *syntaxMapNN;
 	//
 	kObject          *scrobj;
