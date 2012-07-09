@@ -421,7 +421,7 @@ static KMETHOD ExprTyCheck_Squote(CTX, ksfp_t *sfp _RIX)
 static kbool_t bytes_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
-	SUGAR NameSpace_setTokenizer(_ctx, ks, '\'', parseSQUOTE, NULL);
+	SUGAR NameSpace_setTokenizeFunc(_ctx, ks, '\'', parseSQUOTE, NULL, 0);
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("$SingleQuote"), _TERM, ExprTyCheck_(Squote)},
 		{ .kw = KW_END, },

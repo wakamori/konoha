@@ -454,7 +454,7 @@ static void tokenize(CTX, tenv_t *tenv)
 	}
 }
 
-static const CFuncTokenize *NameSpace_tokenizerMatrix(CTX, kNameSpace *ks)
+static const CFuncTokenize *NameSpace_tokenMatrix(CTX, kNameSpace *ks)
 {
 	if(ks->fmat == NULL) {
 		DBG_ASSERT(KCHAR_MAX * sizeof(CFuncTokenize) == sizeof(MiniKonohaTokenMatrix));
@@ -470,11 +470,39 @@ static const CFuncTokenize *NameSpace_tokenizerMatrix(CTX, kNameSpace *ks)
 	return ks->fmat;
 }
 
-static void NameSpace_setTokenizer(CTX, kNameSpace *ks, int ch, CFuncTokenize f, kFunc *fo)
+static kFunc **NameSpace_tokenFuncMatrix(CTX, kNameSpace *ks)
+{
+	kFunc **funcMatrix = (kFunc**)NameSpace_tokenMatrix(_ctx, ks);
+	return funcMatrix + KCHAR_MAX;
+}
+
+static void NameSpace_setTokenizeFunc(CTX, kNameSpace *ns, int ch, CFuncTokenize cfunc, kFunc *funcTokenize, int isAddition)
 {
 	int kchar = (ch < 0) ? _MULTI : cMatrix[ch];
-	CFuncTokenize *fmat = (CFuncTokenize*)NameSpace_tokenizerMatrix(_ctx, ks);
-	fmat[kchar] = f;
+	if(cfunc != NULL) {
+		CFuncTokenize *funcMatrix = (CFuncTokenize *)NameSpace_tokenMatrix(_ctx, ns);
+		funcMatrix[ch] = cfunc;
+	}
+	else {
+		kFunc ** funcMatrix = NameSpace_tokenFuncMatrix(_ctx, ns);
+		if(funcMatrix[kchar] == NULL) {
+			KINITv(funcMatrix[kchar], funcTokenize);
+		}
+		else {
+			if(isAddition) {
+				kArray *a = (kArray*)funcMatrix[kchar];
+				if(!IS_Array(a)) {
+					a = new_(Array, 0);
+					kArray_add(a, funcMatrix[kchar]);
+					KSETv(funcMatrix[kchar], (kFunc*)a);
+				}
+				kArray_add(a, funcTokenize);
+			}
+			else {
+				KSETv(funcMatrix[kchar], funcTokenize);
+			}
+		}
+	}
 }
 
 static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t uline, kArray *a)
@@ -485,7 +513,7 @@ static void NameSpace_tokenize(CTX, kNameSpace *ks, const char *source, kline_t 
 		.uline  = uline,
 		.list   = a,
 		.indent_tab = 4,
-		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenizerMatrix(_ctx, ks),
+		.cfunc   = ks == NULL ? MiniKonohaTokenMatrix : NameSpace_tokenMatrix(_ctx, ks),
 	};
 	tokenize(_ctx, &tenv);
 	if(uline == 0) {

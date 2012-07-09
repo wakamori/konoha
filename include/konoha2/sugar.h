@@ -479,7 +479,7 @@ typedef struct {
 	kFunc *ParseExpr_Op;
 
 	// export
-	void (*NameSpace_setTokenizer)(CTX, kNameSpace *ks, int ch, CFuncTokenize f, kFunc *fo);
+	void (*NameSpace_setTokenizeFunc)(CTX, kNameSpace *, int ch, CFuncTokenize, kFunc *, int isAddition);
 	void (*NameSpace_tokenize)(CTX, kNameSpace *, const char *, kline_t, kArray *);
 
 	kExpr* (*Expr_setConstValue)(CTX, kExpr *expr, ktype_t ty, kObject *o);
@@ -518,7 +518,7 @@ typedef struct {
 } kmodsugar_t;
 
 #define EXPORT_SUGAR(base) \
-	base->NameSpace_setTokenizer = NameSpace_setTokenizer;\
+	base->NameSpace_setTokenizeFunc = NameSpace_setTokenizeFunc;\
 	base->NameSpace_tokenize = NameSpace_tokenize;\
 	base->Stmt_token          = Stmt_token;\
 	base->Stmt_block          = Stmt_block;\

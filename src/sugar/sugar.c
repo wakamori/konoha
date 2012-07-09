@@ -640,13 +640,13 @@ void MODSUGAR_loadMethod(CTX)
 	};
 	kNameSpace_loadMethodData(NULL, MethodData);
 	KSET_KLIB2(importPackage, NameSpace_importPackage, 0);
-#ifdef WITH_ECLIPSE
-	KDEFINE_PACKAGE *d = konoha_init();
-	d->initPackage(_ctx, KNULL(NameSpace), 0, NULL, 0);
-	d->setupPackage(_ctx, KNULL(NameSpace), 0);
-	d->initNameSpace(_ctx, KNULL(NameSpace), 0);
-	d->setupNameSpace(_ctx, KNULL(NameSpace), 0);
-#endif
+//#ifdef WITH_ECLIPSE
+//	KDEFINE_PACKAGE *d = konoha_init();
+//	d->initPackage(_ctx, KNULL(NameSpace), 0, NULL, 0);
+//	d->setupPackage(_ctx, KNULL(NameSpace), 0);
+//	d->initNameSpace(_ctx, KNULL(NameSpace), 0);
+//	d->setupNameSpace(_ctx, KNULL(NameSpace), 0);
+//#endif
 }
 
 #ifdef __cplusplus
