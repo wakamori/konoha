@@ -500,7 +500,7 @@ static void NameSpace_setTokenizeFunc(CTX, kNameSpace *ns, int ch, CFuncTokenize
 	int kchar = (ch < 0) ? _MULTI : cMatrix[ch];
 	if(cfunc != NULL) {
 		CFuncTokenize *funcMatrix = (CFuncTokenize *)NameSpace_tokenMatrix(_ctx, ns);
-		funcMatrix[ch] = cfunc;
+		funcMatrix[kchar] = cfunc;
 	}
 	else {
 		kFunc ** funcMatrix = NameSpace_tokenFuncMatrix(_ctx, ns);

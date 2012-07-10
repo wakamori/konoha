@@ -691,7 +691,8 @@ static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	int tlsize = kArray_size(tenv->list);
 	if(tlsize > 0) {
 		kToken *tkPrev = tenv->list->toks[tlsize - 1];
-		if(tkPrev->kw == TK_INT || tkPrev->kw == TK_SYMBOL) {
+		if(tkPrev->kw == TK_INT ||
+				(kToken_topch(tkPrev) != '(' && tkPrev->kw == TK_SYMBOL)) {
 			return parseSLASH(_ctx, tk, tenv, tok_start);
 		}
 	}

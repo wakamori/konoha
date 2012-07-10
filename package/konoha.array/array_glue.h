@@ -177,7 +177,7 @@ static kbool_t array_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
-		{ .kw = SYM_("$[]"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(BRACKET), .priority_op2 = 16, },  //AST_BRACKET
+		{ .kw = SYM_("[]"), .flag = SYNFLAG_ExprPostfixOp2, ParseExpr_(BRACKET), .priority_op2 = 16, },  //AST_BRACKET
 		{ .kw = KW_END, },
 	};
 	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
