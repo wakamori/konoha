@@ -260,6 +260,7 @@ static KMETHOD ParseExpr_new(CTX, ksfp_t *sfp _RIX)
 		if(TK_isType(tk1) && tk2->kw == AST_PARENTHESIS) {  // new C (...)
 			ksyntax_t *syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);
 			kExpr *expr = SUGAR new_ConsExpr(_ctx, syn, 2, tkNEW, NewExpr(_ctx, syn, tk1, TK_type(tk1), 0));
+			kToken_setmn(tkNEW, MN_("new"), MNTYPE_method);
 			RETURN_(expr);
 		}
 		if(TK_isType(tk1) && tk2->kw == AST_BRACKET) {     // new C [...]
@@ -577,8 +578,8 @@ static kbool_t class_initNameSpace(CTX,  kNameSpace *ks, kline_t pline)
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("new"), ParseExpr_(new), },
-		{ .kw = SYM_("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $USYMBOL] [$block]", TopStmtTyCheck_(class), },
-		{ .kw = SYM_("extends"), .rule = "\"extends\" $USYMBOL", },
+		{ .kw = SYM_("class"), .rule = "\"class\" $USYMBOL [\"extends\" extends: $type] [$block]", TopStmtTyCheck_(class), },
+		{ .kw = SYM_("extends"), .rule = "\"extends\" $type", },
 		{ .kw = SYM_("."), ExprTyCheck_(Getter) },
 		{ .kw = KW_END, },
 	};
