@@ -133,6 +133,7 @@ set(PACKAGES
 ##	jansson
 	python
 	apache
+	konoha.import
 #	openssl
 )
 

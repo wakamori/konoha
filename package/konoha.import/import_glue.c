@@ -43,7 +43,7 @@ static KMETHOD StmtTyCheck_import(CTX, ksfp_t *sfp _RIX)
 			/* name . */
 			kToken *tk  = tls->toks[i+0];
 			kToken *dot = tls->toks[i+1];
-			assert(tk->tt  == TK_SYMBOL);
+			assert(tk->kw  == TK_SYMBOL);
 			assert(dot->kw == KW_DOT);
 			kwb_write(&wb, S_text(tk->text), S_size(tk->text));
 			kwb_putc(&wb, '.');
@@ -52,7 +52,7 @@ static KMETHOD StmtTyCheck_import(CTX, ksfp_t *sfp _RIX)
 	kString *name = tls->toks[i]->text;
 	kwb_write(&wb, S_text(name), S_size(name));
 	kString *pkgname = new_kString(kwb_top(&wb, 1), kwb_bytesize(&wb), 0);
-	kKonohaSpace *ks = (kKonohaSpace *) gma->genv->ks;
+	kNameSpace *ks = (kNameSpace *) gma->genv->ks;
 	struct _ksyntax *syn1 = (struct _ksyntax*) SYN_(ks, KW_ExprMethodCall);
 	struct _kToken *tkImport = new_W(Token, 0);
 	kExpr *ePKG = new_ConstValue(TY_String, pkgname);
@@ -69,28 +69,28 @@ static KMETHOD StmtTyCheck_import(CTX, ksfp_t *sfp _RIX)
 
 // --------------------------------------------------------------------------
 
-static kbool_t import_initPackage(CTX, kKonohaSpace *ks, int argc, const char**args, kline_t pline)
+static kbool_t import_initPackage(CTX, kNameSpace *ks, int argc, const char**args, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t import_setupPackage(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t import_setupPackage(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
 
-static kbool_t import_initKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t import_initNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	USING_SUGAR;
 	KDEFINE_SYNTAX SYNTAX[] = {
 		{ .kw = SYM_("import"), .rule = "\"import\" $toks", TopStmtTyCheck_(import)},
 		{ .kw = KW_END, },
 	};
-	SUGAR KonohaSpace_defineSyntax(_ctx, ks, SYNTAX);
+	SUGAR NameSpace_defineSyntax(_ctx, ks, SYNTAX);
 	return true;
 }
 
-static kbool_t import_setupKonohaSpace(CTX, kKonohaSpace *ks, kline_t pline)
+static kbool_t import_setupNameSpace(CTX, kNameSpace *ks, kline_t pline)
 {
 	return true;
 }
@@ -101,8 +101,8 @@ KDEFINE_PACKAGE* import_init(void)
 		KPACKNAME("import", "1.0"),
 		.initPackage = import_initPackage,
 		.setupPackage = import_setupPackage,
-		.initKonohaSpace = import_initKonohaSpace,
-		.setupKonohaSpace = import_setupKonohaSpace,
+		.initNameSpace = import_initNameSpace,
+		.setupNameSpace = import_setupNameSpace,
 	};
 	return &d;
 }
