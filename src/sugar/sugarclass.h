@@ -605,12 +605,7 @@ static void Token_reftrace(CTX, kObject *o)
 static void dumpToken(CTX, kToken *tk)
 {
 	if(verbose_sugar) {
-		if(tk->kw == TK_MN) {
-			DUMP_P("%s%s %d: %s%s(%s)\n", KW_t(tk->kw), (short)tk->uline, T_mn(tk->mn), kToken_s(tk));
-		}
-		else {
-			DUMP_P("%s%s %d: kw=%s%s '%s'\n", KW_t(tk->kw), (short)tk->uline, KW_t(tk->kw), kToken_s(tk));
-		}
+		DUMP_P("%s%s %d: kw=%s%s '%s'\n", KW_t(tk->kw), (short)tk->uline, KW_t(tk->kw), kToken_s(tk));
 	}
 }
 

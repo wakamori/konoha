@@ -606,38 +606,37 @@ static kExpr* Expr_tyCheckDynamicCallParams(CTX, kStmt *stmt, kExpr *expr, kMeth
 	return Expr_typedWithMethod(_ctx, expr, mtd, reqty);
 }
 
-static const char* T_mntype(size_t mn_type)
+static const char* MethodType_t(CTX, kmethodn_t mn, size_t psize)
 {
-	static const char *mnname[3] = {"method", "unary operator", "binary operator"};
-	DBG_ASSERT(mn_type <= (size_t)MNTYPE_binary);
-	return mnname[mn_type];
+//	static const char *mnname[3] = {"method", "unary operator", "binary operator"};
+//	DBG_ASSERT(mn_type <= (size_t)MNTYPE_binary);
+//	return mnname[mn_type];
+	return "method";
 }
 
 static kExpr *Expr_lookupMethod(CTX, kStmt *stmt, kExpr *expr, kcid_t this_cid, kGamma *gma, ktype_t reqty)
 {
-	kMethod *mtd = NULL;
 	kNameSpace *ks = gma->genv->ks;
-	kToken *tkMN = expr->cons->toks[0];
+	struct _kToken *tkMN = expr->cons->Wtoks[0];
 	DBG_ASSERT(IS_Token(tkMN));
 	if(tkMN->kw == TK_SYMBOL) {
-		kToken_setmn(tkMN, ksymbolA(S_text(tkMN->text), S_size(tkMN->text), SYM_NEWID), MNTYPE_method);
+		tkMN->kw = ksymbolA(S_text(tkMN->text), S_size(tkMN->text), SYM_NEWID);
 	}
-	if(tkMN->kw == TK_MN) {
-		mtd = kNameSpace_getMethodNULL(ks, this_cid, tkMN->mn);
-		if(mtd == NULL) {
-			if(tkMN->text != TS_EMPTY) {
-				mtd = kNameSpace_getMethodNULL(ks, this_cid, 0);
-				if(mtd != NULL) {
-					return Expr_tyCheckDynamicCallParams(_ctx, stmt, expr, mtd, gma, tkMN->text, tkMN->mn, reqty);
-				}
+	kMethod *mtd = kNameSpace_getMethodNULL(ks, this_cid, tkMN->kw);
+	if(mtd == NULL) {
+		if(tkMN->text != TS_EMPTY) {  // Dynamic Call
+			mtd = kNameSpace_getMethodNULL(ks, this_cid, 0);
+			if(mtd != NULL) {
+				return Expr_tyCheckDynamicCallParams(_ctx, stmt, expr, mtd, gma, tkMN->text, tkMN->kw, reqty);
 			}
-			if(tkMN->mn == MN_new && kArray_size(expr->cons) == 2 && CT_(kExpr_at(expr, 1)->ty)->bcid == TY_Object) {
-				//DBG_P("bcid=%s", TY_t(CT_(kExpr_at(expr, 1)->ty)->bcid));
-				DBG_ASSERT(kExpr_at(expr, 1)->ty != TY_var);
-				return kExpr_at(expr, 1);  // new Person(); // default constructor
-			}
-			kToken_p(stmt, tkMN, ERR_, "undefined %s: %s.%s", T_mntype(tkMN->mn_type), TY_t(this_cid), kToken_s(tkMN));
 		}
+		size_t psize = kArray_size(expr->cons) - 2;
+		if(tkMN->kw == MN_new && psize == 0 && CT_(kExpr_at(expr, 1)->ty)->bcid == TY_Object) {
+			//DBG_P("bcid=%s", TY_t(CT_(kExpr_at(expr, 1)->ty)->bcid));
+			DBG_ASSERT(kExpr_at(expr, 1)->ty != TY_var);
+			return kExpr_at(expr, 1);  // new Person(); // default constructor
+		}
+		kToken_p(stmt, tkMN, ERR_, "undefined %s: %s.%s%s", MethodType_t(_ctx, tkMN->kw, psize), TY_t(this_cid), KW_t(tkMN->kw));
 	}
 	if(mtd != NULL) {
 		return Expr_tyCheckCallParams(_ctx, stmt, expr, mtd, gma, reqty);

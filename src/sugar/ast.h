@@ -668,11 +668,11 @@ static KMETHOD ParseExpr_Term(CTX, ksfp_t *sfp _RIX)
 static KMETHOD ParseExpr_Op(CTX, ksfp_t *sfp _RIX)
 {
 	VAR_ParseExpr(stmt, tls, s, c, e);
-	kToken *tk = tls->toks[c];
+	struct _kToken *tk = tls->Wtoks[c];
 	kExpr *expr, *rexpr = Stmt_newExpr2(_ctx, stmt, tls, c+1, e);
 	kmethodn_t mn = (s == c) ? syn->op1 : syn->op2;
 	if(mn != SYM_NONAME && syn->ExprTyCheck == kmodsugar->UndefinedExprTyCheck) {
-		kToken_setmn(tk, mn, (s == c) ? MNTYPE_unary: MNTYPE_binary);
+		tk->kw = mn;
 		syn = SYN_(kStmt_ks(stmt), KW_ExprMethodCall);  // switch type checker
 	}
 	if(s == c) { // unary operator

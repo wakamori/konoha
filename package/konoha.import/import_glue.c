@@ -56,7 +56,7 @@ static KMETHOD StmtTyCheck_import(CTX, ksfp_t *sfp _RIX)
 	struct _ksyntax *syn1 = (struct _ksyntax*) SYN_(ks, KW_ExprMethodCall);
 	struct _kToken *tkImport = new_W(Token, 0);
 	kExpr *ePKG = new_ConstValue(TY_String, pkgname);
-	kToken_setmn(tkImport, MN_("import"), MNTYPE_method);
+	tkImport->kw = MN_("import");
 	kExpr *expr = SUGAR new_ConsExpr(_ctx, syn1, 3,
 			tkImport, new_ConstValue(O_cid(ks), ks), ePKG);
 	kObject_setObject(stmt, KW_ExprPattern, expr);

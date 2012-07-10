@@ -223,21 +223,11 @@ struct _kToken {
 		kArray  *sub;
 	};
 	kline_t     uline;
-	union {
-		kshort_t  mn_type;  // method type   if tt == TK_MN
-	};
-	union {
-		kmethodn_t mn;	     // if tt == TK_MN
-	};
 };
 
 #define kToken_needsKeywordResolved(o)      (TFLAG_is(uintptr_t,(o)->h.magicflag,kObject_Local1))
 #define kToken_setUnresolved(o, B)          TFLAG_set(uintptr_t,(o)->h.magicflag,kObject_Local1,B)
 #define kToken_topch(tk)                    ((tk)->kw != TK_TEXT && (S_size((tk)->text) == 1) ? S_text((tk)->text)[0] : 0)
-
-typedef enum {
-	MNTYPE_method, MNTYPE_unary, MNTYPE_binary
-} mntype_t;
 
 #define TEXPR_LOCAL_   -4   /*THIS IS NEVER PASSED*/
 #define TEXPR_BLOCK_   -3   /*THIS IS NEVER PASSED*/
@@ -450,15 +440,7 @@ struct _kGamma {
 #define KW_return    (7+KW_void)
 // reserved
 #define KW_new       (8+KW_void)
-
 #define FN_this      FN_("this")
-
-static inline void kToken_setmn(kToken *tk, kmethodn_t mn, mntype_t mn_type)
-{
-	((struct _kToken*)tk)->kw = TK_MN;
-	((struct _kToken*)tk)->mn = mn;
-	((struct _kToken*)tk)->mn_type = (kshort_t)mn_type;
-}
 
 struct _kNameSpace;
 
