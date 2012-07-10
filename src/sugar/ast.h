@@ -35,7 +35,7 @@ extern "C" {
 
 static int selectStmtLine(CTX, kNameSpace *ks, int *indent, kArray *tls, int s, int e, int delim, kArray *tlsdst, kToken **tkERRRef);
 static void Block_addStmtLine(CTX, kBlock *bk, kArray *tls, int s, int e, kToken *tkERR);
-static int makeTree(CTX, kNameSpace *ks, ktoken_t tt, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef);
+static int makeTree(CTX, kNameSpace *ks, ksymbol_t tt, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef);
 
 static kBlock *new_Block(CTX, kNameSpace *ks, kStmt *parent, kArray *tls, int s, int e, int delim)
 {
@@ -179,7 +179,7 @@ static kbool_t Token_toBRACE(CTX, struct _kToken *tk, kNameSpace *ks)
 	return 0;
 }
 
-static int makeTree(CTX, kNameSpace *ks, ktoken_t astkw, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef)
+static int makeTree(CTX, kNameSpace *ks, ksymbol_t astkw, kArray *tls, int s, int e, int closech, kArray *tlsdst, kToken **tkERRRef)
 {
 	int i, probablyCloseBefore = e - 1;
 	kToken *tk = tls->toks[s];

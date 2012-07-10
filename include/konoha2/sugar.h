@@ -206,7 +206,6 @@ struct _kNameSpace {
 	karray_t             cl;        // const variable
 };
 
-typedef kshort_t    ktoken_t;
 typedef kshort_t    kexpr_t;
 
 typedef const struct _kToken kToken;
@@ -214,9 +213,9 @@ struct _kToken {
 	kObjectHeader h;
 	ksymbol_t     kw;  // keywordSymbolId
 	union {
-		kushort_t indent;   // indent when kw
-		ksymbol_t patternKey;   // sugar rule    in sugar
-		ktype_t   ty;       // if kw == KW_TypePattern
+		kushort_t indent;       // indent when kw
+		ksymbol_t patternKey;   // pattern name for 'setting key in Stmt'
+		ktype_t   ty;           // if kw == KW_TypePattern
 	};
 	union {
 		kString *text;

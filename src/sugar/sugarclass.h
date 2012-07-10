@@ -571,7 +571,7 @@ static void Token_reftrace(CTX, kObject *o)
 	END_REFTRACE();
 }
 
-//static const char *T_tt(ktoken_t t)
+//static const char *T_tt(ksymbol_t t)
 //{
 //	int tt = SYM_UNMASK(t);
 //	static const char* symTKDATA[] = {
