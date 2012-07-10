@@ -405,7 +405,6 @@ static int callFuncTokenize(CTX, kFunc *fo, struct _kToken *tk, tenv_t *tenv, in
 static int tokenizeEach(CTX, int kchar, struct _kToken* tk, tenv_t *tenv, int tok_start)
 {
 	int pos;
-	DBG_P("kchar=%d, tenv=%p, tenv->func=%p", kchar, tenv, tenv->func);
 	if(tenv->func != NULL && tenv->func[kchar] != NULL) {
 		kFunc *fo = tenv->func[kchar];
 		if(IS_Array(fo)) {
