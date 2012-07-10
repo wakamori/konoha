@@ -197,13 +197,13 @@ typedef const struct _kNameSpace kNameSpace;
 struct _kNameSpace {
 	kObjectHeader h;
 	const struct     _kNameSpace   *parentNULL;
-	kpack_t packid;  kpack_t packdom;
+	kpack_t packid;  	kpack_t packdom;
 	const CFuncTokenize *tokenMatrix;
-	struct kmap_t    *syntaxMapNN;
+	struct kmap_t       *syntaxMapNN;
 	//
-	kObject          *scrobj;
-	kArray*           methods;   // default K_EMPTYARRAY
-	karray_t          cl;        // const variable
+	kObject             *scrobj;
+	kArray*              methods;   // default K_EMPTYARRAY
+	karray_t             cl;        // const variable
 };
 
 typedef kshort_t    ktoken_t;
@@ -212,20 +212,21 @@ typedef kshort_t    kexpr_t;
 typedef const struct _kToken kToken;
 struct _kToken {
 	kObjectHeader h;
-//	kushort_t tt;
-	ksymbol_t kw;
+	ksymbol_t kw;  // keywordSymbolId
+	union {
+		kushort_t indent;   // indent
+		ksymbol_t nameid;   // sugar rule    in sugar
+		ktype_t   ty;       // if kw == KW_TypePattern
+	};
 	union {
 		kString *text;
 		kArray  *sub;
 	};
 	kline_t     uline;
 	union {
-		kushort_t indent;   // indent
-		ksymbol_t nameid;   // sugar rule    in sugar
 		kshort_t  mn_type;  // method type   if tt == TK_MN
 	};
 	union {
-		ktype_t    ty;       // if kw == KW_TypePattern
 		kmethodn_t mn;	     // if tt == TK_MN
 	};
 };

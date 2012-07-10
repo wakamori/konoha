@@ -692,7 +692,7 @@ static int parseREGEX(CTX, struct _kToken *tk, tenv_t *tenv, int tok_start)
 	if(tlsize > 0) {
 		kToken *tkPrev = tenv->list->toks[tlsize - 1];
 		if(tkPrev->kw == TK_INT ||
-				(kToken_topch(tkPrev) != '(' && tkPrev->kw == TK_SYMBOL)) {
+			(kToken_topch(tkPrev) != '(' && tkPrev->kw == TK_SYMBOL)) {
 			return parseSLASH(_ctx, tk, tenv, tok_start);
 		}
 	}
