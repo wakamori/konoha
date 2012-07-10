@@ -585,7 +585,7 @@ static kbool_t checkNestedSyntax(CTX, kArray *tls, int *s, int e, ksymbol_t astk
 static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 {
 	int i;
-	ksymbol_t nameid = 0;
+	ksymbol_t patternKey = 0;
 //	dumpTokenArray(_ctx, 0, tls, s, e);
 	for(i = s; i < e; i++) {
 		struct _kToken *tk = tls->Wtoks[i];
@@ -607,9 +607,9 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			tk = tls->Wtoks[++i];
 			if(tk->kw == TK_SYMBOL) {
 				tk->kw = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW) | KW_PATTERN;
-				if(nameid == 0) nameid = tk->kw;
-				tk->nameid = nameid;
-				nameid = 0;
+				if(patternKey == 0) patternKey = tk->kw;
+				tk->patternKey = patternKey;
+				patternKey = 0;
 				kArray_add(adst, tk);
 				continue;
 			}
@@ -622,7 +622,7 @@ static kbool_t makeSyntaxRule(CTX, kArray *tls, int s, int e, kArray *adst)
 			return false;
 		}
 		if(tk->kw == TK_SYMBOL && i + 1 < e && kToken_topch(tls->toks[i+1]) == ':') {
-			nameid = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
+			patternKey = ksymbolA(S_text(tk->text), S_size(tk->text), SYM_NEWRAW);
 			i++;
 			continue;
 		}

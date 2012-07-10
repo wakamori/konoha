@@ -212,10 +212,10 @@ typedef kshort_t    kexpr_t;
 typedef const struct _kToken kToken;
 struct _kToken {
 	kObjectHeader h;
-	ksymbol_t kw;  // keywordSymbolId
+	ksymbol_t     kw;  // keywordSymbolId
 	union {
-		kushort_t indent;   // indent
-		ksymbol_t nameid;   // sugar rule    in sugar
+		kushort_t indent;   // indent when kw
+		ksymbol_t patternKey;   // sugar rule    in sugar
 		ktype_t   ty;       // if kw == KW_TypePattern
 	};
 	union {

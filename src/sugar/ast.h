@@ -394,8 +394,8 @@ static int matchSyntaxRule(CTX, kStmt *stmt, kArray *rules, kArray *tls, int s, 
 				ri++;
 			}
 			DBG_P("syntax rule=%s%s", KW_t(syn->kw));
-			int next = PatternMatch(_ctx, syn, stmt, rule->nameid, tls, ti, c);
-			DBG_P("matched '%s%s' nameid='%s%s', next=%d=>%d", KW_t(rule->kw), KW_t(rule->nameid), ti, next);
+			int next = PatternMatch(_ctx, syn, stmt, rule->patternKey, tls, ti, c);
+			DBG_P("matched '%s%s' patternKey='%s%s', next=%d=>%d", KW_t(rule->kw), KW_t(rule->patternKey), ti, next);
 			if(next == -1) {
 				DBG_P("@");
 				return kStmt_printExpectedRule(_ctx, stmt, tk, rule, s, canRollBack);
